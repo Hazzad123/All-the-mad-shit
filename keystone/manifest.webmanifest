@@ -1,0 +1,16 @@
+{
+  "name": "Keystone — learn systems architecture",
+  "short_name": "Keystone",
+  "description": "Interactive lessons, labs and games for backend, software design and architecture.",
+  "start_url": "pocket.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#0d0f1e",
+  "theme_color": "#0e1020",
+  "icons": [
+    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" },
+    { "src": "icons/favicon.svg", "sizes": "any", "type": "image/svg+xml" }
+  ]
+}

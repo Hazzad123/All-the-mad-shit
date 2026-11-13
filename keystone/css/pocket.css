@@ -1,0 +1,40 @@
+/* Keystone Pocket — thumb-first layout. */
+body.pocket { padding-bottom: calc(66px + env(safe-area-inset-bottom, 0px)); -webkit-tap-highlight-color: transparent; overscroll-behavior-y: contain; }
+body.pocket.focus-mode { padding-bottom: 0; overflow: hidden; }
+.pview { max-width: 640px; margin: 0 auto; padding: 8px 16px 24px; }
+.pfocus { position: fixed; inset: 0; z-index: 100; display: none; background: var(--bg); }
+body.focus-mode .pfocus { display: block; } body.focus-mode .pview, body.focus-mode .tabbar { display: none; }
+.tabbar { position: fixed; left: 0; right: 0; bottom: 0; z-index: 60; display: grid; grid-template-columns: repeat(4, 1fr); background: color-mix(in srgb, var(--bg-2) 94%, transparent); backdrop-filter: blur(10px); border-top: 1px solid var(--line); padding-bottom: env(safe-area-inset-bottom, 0px); }
+.tab-item { position: relative; display: grid; justify-items: center; gap: 2px; padding: 9px 0 8px; color: var(--faint); font-size: .72rem; font-weight: 800; } .tab-item:hover { text-decoration: none; }
+.tab-item.on { color: var(--accent-ink); } .tab-dot { position: absolute; top: 7px; left: calc(50% + 8px); width: 9px; height: 9px; border-radius: 50%; background: var(--warn); }
+.ptop { display: flex; align-items: center; gap: 8px; padding: 6px 0 4px; } .ptop .icon-btn { margin-left: auto; }
+.pchip { padding: 6px 12px; border-radius: 999px; background: var(--panel); border: 1px solid var(--line); color: var(--text); font-weight: 800; font-size: .86rem; } .pchip:hover { text-decoration: none; }
+.phead { margin: 6px 0 14px; } .phead h1 { font-size: 1.6rem; margin-bottom: 2px; } .phead p { margin: 0; }
+.psec { font-size: 1.05rem; margin: 22px 0 10px; }
+.pcard { display: block; background: var(--panel); border: 1px solid var(--line); border-radius: 18px; padding: 14px 16px; margin-bottom: 12px; color: var(--text); }
+a.pcard:hover { text-decoration: none; }
+.pcard.goal { display: flex; gap: 16px; align-items: center; } .pc-big { font-weight: 850; font-size: 1.08rem; margin-bottom: 8px; }
+.pcard.hero { border-color: color-mix(in srgb, var(--wc) 55%, var(--line)); background: radial-gradient(120% 140% at 0% 0%, color-mix(in srgb, var(--wc) 24%, var(--panel)), var(--panel) 65%); }
+.hero-k { font-size: .76rem; font-weight: 800; color: var(--wc); text-transform: uppercase; letter-spacing: .08em; } .pcard.hero h3 { margin: 4px 0; font-size: 1.25rem; } .pcard.hero p { margin: 0 0 12px; font-size: .92rem; }
+.pq-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.pq { display: grid; gap: 1px; padding: 14px; border-radius: 16px; background: var(--panel); border: 1px solid var(--line); color: var(--text); min-height: 92px; align-content: start; } .pq:hover { text-decoration: none; }
+.pq.hot { border-color: var(--warn); background: linear-gradient(150deg, var(--warn-soft), var(--panel)); } .pq-e { font-size: 1.6rem; } .pq-t { font-weight: 850; } .pq-s { color: var(--muted); font-size: .8rem; font-weight: 650; }
+.plink { display: flex; gap: 8px; align-items: center; justify-content: center; padding: 14px; margin-top: 14px; color: var(--muted); font-weight: 700; font-size: .9rem; border: 1px dashed var(--line-2); border-radius: 14px; }
+.pback { display: inline-block; padding: 10px 0 4px; font-weight: 800; }
+.pworld { background: var(--panel); border: 1px solid var(--line); border-left: 4px solid var(--wc); border-radius: 16px; margin-bottom: 10px; overflow: hidden; }
+.pworld summary { display: flex; gap: 12px; align-items: center; padding: 12px 14px; cursor: pointer; list-style: none; } .pworld summary::-webkit-details-marker { display: none; }
+.pw-e { font-size: 1.6rem; } .pw-main { flex: 1; display: grid; min-width: 0; }
+.pw-mods { display: grid; border-top: 1px solid var(--line); } .pw-mod { display: flex; gap: 10px; align-items: center; padding: 13px 14px; color: var(--text); border-bottom: 1px solid var(--line); } .pw-mod:last-child { border-bottom: 0; } .pw-mod:hover { text-decoration: none; } .pw-mod.here { background: var(--accent-soft); } .pw-mt { flex: 1; font-weight: 700; }
+.plist { display: grid; gap: 8px; margin-top: 14px; }
+.prow { display: flex; gap: 12px; align-items: center; padding: 12px 14px; border-radius: 16px; background: var(--panel); border: 1px solid var(--line); color: var(--text); min-height: 58px; } .prow:hover { text-decoration: none; }
+.prow.next { border-color: var(--wc); box-shadow: 0 0 0 3px color-mix(in srgb, var(--wc) 20%, transparent); } .prow.missing { opacity: .55; } .prow.boss { background: linear-gradient(100deg, rgba(239, 68, 68, .13), var(--panel) 60%); }
+.pr-n { flex: none; width: 34px; height: 34px; border-radius: 50%; display: grid; place-items: center; background: var(--panel-3); font-weight: 900; font-size: .88rem; } .prow.done .pr-n { background: var(--good); color: #052a1d; } .prow.next .pr-n { background: var(--wc); color: #10121f; }
+.pr-main { flex: 1; display: grid; min-width: 0; }
+.pgames { display: grid; gap: 10px; }
+.pgame { display: flex; gap: 14px; align-items: center; padding: 14px; border-radius: 16px; background: var(--panel); border: 1px solid var(--line); color: var(--text); min-height: 68px; } .pgame:hover { text-decoration: none; } .pgame.hot { border-color: var(--warn); background: linear-gradient(150deg, var(--warn-soft), var(--panel)); }
+.pg-e { font-size: 1.8rem; } .pgame > div { flex: 1; min-width: 0; } .pg-t { color: var(--faint); font-weight: 800; font-size: .8rem; }
+.plab { position: absolute; inset: 0; display: flex; flex-direction: column; } .plab-body { flex: 1; overflow-y: auto; padding: 14px 14px 40px; }
+.pview .stat-grid { grid-template-columns: 1fr 1fr; } .pview .ach-grid { grid-template-columns: 1fr 1fr; } .pview .gloss-list, .pview .meta-list, .pview .sheet-cols { columns: 1; }
+.pview .set-row, .pview .data-row { padding: 12px 0; } .pview .set-ctl input[type="text"] { width: 150px; } .pview .seg { flex-wrap: wrap; }
+.pview .btn, .pfocus .btn { min-height: 44px; }
+.pview .rm-nodes { gap: 6px; } .pview .heat-cell { width: 11px; height: 11px; } .pview .heat { grid-template-rows: repeat(7, 11px); grid-auto-columns: 11px; }

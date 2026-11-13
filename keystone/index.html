@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Keystone</title>
+  <meta name="description" content="Keystone: an interactive playground for learning backend development, software design and software architecture. Bite-sized lessons, hands-on labs, games and flashcards.">
+  <meta name="theme-color" content="#0e1020">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="icons/favicon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="icons/icon-192.png">
+  <script>
+    // Phones get the Pocket experience by default. "Open full Studio" in Pocket sets keystone.shell = studio.
+    (function () {
+      try {
+        var pref = localStorage.getItem('keystone.shell');
+        var phone = window.matchMedia('(max-width: 760px)').matches && window.matchMedia('(pointer: coarse)').matches;
+        if (phone && pref !== 'studio' && !/[?&]studio\b/.test(location.search)) location.replace('pocket.html' + location.hash);
+      } catch (e) { /* storage blocked: stay here */ }
+    })();
+  </script>
+  <link rel="stylesheet" href="css/base.css">
+  <link rel="stylesheet" href="css/app.css">
+  <link rel="stylesheet" href="css/labs.css">
+  <link rel="stylesheet" href="css/studio.css">
+</head>
+<body class="studio">
+  <div id="app"></div>
+  <noscript><p style="padding:40px;font-family:sans-serif">Keystone is an interactive app and needs JavaScript switched on.</p></noscript>
+
+  <!-- core -->
+  <script src="js/core/ks.js"></script>
+  <script src="js/core/store.js"></script>
+  <script src="js/core/md.js"></script>
+  <script src="js/core/content.js"></script>
+  <script src="js/core/ui.js"></script>
+  <script src="js/core/diagrams.js"></script>
+  <script src="js/core/activities.js"></script>
+  <script src="js/core/game.js"></script>
+  <script src="js/core/labkit.js"></script>
+  <script src="js/core/player.js"></script>
+  <script src="js/core/arcade.js"></script>
+  <script src="js/core/sync.js"></script>
+  <script src="js/core/panels.js"></script>
+  <!-- curriculum backbone (lesson content is loaded lazily from content/modules/) -->
+  <script src="content/curriculum-1.js"></script>
+  <script src="content/curriculum-2.js"></script>
+  <script src="content/curriculum-3.js"></script>
+  <script src="content/roadmaps.js"></script>
+  <script src="js/labs/manifest.js"></script>
+  <!-- shell -->
+  <script src="js/studio/app.js"></script>
+</body>
+</html>
