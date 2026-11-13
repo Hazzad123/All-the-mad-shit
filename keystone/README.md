@@ -18,7 +18,7 @@ Phones are sent to Pocket automatically. Both modes share the same progress.
 From this folder:
 
 ```bash
-python -m http.server 8123
+python3 -m http.server 8123    # on Windows: python -m http.server 8123
 ```
 
 Then open http://localhost:8123. (Opening `index.html` straight from disk will not work, because lessons load on demand.)

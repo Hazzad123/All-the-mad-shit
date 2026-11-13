@@ -1134,7 +1134,7 @@ KS.lesson('nw-toolbox', {
 
   activities: [
     { type: 'mcq', after: 2, q: 'A traceroute shows `* * *` at hop 3, but hops 4 and 5 reply normally and the last hop is the destination. What does that tell you?',
-      options: ['Hop 3 just does not reply to these probes; traffic still passes through it', 'The network is broken at hop 3', 'The destination is down', 'Hop 3 is the attacker'],
+      options: ['Hop 3 ignores the probes but still forwards traffic', 'The network is broken at hop 3, so packets stop there', 'The destination is down and is not accepting traffic', 'Hop 3 is intercepting the traffic as an attacker'],
       answer: 0,
       why: [null, 'If packets were stopped at hop 3, hops 4 and 5 could not have answered.', 'The final hop answered, so the destination was reached.', 'Nothing here suggests an attack. Routers are commonly set not to answer these probes.'],
       explain: 'Stars mean "no reply from that router", not "traffic blocked". The proof that traffic got through is that later hops answered.' },

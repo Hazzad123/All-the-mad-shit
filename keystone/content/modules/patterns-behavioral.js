@@ -1623,4 +1623,182 @@ KS.lesson('patterns-picker', {
   ]
 });
 
-/* @@END */
+// ═══════════════════════════════════════════════════════════════════════════
+KS.boss('patterns-behavioral', {
+  title: 'The Shapeshifter of Many Moods',
+  intro: 'A creature that changes its behaviour every time you look at it guards the last door of the patterns wing. Beat it by telling look-alike patterns apart, spotting broken undo stacks and leaky listeners, and knowing when no pattern at all is the right answer.',
+  questions: [
+    { type: 'mcq', q: 'A vending machine refuses to dispense until paid, dispenses once paid, and refuses everything while being refilled. Many of its methods check the same `mode` string. Which pattern fits best?',
+      options: ['State: one object per mode, each deciding what the actions mean and which mode comes next', 'Strategy: the customer passes in a dispensing function', 'Observer: the machine announces each button press', 'Template Method: a parent class fixes the order of dispensing steps'],
+      answer: 0,
+      why: [null, 'Nobody outside chooses the behaviour here. The machine changes it itself as it moves between modes.', 'Announcing presses does not remove the branching on `mode` in every method.', 'The problem is not a shared skeleton of steps but behaviour that depends on the current stage.'],
+      explain: 'Behaviour that depends on a stage, with the same status check repeated in many methods, is the State signature. Strategy looks alike on a diagram, but its choice is made from outside.' },
+
+    { type: 'spot', prompt: 'This settings panel subscribes to a theme feed. Users open and close it hundreds of times a day and the app slowly fills memory. Tap the line that causes it.',
+      code: { lang: 'js', src: `
+        class SettingsPanel {
+          constructor(theme) {
+            theme.on('changed', (t) => this.repaint(t));
+          }
+          close() {
+            this.element.remove();
+          }
+        }` },
+      lines: [3],
+      explain: 'The returned unsubscribe function is thrown away, so the theme feed keeps every closed panel alive and still repainting. Store it (`this.stop = theme.on(...)`) and call it in `close()`.' },
+
+    { type: 'bucket', prompt: 'Observer or Mediator?', buckets: ['Observer', 'Mediator'],
+      items: [['A weather station tells every display when the temperature changes', 0], ['A booking form where picking a date disables some rooms and changes the price box', 1], ['The sender knows nothing about who listens', 0], ['The rules about who reacts to whom live in one central object', 1], ['Main risk: the centre swells into a god class', 1], ['Main risk: forgotten subscriptions and invisible chains of reactions', 0]],
+      explain: 'Observer is one-to-many broadcasting where the subject stays ignorant of its listeners. Mediator is a central coordinator for a fixed group, holding the interaction rules in one place.' },
+
+    { type: 'spot', prompt: 'After undoing two steps, the user types a new word, then presses redo and gets nonsense. Tap the line that is missing its partner.',
+      code: { lang: 'js', src: `
+        run(cmd) {
+          cmd.execute();
+          this.undoStack.push(cmd);
+        }
+        undo() {
+          const cmd = this.undoStack.pop();
+          if (!cmd) return;
+          cmd.undo();
+          this.redoStack.push(cmd);
+        }` },
+      lines: [3],
+      explain: 'A new action must clear the redo stack (`this.redoStack = []`) right after it is recorded. Otherwise redo replays a "future" that no longer fits the document.' },
+
+    { type: 'mcq', q: 'A command charges a customer’s card. The order is then cancelled. What should its "undo" do?',
+      options: ['Run a compensating action, such as issuing a refund', 'Call execute() again to reverse the charge', 'Restore a memento of the card balance', 'Nothing: a charge is recorded, so undo is automatic'],
+      answer: 0,
+      why: [null, 'Running it again would charge the customer twice.', 'You cannot snapshot and restore a bank’s records from your code.', 'Recording a charge does not reverse it.'],
+      explain: 'Real-world side effects cannot be wound back by code. The best you can do is a new action that cancels the effect, like a refund or a correction email.' },
+
+    { type: 'match', prompt: 'Match each role to its pattern’s job.',
+      pairs: [['Caretaker', 'Stores snapshots without looking inside'], ['Hook', 'Optional, empty-by-default step a subclass may override'], ['Context', 'Holds the current strategy or state and delegates to it'], ['Subject', 'Announces events to whoever subscribed'], ['Invoker', 'Runs commands and keeps them in a history']],
+      explain: 'Caretaker belongs to Memento, hook to Template Method, context to Strategy and State, subject to Observer, and invoker to Command.' },
+
+    { type: 'tf', statement: 'A generator that yields an endless sequence is a bug, because it will always run forever.', answer: false,
+      explain: 'Generators are lazy: each value is made only when the consumer asks for it. An endless generator is fine as long as the consumer has a stop condition, such as a `break`.' },
+
+    { type: 'ab', q: 'Four report exporters share load, save and notify, and differ only in how they format. Which design is better?',
+      a: { lang: 'js', label: 'Template', src: `
+        class Exporter {
+          export(r) {
+            const text = this.format(this.load(r));
+            this.save(text);
+            this.notify(r);
+          }
+        }
+        class HtmlExporter extends Exporter {
+          format(rows) { /* HTML only */ }
+        }` },
+      b: { lang: 'js', label: 'Subclass rewrites all', src: `
+        class HtmlExporter extends Exporter {
+          export(r) {
+            const rows = r.rows();
+            const text = toHtml(rows);
+            writeFile(text);
+            emailOwner(r);
+          }
+        }` },
+      answer: 'a',
+      explain: 'In A the parent owns the order and the subclass fills one blank, so a fix to saving helps every exporter. B overrides the template method itself, copying the shared steps and letting the order drift.' },
+
+    { type: 'order', prompt: 'A request reaches a server whose middleware chain is logging, then auth, then rate limit, then the app. The user is logged in but over the limit. Put what happens in order.',
+      items: ['Logging records the request and passes it on', 'Auth finds a valid user and passes it on', 'Rate limit answers 429 Too Many Requests', 'The reply travels back to the client, and the app never runs'],
+      explain: 'Each link handles or passes on. Rate limit decides to answer itself, which ends the chain before the expensive app code is reached.' },
+
+    { type: 'multi', q: 'Your team has a stable set of six syntax-tree node classes and plans many new passes over them (type check, pretty-print, optimise). Which statements about using Visitor here are true?',
+      options: ['Each new pass is one new visitor, with no edits to the node classes', 'Each node’s accept() calls the visitor method for its own kind, which is double dispatch', 'Adding a seventh node class later will mean updating every visitor', 'Visitor also makes adding new node classes free', 'Visitor is a kind of Chain of Responsibility'],
+      answers: [0, 1, 2],
+      explain: 'Visitor makes new operations cheap and new element classes expensive, which suits stable classes with growing operations. It is not a chain: nothing is passed along a line of handlers.' },
+
+    { type: 'bucket', prompt: 'Which architectural pattern does each describe?', buckets: ['Layers', 'Pipes & Filters', 'Broker', 'MVC'],
+      items: [['Raw images pass through resize, watermark and compress steps in a line', 1], ['Business rules never touch HTML and never write SQL directly', 0], ['A client asks for "payments" by name and never learns which machine answers', 2], ['When the model changes, every chart showing it redraws', 3], ['A layer may only call the layer directly below it', 0]],
+      explain: 'Layers stack responsibilities, pipes and filters chain one-way steps, a broker hides where services live, and MVC splits data, display and input so one model can drive many views.' },
+
+    { type: 'cloze', text: 'To let marketing write discount rules safely, use {{Interpreter}}: a small language whose sentences become an object {{tree}} that evaluates itself, rather than running their text with {{eval}}. To serve 10,000 idle connections from one loop that is told when data is {{ready}} and then reads it, use Reactor.',
+      distractors: ['Visitor', 'finished', 'list', 'Proxy'],
+      explain: 'Interpreter turns a limited rule language into evaluating objects, so users can only do what you defined. Reactor reacts to "ready" events; Proactor would be told the read has already finished.' }
+  ]
+});
+
+KS.sheet('patterns-behavioral', {
+  title: 'Behavioural & architectural patterns: cheat sheet',
+  sections: [
+    { title: 'Changing behaviour: Strategy & State',
+      md: `| | Strategy | State |
+        |---|---|---|
+        | Answers | *How* do I do this job? | *What can I do now?* |
+        | Who switches | The client, from outside | The object itself, as it moves on |
+        | Parts know each other? | No | Yes, states pick the next state |
+        | Example | Shipping rule, sort order | Draft → In review → Published |
+
+        **Context** holds the current strategy/state and delegates. A strategy can be just a function. Draw a **state machine** (states + events) first; large ones read better as a table. **Smell:** the same \`switch\`/\`if\` on status in many methods. Two stable cases? Keep the \`if\`.` },
+
+    { title: 'Communicating: Observer & Mediator',
+      md: `| | Observer | Mediator |
+        |---|---|---|
+        | Shape | One announces, many listen | Many talk through one centre |
+        | Sender knows | Nothing about listeners | Only the mediator |
+        | Rules live | In each listener | In the mediator |
+        | Risk | Leaks, hidden reaction chains | Mediator becomes a god class |
+        | Seen in | \`addEventListener\`, \`EventEmitter\` | Chat room, dialog coordinating fields |
+
+        **Every \`on()\` needs an \`off()\`**: keep the unsubscribe function and call it on destroy (lapsed listener leak).` },
+
+    { title: 'Undo: Command & Memento',
+      md: `**Command** = request as an object with \`execute()\` and \`undo()\`. **Invoker** (History) keeps two stacks: run → push on undo stack and **clear redo**; undo → pop, \`undo()\`, push on redo. Also gives queues, macros, logs, retries.
+
+        **Memento** = snapshot made by the **originator** itself; the **caretaker** stores it and never peeks.
+
+        | Store the action (Command) | Store the state (Memento) |
+        |---|---|
+        | Small, cheap | Can be large |
+        | Must write each inverse | Save and restore, no inverse |
+        | Small reversible actions | No tidy inverse, checkpoints |
+
+        Real side effects (emails, charges) need a **compensating action**. Cap history size.` },
+
+    { title: 'Steps and walking: Template Method & Iterator',
+      md: `**Template Method:** parent fixes the skeleton, subclasses fill the blanks. **Required** steps throw "override me"; **hooks** are empty by default. Hollywood principle: "don't call us, we'll call you". Uses inheritance, so if only one step varies, pass a function (Strategy) instead.
+
+        **Iterator:** visit items one at a time without knowing the storage; keeps its own position. JS: \`[Symbol.iterator]()\` returning \`next()\` → \`{ value, done }\`, used by \`for...of\`.
+
+        **Generator:** \`function*\` + \`yield\` (Python: \`yield\`). Lazy, pauses between values, ideal for huge files.
+
+        **Gotchas:** do not modify a collection while looping; many iterators are one-shot; endless generators need a \`break\`.` },
+
+    { title: 'Chain, Visitor, Interpreter',
+      md: `| Pattern | Idea | Watch out |
+        |---|---|---|
+        | Chain of Responsibility | Each link handles **or** passes on; may stop the line | Request falls off the end; order matters; hard to trace |
+        | Visitor | New operation = new visitor; \`accept(v)\` calls \`v.visitX(this)\` (**double dispatch**) | New element class breaks every visitor |
+        | Interpreter | Small language as an object tree that \`evaluate()\`s itself | Small grammars only; **never \`eval\` user text** |
+
+        **Middleware** (Express, Django, ASP.NET) is a chain. Visitor: easy new operations, hard new classes. Interpreter lives in rule engines, formulas, search filters, regex, SQL.` },
+
+    { title: 'Architectural patterns (POSA)',
+      md: `| Pattern | Shape | Cost |
+        |---|---|---|
+        | Layers | Presentation → business → data → DB, each calls the one below | Pass-through "lasagne" |
+        | Pipes & Filters | Independent steps in a one-way line, source → sink, like a shell pipeline | Bad with rich shared state |
+        | Broker | Clients ask a middleman for services **by name** | Extra hop, central dependency |
+        | MVC | Model (data, rules), View (display), Controller (input); model notifies views | Many variants: MVP, MVVM |
+        | Reactor / Proactor | One loop for many connections: told **ready** / told **finished** | One slow handler blocks all |
+
+        Strict layering: only the next layer down. Architecture is costly to reverse.` },
+
+    { title: 'Picking a pattern',
+      md: `1. **Name the pain.** None? Stop. 2. **What varies?** 3. **Which family?** Making (5), joining (7), behaving (11). 4. **Check smells.** 5. **Try the simplest thing.**
+
+        | Smell | Consider |
+        |---|---|
+        | \`switch\` on type/status | Strategy, State, Visitor |
+        | Long optional constructor | Builder |
+        | Subclass per combination | Decorator, Bridge |
+        | Copied skeleton, one line differs | Template Method |
+        | One change, many manual calls | Observer |
+
+        **Over-engineering alarms:** single-implementer interface, more plumbing than logic, "we might need it later". Refactor on the **third** duplicate.` }
+  ]
+});

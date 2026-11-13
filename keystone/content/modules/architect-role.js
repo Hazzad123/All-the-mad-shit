@@ -1268,7 +1268,7 @@ KS.lesson('ar-estimate-balance', {
 
   activities: [
     { type: 'mcq', after: 2, q: 'Your head of sales asks how long a new integration will take, and you honestly have not seen the customer\'s system. Which reply is best?',
-      options: ['"Probably four to seven weeks. The unknown is their login system; a two-day spike would narrow it."', '"Two weeks."', '"I can\'t possibly say."', '"Whatever date you need, we will make it."'],
+      options: ['"Four to seven weeks; a short spike on their login system would narrow it."', '"Two weeks, give or take a few days."', '"I can\'t possibly say until we have started the work."', '"Whatever date you need, we will make it work somehow."'],
       answer: 0,
       why: [null, 'A single optimistic number will be heard as a promise.', 'Accurate but unhelpful. People still need something to plan with.', 'This turns a forecast into a commitment you cannot know you can meet.'],
       explain: 'A range, with assumptions and a plan to reduce the main unknown, is both honest and useful.' },
@@ -1295,7 +1295,7 @@ KS.lesson('ar-estimate-balance', {
         // TODO: fix this properly one day
         (no ticket, no owner, no date)` },
       answer: 'a',
-      explain: 'Recorded debt has an owner, a cost and a date, so the business can see the loan and decide when to repay. A silent TODO is debt nobody knows about.' },
+      explain: 'Recorded debt has an owner, a cost and a date, so the business can see the loan and choose when to repay it. A bare comment in the code is invisible to planning, so the interest quietly piles up until something breaks.' },
 
     { type: 'short', q: 'What two-word term describes shortcuts that save time now but make future changes slower?', accept: ['technical debt', 'tech debt'], hint: 'It borrows the language of loans.',
       explain: 'Technical debt: used deliberately and recorded, it is a tool; hidden, it is a trap.' },
@@ -1554,4 +1554,177 @@ KS.lesson('ar-marketing', {
   ]
 });
 
-/* @@END */
+// ═══════════════════════════════════════════════════════════════════════════
+KS.boss('architect-role', {
+  title: 'The Ivory Tower Keeper',
+  intro: 'At the top of a dusty tower sits a keeper who hands down 80-page standards nobody reads. Beat it by spotting the load-bearing decisions, picking the right level, recording the why, and getting good ideas actually adopted.',
+  questions: [
+    { type: 'mcq', q: 'Two teams argue for a week about which code formatter to use, then agree a public API for partners in a single afternoon. What went wrong?',
+      options: ['They spent their care the wrong way round: the API is hard to reverse, the formatter is not', 'Nothing: every decision deserves about the same amount of debate', 'They should have written a full ADR for the formatter as well', 'They decided the API too late, after the last responsible moment'],
+      answer: 0,
+      why: [null, 'Care should match how costly a mistake would be to undo.', 'A formatter is easy to swap; an ADR for it is rarely worth the time.', 'The problem is how little care the API got, not when it was decided.'],
+      explain: 'A public API that outsiders build on is a load-bearing wall; a formatter is paint. Match the effort to the reversibility.' },
+
+    { type: 'tf', statement: 'If a team never consciously designs its system, the system has no architecture.', answer: false,
+      explain: 'Every system has an architecture. If nobody chooses it on purpose, it is chosen by accident, usually by whoever was in a hurry.' },
+
+    { type: 'bucket', prompt: 'At which level is each question mainly asked?', buckets: ['Application', 'Solution', 'Enterprise'],
+      items: [['How should this service split its code into layers?', 0], ['Which test approach suits this one codebase?', 0], ['How do the shop, warehouse and courier share return data?', 1], ['Build or buy the payment step for this project?', 1], ['Which of our four CRM systems should we retire?', 2], ['Which business capabilities need investment over five years?', 2]],
+      explain: 'Application: inside one system. Solution: several systems answering one business problem. Enterprise: the whole landscape and its direction over years.' },
+
+    { type: 'spot', prompt: 'This ADR has one line that breaks the rules for keeping decision records. Tap it.',
+      code: { lang: 'text', src: `
+        # ADR 12: Use a job queue for emails
+        Status: Accepted (edited in March to say we use streaming instead)
+
+        Context:
+        - Email volume is modest; the team knows the queue tool.
+
+        Decision:
+        Send emails through one job queue behind a small interface.` },
+      lines: [2],
+      explain: 'Records are not rewritten after the fact. When a decision changes, a new ADR supersedes the old one and links back, so the history and the reasons stay visible.' },
+
+    { type: 'multi', q: 'An architect wants to stay out of the ivory tower. Which habits help?',
+      options: ['Joining team design chats as a colleague', 'Reading pull requests and running the odd spike', 'Explaining the reason behind each rule', 'Owning the most critical feature on the roadmap', 'Answering challenges with "It is the standard"'],
+      answers: [0, 1, 2],
+      explain: 'Sitting with teams, staying near the code and explaining the why keep an architect grounded. Owning the critical path makes them a bottleneck, and citing the standard without a reason is the tower itself.' },
+
+    { type: 'order', prompt: 'A team doubts a library can handle its load. Put a good spike in order.',
+      items: ['Phrase one question that can be answered with a number', 'Agree a time box of a day or two', 'Build the roughest thing that answers it', 'Write down the result and the evidence', 'Throw the code away and build properly'],
+      explain: 'A sharp question and a time box keep the spike small; a short written result preserves the learning; discarding the code stops a hack becoming a foundation.' },
+
+    { type: 'match', prompt: 'Match each C4 diagram level to the question it answers.',
+      pairs: [['System Context', 'Who uses the system, and what does it talk to?'], ['Containers', 'Which separately running parts are there, and how do they talk?'], ['Components', 'What are the main building blocks inside one part?'], ['Code', 'Which classes and functions exist?']] },
+
+    { type: 'ab', q: 'You must tell the finance director about a planned database migration. Which message is better?',
+      a: { lang: 'text', label: 'Mechanics', src: `
+        We are moving from a relational schema to a document store
+        with eventual consistency, sharded by customer ID, via a
+        dual-write migration.` },
+      b: { lang: 'text', label: 'Outcomes', src: `
+        Checkout will stay fast through peak season. It costs about
+        two sprints of feature work. I need you to pick one of two
+        windows for it.` },
+      answer: 'b',
+      explain: 'A finance director needs outcome, cost and the decision being asked of them, in business terms. The technical mechanics belong in the conversation with developers.' },
+
+    { type: 'estimate', q: 'A batch job must process 9 million records overnight in a 5-hour window. Roughly how many records per second must it handle?', answer: 500, unit: 'records per second', tolerance: 1.5,
+      explain: 'Five hours is 18,000 seconds, and 9,000,000 ÷ 18,000 = 500. A quick sum like this tells you early whether one machine is likely to cope.' },
+
+    { type: 'mcq', q: 'A product owner asks for "a real-time dashboard". What should the architect do first?',
+      options: ['Ask what problem it solves and how fresh the data really needs to be', 'Choose a streaming platform that can push updates every second', 'Estimate the cost of a real-time system and send it straight back', 'Coach the product owner to design the dashboard themselves'],
+      answer: 0,
+      why: [null, 'That jumps to a solution before the need is understood.', 'An estimate for the wrong solution is still the wrong solution.', 'Coaching has its place, but first you need to understand the problem.'],
+      explain: 'Requests often arrive as solutions in disguise. "Real-time" may turn out to mean "within an hour", which a far simpler design can meet.' },
+
+    { type: 'cloze', text: 'Build what makes you {{different}} and buy what everybody needs. Judge options on {{total}} cost of ownership, and when you take a shortcut, record the technical {{debt}} with an owner and a date.',
+      distractors: ['cheaper', 'monthly', 'budget'],
+      explain: 'Commodities are bought, differentiators built; the full lifetime cost matters more than the first invoice; and deliberate, recorded debt is a tool rather than a trap.' },
+
+    { type: 'mcq', q: 'Your excellent proposal for shared error handling has sat unread on the wiki for months. What is the most effective next step?',
+      options: ['Pilot it with a team that feels the pain, then show the results in a short demo', 'Ask the CTO to make it mandatory for every team this quarter', 'Rewrite the proposal with more detail and stronger arguments', 'Wait: if the idea is good, teams will find it in time'],
+      answer: 0,
+      why: [null, 'A mandate gets grudging compliance and spends your reputation.', 'More detail will not help a document nobody opened.', 'Good ideas do not spread on their own; people are busy and have habits.'],
+      explain: 'People adopt what they have tasted. A real pilot with a friendly team, shown honestly, persuades far more than a document or a mandate.' }
+  ]
+});
+
+KS.sheet('architect-role', {
+  title: 'The architect\'s job: cheat sheet',
+  sections: [
+    { title: 'What architecture is',
+      md: `**Architecture = structure + the reasons behind it.** Structure is the parts and connections; the reasons are why, and what was traded away.
+
+        | Architectural | Detail |
+        |---|---|
+        | Costly to reverse, many teams | Cheap, one person |
+        | Monolith vs services, where data lives, how users sign in | Variable names, loop style, button colour |
+
+        - Test of good architecture: **how cheap is the next change?**
+        - It is **never finished**: revisit when assumptions stop being true. Neglect means **erosion**.
+        - Every system has an architecture; the only question is whether it was chosen on purpose.` },
+
+    { title: 'The role and its levels',
+      md: `**Role:** help the team make the important decisions well, and make sure they are **understood, recorded and followed**. The conductor, not the soloist.
+
+        | Level | Scope | Horizon | Talks to |
+        |---|---|---|---|
+        | Application | One app or service | Weeks–months | One team |
+        | Solution | One business problem, several systems | Months | Several teams, vendors |
+        | Enterprise | Whole landscape vs strategy | Years | Executives, many teams |
+
+        Levels are **scopes, not ranks**. Check decisions one level up and one down.
+
+        **Ivory tower:** rules from afar, no context. Cure: sit with teams, explain the why, stay near the code.` },
+
+    { title: 'Deciding and recording',
+      md: `| Easy to reverse | Hard to reverse |
+        |---|---|
+        | Decide fast, try it | Evidence, consult, write it down |
+        | Logging library, folders | Database, service split, public API |
+
+        **Last responsible moment:** decide when waiting costs more than deciding. Until then, hide the choice behind a boundary.
+
+        **ADR:** number + title, **Status** (proposed / accepted / superseded), **Context**, **Decision** (one clear sentence), **Consequences** (good, bad, when to revisit). Kept in the repo. **Supersede, never rewrite.**
+
+        **Simplify:** add a moving part only when you can name the problem it solves.
+
+        Traps: analysis paralysis, resume-driven design, over-engineering.` },
+
+    { title: 'Coding, spikes and documentation',
+      md: `**Keep coding** (pairing, bug fixes, prototypes, reviews) for credibility and truth, but stay **off the critical path**.
+
+        **Spike:** one question, time-boxed, ugliest build that answers it, record the result, throw the code away. **Prototype:** rough working version to learn or show.
+
+        **C4 levels:** 1 System Context, 2 Containers (any separately running part), 3 Components, 4 Code. Label every arrow.
+
+        **arc42:** 12-section template; a menu, not a form.
+
+        **Docs that live:** short, for one reader, the why, in the repo, **diagrams as code** (Mermaid, PlantUML, Structurizr). A wrong doc is worse than none.` },
+
+    { title: 'Communicating',
+      md: `| Audience | Wants |
+        |---|---|
+        | Developers | Mechanics, evidence, what changes for their code |
+        | Managers | Outcome, cost, time, risk, options |
+        | Customers | What it means for them, plain words |
+
+        **Listen first:** "What problem are you solving? How fast must it be?"
+
+        **Modes:** **direct** (urgent, security), **consult** (options + recommendation), **coach** (ask questions). Say which one you are in.
+
+        **Design review:** share beforehand, problem and options first, critique the design not the person, focus on costly concerns, record decisions and owners.
+
+        **Message shape:** point, reason, trade-off, what you need. Then stop talking.` },
+
+    { title: 'Estimating and balancing',
+      md: `**Estimate = a range + confidence + assumptions + biggest unknown.** A forecast, not a commitment. Narrow it with spikes; re-estimate and share bad news early.
+
+        **Cost** = building (people) + running + operating + changing + learning.
+
+        **Quick sums:** a day is about **86,400 s**; 1 million per day is roughly 12 per second on average (peaks are higher).
+
+        **Build vs buy:** build what makes you different, buy what everyone needs. Weigh TCO, fit, lock-in and exit route.
+
+        **Technical debt** = a loan. Take it deliberately, record cost and repay date, repay where you change code most. Never trade away security, data safety or correctness.
+
+        Traps: secret padding, "yes" under pressure, gold-plating.` },
+
+    { title: 'Getting ideas adopted',
+      md: `An idea counts only when it **changes what teams build**.
+
+        | Weak pitch | Strong pitch |
+        |---|---|
+        | "Best practice" | Their real pain |
+        | A document | A short demo on their problem |
+        | Adopt everywhere | Try on one service for two weeks |
+        | Hides costs | States costs and limits |
+
+        **Allies:** champions first, win the undecided with evidence, talk to **sceptics early** (free review). Share the credit.
+
+        **Reputation:** keep promises, admit mistakes, be useful, never oversell.
+
+        **Not manipulation:** no going around people, no hype, no forced mandates.` }
+  ]
+});

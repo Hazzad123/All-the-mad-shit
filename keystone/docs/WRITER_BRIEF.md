@@ -2,7 +2,7 @@
 
 You are writing lesson content for **Keystone**, an interactive learning website (a static JavaScript site) that teaches backend development, software design and software architecture to one learner who knows basic programming (loops, functions, variables) but nothing about how real systems work. The engine is built and tested. Your job is to author the content for the module(s) you were given.
 
-Project folder (run commands from here): `C:\Users\bend\Documents\Personal Development\All the mad shit\keystone` — in Bash: `cd "/c/Users/bend/Documents/Personal Development/All the mad shit/keystone"`. Node 24 is installed.
+Project folder (run commands from here): the `keystone` folder of this repository (on this Mac: `/Users/bend/Documents/GitHub/All-the-mad-shit/keystone`). Node is installed.
 
 ## Steps (per module)
 

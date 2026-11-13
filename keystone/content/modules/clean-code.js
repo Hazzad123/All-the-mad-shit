@@ -2737,7 +2737,7 @@ KS.boss('clean-code', {
   intro: 'A many-headed tangle of nested ifs, mystery names and flaky tests blocks the road to the next module. Cut off each head with the right clean-code move, and think carefully: some of them grow back if you pick the cheap fix.',
   questions: [
     { type: 'mcq', q: 'A team ships quickly for six months with no tidying. Estimates for small changes have now tripled, and developers are afraid to touch some files. What is the best description of what has happened?',
-      options: ['Technical debt has accrued interest: every change now pays extra to understand and work around the mess', 'The developers have forgotten how to program', 'The language they chose is too slow', 'Tests have been written too early'],
+      options: ['Technical debt is charging interest: each change costs extra to work around the mess', 'The developers have lost their skills after six months of pressure', 'The language they chose is too slow for a codebase this size', 'Tests were written too early and now block every change'],
       answer: 0,
       why: [null, 'The same developers were fast at the start. The code changed, not them.', 'Language speed is a runtime matter, not what makes changes slow to write.', 'Tests are not what slows the changes. The tangled code is.'],
       explain: 'Shortcuts are loans. Without paying them back, each later change costs more (the interest), and the slowdown creates pressure for yet more shortcuts.' },

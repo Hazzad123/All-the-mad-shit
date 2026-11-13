@@ -3,8 +3,8 @@
   "configurations": [
     {
       "name": "keystone",
-      "runtimeExecutable": "python",
-      "runtimeArgs": ["-m", "http.server", "8123", "--directory", "keystone"],
+      "runtimeExecutable": "node",
+      "runtimeArgs": ["-e", "const h=require('http'),f=require('fs'),p=require('path');const R=p.join('/Users/bend/Documents/GitHub/All-the-mad-shit','keystone');const T={'.html':'text/html','.js':'text/javascript','.mjs':'text/javascript','.css':'text/css','.json':'application/json','.webmanifest':'application/manifest+json','.svg':'image/svg+xml','.png':'image/png'};h.createServer((q,s)=>{let u=decodeURIComponent(q.url.split('?')[0]);if(u.endsWith('/'))u+='index.html';const fp=p.join(R,u);if(!fp.startsWith(R)){s.writeHead(403);return s.end();}f.readFile(fp,(e,d)=>{if(e){s.writeHead(404);return s.end('not found');}s.writeHead(200,{'Content-Type':T[p.extname(fp)]||'application/octet-stream'});s.end(d);});}).listen(+process.env.PORT||8123,()=>console.log('serving on '+(+process.env.PORT||8123)));"],
       "port": 8123
     }
   ]

@@ -843,4 +843,346 @@ KS.lesson('api-esb-bpm', {
   ]
 });
 
-/* @@END */
+// ═══════════════════════════════════════════════════════════════════════════
+KS.lesson('api-choosing', {
+  eli5: 'There is no single best way for programs to talk: you pick REST, gRPC, GraphQL or SOAP by asking who is calling, what data they need and what rules you must follow, and big systems often use several.',
+
+  cards: [
+    { kind: 'concept', title: 'Four people, four favourite answers',
+      body: `A food-delivery start-up is planning its API. The meeting goes like this:
+
+        - The mobile developer wants **GraphQL**: "every screen needs different bits of data".
+        - The platform engineer wants **gRPC**: "our services call each other thousands of times a second".
+        - The partnerships lead wants **REST**: "restaurants' developers must be able to try it in five minutes".
+        - The finance lead mentions that the payment provider only offers **SOAP**.
+
+        Here is the twist: **all four are right**, about different parts of the system. The useful question is never "which style is best?" but "best *for which caller*?". This lesson gives you a way to answer it.` },
+
+    { kind: 'metaphor', title: 'Buses, taxis, internal post and armoured vans',
+      body: `A city moves people and goods in different ways, each suited to a job:
+
+        - **REST is the bus network.** Fixed routes everyone understands, cheap, works for anyone with a ticket. Popular stops (cached responses) are easy.
+        - **GraphQL is a taxi.** It takes you exactly where you asked in one trip, but the driver (the server) works harder for each ride.
+        - **gRPC is the pneumatic tube inside an office building.** Very fast and efficient, but only between rooms fitted with tubes.
+        - **SOAP is the armoured van.** Paperwork, signatures, guaranteed delivery. Slow to arrange, trusted by banks.
+
+        Nobody argues that a city should only have buses. Systems are the same.` },
+
+    { kind: 'compare', title: 'The four styles on one page',
+      body: 'Everything from this module and the last, squeezed into one table.',
+      cols: ['Strengths', 'Weak spots', 'Natural home'],
+      rows: [
+        ['**REST**', 'Simple, universal, HTTP caching, easy to try', 'Over- and under-fetching; contract optional', 'Public APIs, partners, most web back ends'],
+        ['**gRPC**', 'Compact binary, generated typed code, streaming', 'Needs a proxy in browsers; hard to read by hand', 'Calls between your own services'],
+        ['**GraphQL**', 'Caller picks fields; one round trip', 'Harder caching; N+1 and costly queries', 'Apps with many varied screens'],
+        ['**SOAP**', 'Strict contract, WS-* security and reliability', 'Verbose, heavy tooling, POST-only', 'Existing enterprise and regulated links']
+      ],
+      note: 'All four can work for almost anything. The table shows where each one is *least effort* for the benefit you get.' },
+
+    { kind: 'diagram', title: 'One system, several styles',
+      body: 'Real systems mix styles: each connection uses whatever suits the two parties at its ends.',
+      nodes: [
+        { id: 'app', label: 'Mobile app', icon: '📱', x: 0, y: 0 },
+        { id: 'partner', label: 'Restaurant partners', icon: '🍕', x: 2, y: 0 },
+        { id: 'gql', label: 'GraphQL for apps', icon: '🧩', x: 0, y: 1, tone: 'accent' },
+        { id: 'rest', label: 'Public REST API', icon: '🚌', x: 2, y: 1, tone: 'accent' },
+        { id: 'orders', label: 'Orders service', x: 0, y: 3 },
+        { id: 'menus', label: 'Menus service', x: 1, y: 3 },
+        { id: 'pay', label: 'Payments adapter', x: 2, y: 3, tone: 'warn' },
+        { id: 'bank', label: 'Payment provider (SOAP)', icon: '🏦', x: 2, y: 4, tone: 'muted' }
+      ],
+      edges: [
+        { from: 'app', to: 'gql', label: 'GraphQL' },
+        { from: 'partner', to: 'rest', label: 'REST + JSON' },
+        { from: 'gql', to: 'orders', label: 'gRPC' },
+        { from: 'gql', to: 'menus', label: 'gRPC' },
+        { from: 'rest', to: 'menus', label: 'gRPC' },
+        { from: 'orders', to: 'pay', label: 'gRPC' },
+        { from: 'pay', to: 'bank', label: 'SOAP' }
+      ],
+      caption: 'Friendly styles at the edges, an efficient one inside, and the old style fenced in behind one adapter.' },
+
+    { kind: 'example', title: 'Public APIs: start with REST',
+      body: `A **public API** is called by developers you will never meet. They use every language under the sun, they test by pasting a URL into a terminal, and they will leave if the first attempt is confusing.
+
+        That is why REST with JSON (plus an OpenAPI description) remains the default for public APIs:
+
+        - Every language and tool can already speak HTTP and JSON.
+        - Plain GET responses can be cached by browsers, proxies and CDNs.
+        - It is easy to document, version and rate-limit, as the previous module showed.
+
+        Some companies **also** offer GraphQL publicly: GitHub, for example, has both a REST API and a GraphQL API. That is an addition for power users, not a replacement for the simple door.` },
+
+    { kind: 'example', title: 'Internal calls: gRPC, or honestly just REST',
+      body: `Between your **own services**, you control both ends. Nobody outside needs to read the messages, so the friendliness of JSON matters less, and efficiency and strict contracts matter more.
+
+        This is gRPC's home: generated clients in every language your teams use, small binary messages, deadlines and streaming built in.
+
+        But be honest about scale. A small team with five services and modest traffic can happily use **REST internally too**. One style everywhere is simpler to learn, debug and monitor. gRPC pays off when call volume is high, when several languages share contracts, or when you need streaming. Experienced engineers genuinely disagree about where that line sits.` },
+
+    { kind: 'example', title: 'Mobile apps: shape the data for the screen',
+      body: `A phone app has a slow, patchy connection and dozens of screens, each wanting a different slice of data. Every extra round trip is felt by the user.
+
+        Two common answers:
+
+        - **GraphQL**: each screen writes a query for exactly its fields, and gets them in one trip.
+        - **A [[Backend for Frontend]]** with plain REST: a small server gathers and trims data for one kind of client.
+
+        Both solve over- and under-fetching. GraphQL is attractive when many teams and screens keep changing their needs; a BFF is simpler when there are a few, stable screens. Either way, the app talks to a friendly front door, and gRPC or REST runs behind it.` },
+
+    { kind: 'pitfall', title: 'Choosing by fashion',
+      body: `The commonest mistake is choosing a style because it is new, exciting or good for a CV:
+
+        - **"GraphQL will make it fast."** It cuts round trips; it does nothing for a slow database or a bad query.
+        - **"gRPC everywhere."** Then your public partners cannot try the API, and browsers need a proxy.
+        - **"Rewrite the SOAP link in REST."** A working, compliant integration rarely deserves a risky rewrite. Wrap it in an adapter instead.
+        - **One style for everything, forever.** Consistency is good inside a group of similar callers, not across very different ones.
+
+        Every style adds tooling, skills and monitoring. Add a second or third only when it solves a real problem you can name.` },
+
+    { kind: 'steps', title: 'The decision checklist',
+      body: 'Run through these questions for **each** API, not once for the whole company.',
+      steps: [
+        { title: '1. Who calls it?', body: 'Strangers on the internet, partners, your own mobile app, or your own services? Outsiders push you towards REST; your own services free you to pick gRPC.' },
+        { title: '2. Is something already fixed?', body: 'If a partner only offers SOAP, or an industry standard demands a format, the choice is made. Wrap it and move on.' },
+        { title: '3. How varied is the data each caller needs?', body: 'Many screens with shifting needs favour GraphQL or a BFF. A few predictable resources suit REST.' },
+        { title: '4. What about speed, volume and streaming?', body: 'Heavy internal traffic or long-lived streams favour gRPC. For pushing live updates to browsers, see the next module.' },
+        { title: '5. What can your team run well?', body: 'Skills, tooling, monitoring and caching matter. A style nobody can debug at 3 a.m. is the wrong style.' }
+      ] },
+
+    { kind: 'realworld', title: 'In the wild: several doors to one house',
+      body: `Large providers often expose the **same** underlying service in more than one style:
+
+        - **GitHub** offers a REST API and a GraphQL API side by side, over the same data.
+        - Many **Google Cloud** APIs can be called over gRPC or over REST with JSON. The internal services are defined with protobuf, and a translation layer produces the JSON version.
+
+        Tools exist to do this translation for you: you write one .proto contract and get a JSON-over-HTTP front door generated from it. The lesson is that the style is an **interface choice at a boundary**, not a property of the whole company. Keep the core logic in one place, and put whichever doors suit your callers in front of it.` }
+  ],
+
+  activities: [
+    { type: 'match', after: 2, prompt: 'Match each API style to the place it usually fits best.',
+      pairs: [['REST + JSON', 'A public API for unknown developers'], ['gRPC', 'Heavy traffic between your own services'], ['GraphQL', 'A mobile app with many screens of varying needs'], ['SOAP', 'An existing link to a regulated partner']] },
+
+    { type: 'tf', after: 3, statement: 'A well-designed system should choose one API style and use it for every connection.', answer: false,
+      explain: 'Different callers have different needs. Mixing is normal: friendly styles at the edges, efficient ones inside, and legacy styles kept behind an adapter. What matters is consistency *within* each boundary.' },
+
+    { type: 'mcq', after: 5, q: 'A team of four runs six internal services with light traffic, all in one language, all using REST. Someone proposes switching the internal calls to gRPC. What is the most sensible response?',
+      options: ['Probably not yet: REST works, and gRPC pays off mainly at high volume or across many languages', 'Yes, immediately: gRPC is always faster, so it is always the right choice', 'Yes, and switch the public API to gRPC as well for consistency', 'No: gRPC can only be used by very large companies'],
+      answer: 0,
+      why: [null, 'Faster on the wire, yes, but the switch costs time, tooling and learning for little gain at this size.', 'That would shut out partners and browsers who expect HTTP and JSON.', 'Anyone can use it; the question is whether the benefit outweighs the cost here.'],
+      explain: 'A change of style should solve a problem you can name. At small scale with one language, REST\'s simplicity usually wins. Revisit when traffic, languages or streaming needs grow.' },
+
+    { type: 'bucket', prompt: 'Which style is the most natural fit for each situation?', buckets: ['REST', 'gRPC', 'GraphQL', 'SOAP'],
+      items: [['A weather API that any developer can try with one command', 0], ['Streaming sensor readings between two of your back-end services', 1], ['A social app whose feed, profile and search screens all need different fields', 2], ['Connecting to a bank whose only interface is a WSDL', 3], ['A public list of products that browsers and CDNs should cache', 0], ['Services in Go, Java and Python sharing one strict contract', 1], ['A dashboard that combines users, orders and reviews in a single round trip', 2]],
+      explain: 'Outsiders and caching suggest REST. Internal, high-volume or streaming calls suggest gRPC. Varied, nested data needs per screen suggest GraphQL. An existing WSDL contract means SOAP, kept behind an adapter.' },
+
+    { type: 'multi', q: 'Which of these are good reasons to add GraphQL to a system?', options: ['Many app screens need different combinations of related data', 'Mobile users suffer from several round trips per screen', 'The database queries behind the API are slow', 'It is the newest style and would look good on the team\'s CVs', 'Front-end teams keep waiting for new endpoints for each screen change'],
+      answers: [0, 1, 4],
+      explain: 'GraphQL helps when callers need flexible, nested data in one trip and front-end teams want to change queries without server changes. It does nothing for slow database queries, and fashion is not a reason.' },
+
+    { type: 'ab', q: 'A food-delivery company needs APIs for restaurant partners and for its own services. Which plan is better?',
+      a: { lang: 'text', label: 'One style everywhere', src: `
+        Partners:          gRPC (send them the .proto file)
+        Internal services: gRPC
+        Mobile app:        gRPC-Web through a proxy` },
+      b: { lang: 'text', label: 'A style per boundary', src: `
+        Partners:          REST + JSON with OpenAPI docs
+        Internal services: gRPC
+        Mobile app:        GraphQL (or a BFF)` },
+      answer: 'b',
+      explain: 'Partners can try a REST API in minutes with tools they already have, while gRPC suits the internal traffic and GraphQL or a BFF suits varied app screens. Forcing gRPC on outsiders and browsers adds proxies and friction for no real gain.' },
+
+    { type: 'cloze', text: 'Ask the checklist questions for {{each API}}, not once for the whole company. Start with {{who calls it}}, then check whether anything is {{already fixed}} by a partner or standard.',
+      distractors: ['the newest style', 'the whole system', 'what is popular', 'the database'],
+      explain: 'Different boundaries have different callers, so each gets its own decision. The caller is the biggest factor, and an existing partner contract can settle the matter before any debate starts.' },
+
+    { type: 'scenario', title: 'The delivery start-up', intro: 'You are the first architect at a food-delivery start-up. You have an app, a handful of back-end services, a payment provider and soon hundreds of restaurant partners.',
+      meters: { 'partner happiness': 50, 'app speed': 50, 'team sanity': 60 },
+      steps: [
+        { text: 'Restaurants\' developers need to publish menus and receive orders. How do you expose that?',
+          choices: [
+            { label: 'A REST API with JSON, an OpenAPI description and clear docs', score: 2, effects: { 'partner happiness': 30, 'team sanity': 5 }, feedback: 'Every partner\'s tools already speak HTTP and JSON. They can try it in minutes and generate a client from the OpenAPI file if they like.' },
+            { label: 'gRPC, because it is faster', score: 0, effects: { 'partner happiness': -25 }, feedback: 'Small restaurants\' developers now need protobuf tooling just to say hello. Speed on the wire is not their problem.' },
+            { label: 'GraphQL only', score: 1, effects: { 'partner happiness': 5, 'team sanity': -10 }, feedback: 'Workable, and some big platforms do offer it, but simple menu uploads do not need its flexibility, and you take on query-cost limits from day one.' }
+          ] },
+        { text: 'The app\'s home screen makes five calls and feels sluggish on mobile data. What do you try?',
+          choices: [
+            { label: 'Give the app one front door shaped for its screens: GraphQL or a Backend for Frontend', score: 2, effects: { 'app speed': 30, 'team sanity': -5 }, feedback: 'One round trip with exactly the needed fields suits a slow connection. Pick GraphQL if screens change often, a BFF if they are few and stable.' },
+            { label: 'Make every REST endpoint return everything, so one call is enough', score: 0, effects: { 'app speed': -15 }, feedback: 'That swaps under-fetching for heavy over-fetching: bigger downloads on exactly the slow connections you worried about.' },
+            { label: 'Leave it and add a loading spinner', score: 1, effects: { 'app speed': -5 }, feedback: 'Honest about the wait, but it does not shorten it.' }
+          ] },
+        { text: 'The payment provider only offers a SOAP interface. How do you handle it?',
+          choices: [
+            { label: 'One small payments adapter that talks SOAP and gives the rest of the system plain calls', score: 2, effects: { 'team sanity': 25 }, feedback: 'The old style is fenced in. If you change provider later, only the adapter changes.' },
+            { label: 'Let every service call the SOAP API directly', score: 0, effects: { 'team sanity': -25 }, feedback: 'Now XML envelopes and generated types leak everywhere, and a provider change touches every service.' },
+            { label: 'Refuse to integrate until the provider offers REST', score: 0, effects: { 'team sanity': -10, 'partner happiness': -15 }, feedback: 'You cannot take payments while you wait, and they may never change.' }
+          ] }
+      ],
+      outro: 'The pattern to remember: **pick a style per boundary, by who is calling.** REST for strangers, GraphQL or a BFF for your apps, gRPC inside, and legacy styles behind an adapter.' },
+
+    { type: 'explain', prompt: 'A manager asks: "Which API style should we standardise on?" Give them a fair, short answer.',
+      model: 'There is no single best style; it depends on who calls each API. Public and partner APIs usually suit REST with JSON because anyone can use them and responses can be cached. Calls between our own services can use gRPC when volume, several languages or streaming make it worthwhile. Apps with many varied screens can benefit from GraphQL or a Backend for Frontend. Existing SOAP partners should be wrapped in an adapter rather than rewritten. Standardise within each boundary, and add a new style only for a real problem.',
+      keywords: ['caller', 'public', 'REST', 'internal', 'gRPC', 'GraphQL', 'adapter', 'boundary'] }
+  ],
+
+  flashcards: [
+    { q: 'What is the first question to ask when choosing an API style?', a: 'Who calls it: strangers, partners, your own apps or your own services? The caller shapes everything else.' },
+    { q: 'Default style for a public API, and why?', a: 'REST with JSON (plus OpenAPI): every tool speaks it, it is easy to try and document, and GET responses can be cached.' },
+    { q: 'When does gRPC pay off internally?', a: 'At high call volume, when services in several languages share contracts, or when streaming is needed. Small, simple systems can stay with REST.' },
+    { q: 'GraphQL or a Backend for Frontend for a mobile app?', a: 'Both cut round trips. GraphQL suits many screens with changing needs; a BFF is simpler for a few stable screens.' },
+    { q: 'What do you do with a partner who only offers SOAP?', a: 'Integrate through one adapter that speaks SOAP and gives the rest of your system plain calls, rather than rewriting or spreading SOAP everywhere.' }
+  ],
+
+  glossary: [
+    { term: 'API style', def: 'The overall way an API is shaped and called, such as REST, gRPC, GraphQL or SOAP.', like: 'Bus, taxi, internal post or armoured van: different ways to make the same trip.' },
+    { term: 'Public API', def: 'An API offered to outside developers you do not know, who call it from their own software.', like: 'A shop window open to anyone passing.', aka: ['open API'] },
+    { term: 'Partner API', def: 'An API offered to a known set of outside organisations, usually under an agreement.', like: 'The trade entrance, open only to approved suppliers.' },
+    { term: 'Internal API', def: 'An API called only by your own services and apps, where you control both ends.', like: 'The internal post between floors of one office.', aka: ['private API'] }
+  ],
+
+  takeaways: [
+    'No style is best everywhere: choose **per boundary**, starting with **who calls it**.',
+    '**REST** for strangers and partners, **gRPC** inside at scale, **GraphQL or a BFF** for varied app screens, **SOAP** behind an adapter when a partner demands it.',
+    'Mixing styles is normal; each extra style must solve a problem you can **name**.',
+    'Keep core logic in one place and put the right **doors** in front of it.'
+  ]
+});
+
+// ═══════════════════════════════════════════════════════════════════════════
+KS.boss('api-styles', {
+  title: 'The Protocol Hydra',
+  intro: 'Four heads, four ways of talking: an XML head, a binary head, a head that asks for exactly what it wants, and an old switchboard head that will not die. Beat it by knowing what each style is for and which one to pick.',
+  questions: [
+    { type: 'mcq', q: 'Why is it hard to use ordinary HTTP caching in front of a SOAP service?',
+      options: ['Nearly every call is a POST to one URL, with the operation named inside the body', 'XML cannot be stored on disk by a cache', 'SOAP messages are encrypted, so caches cannot see them', 'WSDL files forbid caching'],
+      answer: 0,
+      why: [null, 'XML is plain text and can be stored like anything else.', 'Encryption is optional (WS-Security). The real issue is the method and URL.', 'The WSDL describes operations; it says nothing that forbids caching.'],
+      explain: 'HTTP caches work on GET responses keyed by URL. SOAP sends POSTs to a single address, so a cache cannot tell one request from another.' },
+
+    { type: 'spot', prompt: 'This .proto file was edited last week. Tap the line that will corrupt data for older clients.',
+      code: { lang: 'proto', src: `
+        message Order {
+          int64 id = 1;
+          string status = 2;
+          int32 total_pence = 3;
+          // removed: string coupon_code = 4;
+          string currency = 4;
+        }` },
+      lines: [6],
+      explain: 'Number 4 used to mean `coupon_code`. Old clients still decode field 4 as a coupon, so they will read the currency as a coupon code. Retired numbers must never be reused; use 5 instead.' },
+
+    { type: 'multi', q: 'Which of these are true of gRPC?', options: ['The contract is a .proto file from which code is generated', 'It runs over HTTP/2', 'It supports streaming in either or both directions', 'Browsers can call it directly with no bridge or proxy', 'Messages are human-readable JSON by default'],
+      answers: [0, 1, 2],
+      explain: 'gRPC uses protobuf contracts, HTTP/2 and four call modes including streaming. Browsers need gRPC-Web plus a proxy, and messages are compact binary, not JSON.' },
+
+    { type: 'cloze', text: 'In GraphQL, reading data is a {{query}}, changing it is a {{mutation}}, and the function that fetches each field is a {{resolver}}.',
+      distractors: ['stub', 'envelope', 'endpoint', 'WSDL'],
+      explain: 'Queries read and mutations write; in both the caller lists the fields it wants. Resolvers sit behind each field and are called only when a query asks for it.' },
+
+    { type: 'estimate', q: 'A query lists 200 blog posts and the author of each. The author resolver makes one database query per post, with no batching. About how many database queries is that in total?',
+      answer: 201, unit: 'queries', tolerance: 1.2,
+      explain: 'One query for the list, then one per post: 1 + 200 = 201. That is the N+1 problem. DataLoader would batch the author lookups into one query, so about 2 in total.' },
+
+    { type: 'tf', statement: '"Smart endpoints and dumb pipes" means keeping business logic in the services and keeping the transport between them simple.', answer: true,
+      explain: 'It is the opposite of the classic ESB, where routing rules, transformations and flows lived in the bus. Keeping the middle thin avoids a central bottleneck and hidden logic.' },
+
+    { type: 'estimate', q: 'A company wants to connect 20 systems, each directly to every other one. About how many point-to-point connections is that? (n × (n − 1) ÷ 2)',
+      answer: 190, unit: 'connections', tolerance: 1.2,
+      explain: '20 × 19 ÷ 2 = 190. Through a central hub it would be 20. That growth is why the ESB looked so attractive, before its own problems appeared.' },
+
+    { type: 'bucket', prompt: 'Which technology does each item belong to?', buckets: ['SOAP', 'gRPC', 'GraphQL', 'ESB / BPM'],
+      items: [['WSDL contract', 0], ['WS-Security', 0], ['Field numbers on the wire', 1], ['Bidirectional streaming', 1], ['DataLoader', 2], ['Non-null fields marked with `!`', 2], ['Routing and transformation in the middle', 3], ['BPEL process definitions', 3]],
+      explain: 'SOAP brings WSDL and WS-*. gRPC brings protobuf and streaming. GraphQL brings schemas, resolvers and batching helpers. ESBs route and transform, and BPM engines run processes such as BPEL definitions.' },
+
+    { type: 'order', prompt: 'Put the steps of building and calling a gRPC service in order.',
+      items: ['Write the service and messages in a .proto file', 'Run the generator for each language you use', 'Fill in the server logic in the generated skeleton', 'Call the method on a generated client stub, with a deadline', 'The stub sends compact binary over HTTP/2 and decodes the reply'],
+      explain: 'Everything flows from the contract: write it, generate code, implement the server, then call it through the stub, which hides the networking (but not the network\'s failures, hence the deadline).' },
+
+    { type: 'match', prompt: 'Match each item to what it describes.',
+      pairs: [['WSDL', 'The strict XML contract of a SOAP service'], ['.proto file', 'The contract from which gRPC code is generated'], ['GraphQL schema', 'The typed map of types, fields and entry points'], ['BPMN', 'A diagram notation for business processes'], ['gRPC-Web', 'A browser-friendly variant of gRPC, used via a proxy']] },
+
+    { type: 'ab', q: 'An insurer must connect to a regulator\'s SOAP service. Which integration is better?',
+      a: { lang: 'text', label: 'Spread it around', src: `
+        Every service that needs regulator data
+        imports the generated SOAP classes and
+        calls the regulator directly.` },
+      b: { lang: 'text', label: 'Fence it in', src: `
+        One RegulatorAdapter calls the SOAP service
+        and returns plain objects; other services
+        call the adapter through the internal API.` },
+      answer: 'b',
+      explain: 'A single adapter keeps XML and generated types in one place. If the regulator changes its interface, one component changes instead of every service.' },
+
+    { type: 'mcq', q: 'A start-up is about to open its API to thousands of outside developers. Its own services already talk gRPC. Which choice for the public API is most sensible?',
+      options: ['A REST + JSON front door with OpenAPI docs, translating to the internal gRPC services', 'Publish the .proto files and require every developer to use gRPC', 'SOAP with a WSDL, because outside developers need a strict contract', 'No API: let partners read the database directly'],
+      answer: 0,
+      why: [null, 'Possible, but many developers will struggle to even try it, and browsers need a proxy.', 'Heavy tooling and verbose XML put off the developers you want to attract.', 'That couples outsiders to your storage and is a security risk.'],
+      explain: 'Outsiders favour what every tool already speaks. Keep gRPC inside and put a friendly REST door in front, possibly generated from the same contract.' }
+  ]
+});
+
+KS.sheet('api-styles', {
+  title: 'Beyond REST: cheat sheet',
+  sections: [
+    { title: 'SOAP and XML web services',
+      md: `- **Envelope** (XML) = optional **Header** (credentials, routing) + **Body** (the operation and data).
+        - **WSDL** = strict, required contract listing operations, types and location. Tools **generate client code** from it.
+        - Usually one URL, everything a **POST**; errors arrive as a **fault** in the body.
+        - **WS-*** add-ons: WS-Security (sign/encrypt), WS-ReliableMessaging, WS-AtomicTransaction, WS-Addressing.
+        - **Still used** by banks, insurers, telecoms and government: it works, suits regulation, rewrites are risky.
+        - **Weak spots:** verbose, tool-dependent, hard to cache.` },
+
+    { title: 'gRPC and Protocol Buffers',
+      md: `- **RPC:** call a remote function as if it were local. Always set a **deadline**.
+        - Contract: \`.proto\` file with \`service\`, \`rpc\` and \`message\`. Generate **stubs** for every language.
+        - Field **numbers** travel on the wire: never reuse or change one; add new fields with new numbers.
+
+        | Mode | Client sends | Server sends |
+        |---|---|---|
+        | Unary | 1 | 1 |
+        | Server streaming | 1 | many |
+        | Client streaming | many | 1 |
+        | Bidirectional | many | many |
+
+        Runs on **HTTP/2**. Browsers need **gRPC-Web** plus a proxy.` },
+
+    { title: 'GraphQL',
+      md: `- **One endpoint**; the caller lists exactly the fields it wants. Cures **over-fetching** (too much) and **under-fetching** (too many calls).
+        - **Schema** = typed contract. \`!\` = non-null, \`[T]\` = list, \`Query\` = entry points.
+        - **Query** reads, **mutation** writes. **Resolvers** fetch each field, only when asked for.
+        - **N+1 trap:** one query for a list + one per item. Fix: **DataLoader** batching.
+        - Clients: **Apollo** (most used), **Relay** (Meta, stricter).
+        - Costs: harder HTTP caching, partial errors, so **limit depth and cost**.` },
+
+    { title: 'ESB, BPM and BPEL',
+      md: `- **Point-to-point** links: n × (n − 1) ÷ 2. 40 systems = 780 links.
+        - **ESB** = central hub: routing, transformation, protocol mediation, orchestration, monitoring.
+        - **Smart pipes** (logic in the bus) vs **smart endpoints, dumb pipes** (logic in services).
+        - ESB problems: bottleneck, single point of failure, hidden logic, vendor lock-in.
+        - **BPM** runs processes; **BPMN** draws them; **BPEL** was the XML orchestration language (now mostly history).
+        - **Orchestration** = a conductor calls each step and compensates on failure.
+        - **Kept:** API gateways, message brokers, workflow engines, iPaaS. **Lesson:** keep the middle thin.` },
+
+    { title: 'Choosing a style',
+      md: `| Caller | Usual choice |
+        |---|---|
+        | Strangers / public | REST + JSON + OpenAPI |
+        | Known partners | REST (SOAP if they insist) |
+        | Your mobile / web app | GraphQL or a BFF |
+        | Your own services | gRPC at scale, REST when small |
+        | Legacy SOAP partner | One adapter, never spread it |
+
+        **Checklist, per API:** who calls it? Is anything already fixed? How varied is the data? Speed, volume, streaming? What can the team run well?` },
+
+    { title: 'Common mistakes',
+      md: `- Choosing a style for fashion or CVs instead of a named problem.
+        - Expecting GraphQL to fix a slow database.
+        - Forcing gRPC on outside developers and browsers.
+        - Rewriting a working SOAP integration for no business reason.
+        - Letting generated SOAP or protobuf types leak through the whole codebase.
+        - Reusing a retired protobuf field number.
+        - Per-item resolvers with no batching (N+1).
+        - No depth or cost limits on a public GraphQL API.
+        - Putting business logic in the middle (the ESB trap).` }
+  ]
+});

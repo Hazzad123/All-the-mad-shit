@@ -826,10 +826,10 @@ KS.lesson('wm-mobile-pwa', {
         { from: 0, to: 1, label: 'fetch /data.json', note: 'Every request from the page passes through the service worker first.' },
         { from: 1, to: 2, label: 'stored copy?', note: 'It looks in its cache.' },
         { from: 2, to: 1, label: 'miss', dashed: true, note: 'Nothing saved yet, so it goes to the network.' },
-        { from: 1, to: 3, label: 'fetch from network' },
-        { from: 3, to: 1, label: 'response', dashed: true },
+        { from: 1, to: 3, label: 'fetch from network', note: 'It passes the request on to the real network, as if it were not there.' },
+        { from: 3, to: 1, label: 'response', dashed: true, note: 'The server’s answer comes back to the service worker, not straight to the page.' },
         { from: 1, to: 2, label: 'save a copy', note: 'It keeps the answer for next time.' },
-        { from: 1, to: 0, label: 'response', dashed: true },
+        { from: 1, to: 0, label: 'response', dashed: true, note: 'Finally it hands the answer to the page, which never knew a middleman was involved.' },
         { note: 'Next time, the cache answers straight away, even with no signal. Other strategies: network-first, or stale-while-revalidate (show the cached copy, refresh in the background).' }
       ] },
 
@@ -896,7 +896,7 @@ KS.lesson('wm-mobile-pwa', {
       explain: 'Native gives the deepest device access and fit. Cross-platform shares code with near-native results. Hybrid wraps the web, cheapest but most website-like.' },
 
     { type: 'mcq', after: 4, q: 'What is a service worker mainly able to do for a web app?',
-      options: ['Intercept network requests and answer them from a cache, so pages can work offline', 'Run the database on the server', 'Replace the need for HTTPS', 'Make the web page render on the server'],
+      options: ['Intercept requests and answer them from a cache', 'Run the app’s database on the server', 'Encrypt traffic so HTTPS is not needed', 'Render each page on the server first'],
       answer: 0,
       why: [null, 'It runs in the browser, not on your server.', 'Service workers actually require HTTPS.', 'Rendering on a server is SSR, a different topic.'],
       explain: 'A service worker is a script in the browser between the page and the network. It can serve cached responses, which is what makes offline use possible.' },
@@ -938,7 +938,7 @@ KS.lesson('wm-mobile-pwa', {
 
     { type: 'explain', prompt: 'A start-up asks how to reach phone users. Explain your options and the backend things they must plan for.',
       model: 'They can build natively for each platform, share one codebase with cross-platform tools such as React Native or Flutter, wrap a web app in a hybrid shell, or build a PWA with a manifest and service worker for installable, offline-capable web. Offline-first stores changes locally and syncs later. On the backend I would use a BFF for the mobile client, push notifications through APNs and FCM, and versioned, additive APIs because old app versions stay in use for a long time.',
-      keywords: ['native', 'cross-platform', 'hybrid', 'PWA', 'service worker', 'offline', 'BFF', 'push', 'version'] }
+      keywords: ['native', 'cross-platform', 'PWA', 'service worker', 'offline', 'BFF', 'push', 'version'] }
   ],
 
   flashcards: [
@@ -1073,7 +1073,7 @@ KS.lesson('wm-standards', {
       explain: 'These organisations overlap a little, but this map is accurate enough for everyday use: W3C for broad specs and accessibility, WHATWG for HTML, TC39 for JavaScript, IETF for protocols.' },
 
     { type: 'mcq', after: 3, q: 'What does it mean that HTML is a “living standard”?',
-      options: ['It is updated continuously with no numbered version, and what browsers implement is what matters', 'It was finished in 2014 and will never change', 'It is released as HTML6 every five years', 'Each browser keeps its own private copy'],
+      options: ['It is updated continuously, with no version numbers', 'It was finished in 2014 and is now frozen', 'A new numbered edition comes out every few years', 'Each browser maintains its own private version'],
       answer: 0,
       why: [null, 'HTML keeps evolving. There is no final edition.', 'There is no HTML6. The standard is simply updated over time.', 'The point of standards is that browsers share one set of rules.'],
       explain: 'A living standard is edited continuously, like a living dictionary. The useful question is “which browsers support this feature today?”' },
@@ -1156,4 +1156,164 @@ KS.lesson('wm-standards', {
   ]
 });
 
-/* @@END */
+KS.boss('web-mobile', {
+  title: 'The Many-Screened Hydra',
+  intro: 'Every head of this hydra is a different screen: a browser tab, a phone in a tunnel, an old app nobody updated. Beat it by choosing how pages are built, where state lives, how teams split the front end and how the web stays open to everyone.',
+  questions: [
+    { type: 'mcq', q: 'A recipe site has thousands of public pages that change about once a week. Which rendering approach fits best?',
+      options: ['Static generation, served from a CDN', 'A single-page app that fetches every recipe', 'Server rendering of every page on each visit', 'A hybrid app wrapped for the app stores'],
+      answer: 0,
+      why: [null, 'The first HTML would be nearly empty, which is slower and weaker for search and link previews.', 'It works, but you pay for a fresh render of content that barely changes.', 'That is a way to ship a phone app, not a way to render web pages.'],
+      explain: 'Content that is the same for everyone and changes rarely is ideal for SSG: built once, served as files from a CDN, fast and cheap. Regenerate it when a recipe changes.' },
+
+    { type: 'tf', statement: 'A server-rendered page can look finished before its buttons work.', answer: true,
+      explain: 'The HTML arrives first and shows at once, but clicks only work after hydration, when the JavaScript attaches its event handlers.' },
+
+    { type: 'spot', prompt: 'This component stores a value that could be calculated. Tap the line.',
+      code: { lang: 'js', src: `
+        const [todos, setTodos] = useState([]);
+        const [doneCount, setDoneCount] = useState(0);
+        const remaining = todos.length - doneCount;
+        return <h2>{remaining} left</h2>;` },
+      lines: [2],
+      explain: 'The number of finished to-dos can be worked out from the list itself, for example by counting items marked done. A second stored copy will eventually drift out of step with the list.' },
+
+    { type: 'ab', q: 'A pricing rule must survive a future switch of front-end framework. Which design is better?',
+      a: { lang: 'js', label: 'Rule in the component', src: `
+        function Basket({ items }) {
+          const total = items.reduce((t, i) => t + i.price, 0);
+          const discount = total > 50 ? total * 0.1 : 0;
+          return <p>Total: {total - discount}</p>;
+        }` },
+      b: { lang: 'js', label: 'Rule in a plain function', src: `
+        // pricing.js knows nothing about React
+        export const priceOf = (items) => { /* rules */ };
+
+        function Basket({ items }) {
+          return <p>Total: {priceOf(items)}</p>;
+        }` },
+      answer: 'b',
+      explain: 'A plain function can be tested on its own and reused by any framework. Business rules inside components are welded to that framework and must be rewritten with it.' },
+
+    { type: 'bucket', prompt: 'Client state or server state?', buckets: ['Client state', 'Server state'],
+      items: [['Whether a dropdown is open', 0], ['A customer’s saved addresses', 1], ['The draft text in a comment box', 0], ['Today’s exchange rates from the API', 1], ['Which accordion panel is expanded', 0], ['Items in a shared team to-do list', 1]],
+      explain: 'Server state is a cached copy of facts the backend owns, so it can go stale and needs loading, error and refresh handling. Client state exists only in the browser and the browser is its truth.' },
+
+    { type: 'multi', q: 'Your company has one small front-end team of four. Which are good reasons NOT to adopt microfrontends yet?',
+      options: ['One team can release one codebase without blocking anyone', 'Pages could get heavier from duplicated libraries', 'A modular monolith gives clear boundaries more cheaply', 'Microfrontends stop teams deploying independently', 'Browsers cannot load scripts from several sources'],
+      answers: [0, 1, 2],
+      explain: 'Microfrontends solve a many-teams problem at a technical cost. With one team there is no release coupling to fix, so the cost buys nothing. They do allow independent deployment, and browsers handle many scripts fine.' },
+
+    { type: 'mcq', q: 'The header microfrontend needs to know when an item is added to the cart. What is the most loosely coupled option?',
+      options: ['The cart broadcasts a documented browser event', 'The header imports the cart’s internal store', 'Both teams merge into a single codebase', 'The header reads the cart’s DOM elements'],
+      answer: 0,
+      why: [null, 'Reaching into private code ties the two release cycles together.', 'That removes the independence the split was meant to give.', 'The cart’s markup is private and can change at any release.'],
+      explain: 'A named event with a small payload is a public contract. Neither team needs the other’s code, so either can change internals or deploy alone, as long as the contract holds.' },
+
+    { type: 'order', prompt: 'A user edits a note on a train with no signal, in an offline-first app. Put what happens in order.',
+      items: ['The edit is saved to a local database', 'The screen shows the change straight away', 'The change waits in the outbox queue', 'Signal returns and the queue is sent to the server', 'A clash with another device’s edit is resolved'],
+      explain: 'Offline-first never makes the user wait for the network: save locally, show at once, queue, sync when online, then reconcile conflicts.' },
+
+    { type: 'mcq', q: 'Your API serves a mobile app with many old versions still installed. The team wants `date` as a number instead of text. What is the safest change?',
+      options: ['Add a new `timestamp` field and keep `date`', 'Change `date` and ship a new app that day', 'Change `date` and hotfix the installed apps', 'Rename `date` and email users to update'],
+      answer: 0,
+      why: [null, 'Store review and slow updates mean old versions run for months, and they will break.', 'You cannot patch app code already on phones from the server.', 'Many users never read it, and their apps break in the meantime.'],
+      explain: 'Additive changes keep old clients working: new versions read the new field, old ones keep reading `date`. Retire the old field later, once usage data shows it is safe.' },
+
+    { type: 'match', prompt: 'Match each item to its meaning.',
+      pairs: [['Service worker', 'Browser script that can answer requests from a cache'], ['APNs / FCM', 'Platform services that deliver push messages'], ['BFF', 'A back end shaped for one kind of client'], ['WHATWG', 'Maintains the HTML living standard'], ['Design tokens', 'Named shared values for colour, spacing and fonts']],
+      explain: 'The first three belong to building for phones and the web, WHATWG to the standards that hold the web together, and design tokens to keeping many teams’ screens consistent.' },
+
+    { type: 'cloze', text: 'Progressive enhancement starts with working {{HTML}}, adds CSS, then JavaScript. Check abilities with feature {{detection}}, not browser sniffing. The WCAG principles are summed up as {{POUR}}.',
+      distractors: ['JSON', 'hydration', 'REST', 'CRUD'],
+      explain: 'The basics must work everywhere, upgrades are added only where the browser can handle them, and POUR stands for Perceivable, Operable, Understandable and Robust.' },
+
+    { type: 'short', q: 'A developer makes a clickable `<div>` that keyboard users cannot reach. Which HTML element should it have been? (One word.)', accept: ['button', '<button>'], hint: 'It gives focus, Enter and screen-reader support for free.',
+      explain: 'A real `<button>` is focusable, responds to Enter and Space, and is announced as a button. Native elements beat ARIA added to a div.' }
+  ]
+});
+
+KS.sheet('web-mobile', {
+  title: 'Web & mobile architecture: cheat sheet',
+  sections: [
+    { title: 'Rendering: who builds the HTML, and when?',
+      md: `| | SPA | SSR | SSG |
+        |---|---|---|---|
+        | Built | In the browser | Server, per request | Build time, once |
+        | First content | Slow (JS first) | Quick | Quickest (CDN) |
+        | Personalised | Easy | Easy | Hard |
+        | SEO / previews | Weakest | Strong | Strong |
+        | Fresh | Via API | Live | Stale until rebuild |
+
+        **Hydration:** JS attaches handlers to server-made HTML; it looks ready before it is. **ISR:** rebuild static pages in the background. Choose **per page**: who is it for, how fresh, must search see it? Private dashboards gain nothing from SSR "for SEO".` },
+
+    { title: 'Components and frameworks',
+      md: `**Imperative:** update the page step by step. **Declarative:** describe the screen for the data; the framework updates it.
+
+        **Component** = reusable UI piece: **props** (inputs from parent) in, **state** (what it remembers) inside, UI out.
+
+        | | React | Vue | Angular |
+        |---|---|---|---|
+        | Is | UI library | Progressive framework | Full platform |
+        | Templates | JSX | HTML-like single files | HTML + TS class |
+        | Included | Pick your own | Official router/state | Router, forms, HTTP, DI |
+
+        Choose by team skills, hiring, longevity, fit. Keep business rules in **plain functions**, outside components. Record the choice in an ADR.` },
+
+    { title: 'State and reactivity',
+      md: `- **UI = f(state):** same state, same screen.
+        - **One-way flow:** data down, events up, update function makes new state.
+        - **Derive, do not duplicate:** \`count = items.length\`, never a second variable.
+        - **Signals:** values that track readers; \`computed\` recalculates, \`effect\` reacts.
+        - **Immutability:** make a new copy, do not edit in place. **Reducer:** (state, action) → new state.
+
+        | Client state | Server state |
+        |---|---|
+        | Menu open, typed text, tab | Orders, profile, stock |
+        | Browser is truth | Server is truth; you hold a cache |
+        | Component state, store | Data-fetching cache (TanStack Query, SWR) |
+
+        Keep state close to use; lift only when shared. The URL is state too.` },
+
+    { title: 'Microfrontends',
+      md: `Split the front end **by business area**; each team owns a vertical slice and deploys alone. A **shell** hosts the slices.
+
+        | Compose with | Trade-off |
+        |---|---|
+        | Build-time packages | Simple, not independent |
+        | Server-side includes | Fast, good SEO, needs server layer |
+        | Run-time loading | Independent, version clashes |
+        | iframes | Isolated, awkward |
+        | Web Components | Framework-neutral |
+
+        Talk via **events / contracts**, never internal imports. A **design system** (tokens + components) keeps it one product. Pitfalls: duplicate libraries, slices too small, slicing by layer. Start with a **modular monolith**; split when many teams block each other (Conway's Law).` },
+
+    { title: 'Mobile and PWAs',
+      md: `| | Native | Cross-platform | Hybrid |
+        |---|---|---|---|
+        | Code | Per platform (Swift, Kotlin) | Shared (React Native, Flutter) | Web in a WebView |
+        | Device access | Full, first | Most | Plugins |
+
+        **PWA** = HTTPS + **manifest** + **service worker** (intercepts requests; cache-first, network-first, stale-while-revalidate).
+
+        **Offline-first:** save locally → show at once → queue → sync → resolve conflicts. Make sync requests safe to repeat.
+
+        **Push:** app registers a device token; your server sends via **APNs / FCM**, never directly. Keep payloads small.
+
+        **BFF:** a thin back end per client type.
+
+        **Old apps live for years:** additive changes only, send the app version, minimum supported version, remote kill switches.` },
+
+    { title: 'Standards and accessibility',
+      md: `| Body | Looks after |
+        |---|---|
+        | W3C | Many specs, CSS, WCAG |
+        | WHATWG | HTML, DOM, Fetch, URL (living standards) |
+        | TC39 | JavaScript (ECMAScript) |
+        | IETF | Protocols: HTTP, TLS (RFCs) |
+
+        **Living standard:** no HTML6; check what browsers ship (MDN, Can I use). **Progressive enhancement:** HTML → CSS → JS. **Feature detection**, not browser sniffing; **polyfills** fill gaps.
+
+        **WCAG** = **POUR** (Perceivable, Operable, Understandable, Robust); levels A, AA, AAA; AA contrast 4.5:1 for normal text. Use real elements (\`<button>\`, labels, alt text); native beats ARIA. Test with keyboard and screen reader regularly.` }
+  ]
+});
