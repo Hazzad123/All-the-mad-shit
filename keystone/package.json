@@ -1,0 +1,14 @@
+{
+  "name": "keystone",
+  "private": true,
+  "description": "Static learning site. No build step and no dependencies: these scripts only check the content and run the unit tests.",
+  "type": "module",
+  "scripts": {
+    "test": "node --test tests/",
+    "validate": "node tools/validate.mjs",
+    "labcheck": "node tools/labcheck.mjs",
+    "precache": "node tools/precache.mjs",
+    "check": "node tools/validate.mjs && node tools/labcheck.mjs && node tools/precache.mjs --check && node --test tests/"
+  },
+  "engines": { "node": ">=20" }
+}

@@ -106,11 +106,11 @@ KS.lesson('ob-why', {
       items: [['Is the error rate higher than usual today?', 0], ['What was the exact error message for order 8841?', 1], ['Which of the six services made this request slow?', 2], ['How many requests per second are we serving?', 0], ['What did the payment provider reply for this one failure?', 1], ['What was the path of one request across services?', 2]],
       explain: 'Metrics are aggregated numbers for "how much, how often". Logs are details of one event. Traces show how one request moved through services.' },
 
-    { type: 'tf', statement: 'If you have dashboards for CPU, memory and disk, your system is observable.', answer: false,
-      explain: 'Those are known measurements, which is monitoring. Observability means you can answer new, unplanned questions about behaviour, like why requests are slow only for one group of users.' },
+    { type: 'tf', statement: 'Dashboards for CPU, memory and disk are monitoring; on their own they do not make a system observable.', answer: true,
+      explain: 'Those are known measurements chosen in advance, which is monitoring. Observability means you can answer new, unplanned questions about behaviour, like why requests are slow only for one group of users.' },
 
     { type: 'mcq', q: 'Your alert says checkout errors are up. Which next step uses observability, rather than just monitoring?',
-      options: ['Filter failed requests by version, region and provider to find what they share', 'Check that the alert is still firing', 'Raise the alert threshold so it stops waking people', 'Restart all services to see if it helps'],
+      options: ['Slice failed requests by version and region to see what they share', 'Check that the alert is still firing', 'Raise the alert threshold so it stops waking people', 'Restart all services to see if it helps'],
       answer: 0,
       why: [null, 'That only repeats what you already know.', 'Silencing the alarm removes the signal without finding the cause.', 'Restarting is guessing. It may help by accident but teaches you nothing.'],
       explain: 'Observability lets you slice detailed data in ways you did not plan for. Grouping by version, region and provider quickly shows which factor the failures share.' },
@@ -152,7 +152,7 @@ KS.lesson('ob-why', {
       distractors: ['alerts', 'dashboards'],
       explain: 'Logs are events, metrics are numbers over time, traces follow one request. Alerts and dashboards are ways of looking at signals, not signals themselves.' },
 
-    { type: 'short', q: 'Which of the three pillars shows the journey of a single request across many services?', accept: ['traces', 'trace', 'tracing'], hint: 'It is named after a trail left behind.',
+    { type: 'short', q: 'Which of the three pillars shows the journey of a single request across many services?', accept: ['traces', 'trace', 'tracing', 'distributed tracing', 'distributed traces'], hint: 'It is named after a trail left behind.',
       explain: '**Traces** follow one request as it hops from service to service, showing how long each step took.' }
   ],
 
@@ -294,7 +294,7 @@ KS.lesson('ob-logs', {
       explain: 'Levels let you filter noise: production usually records INFO and above, with DEBUG switched on only when needed.' },
 
     { type: 'mcq', after: 4, q: 'A request passes through five services. What lets you pull up every log line it produced?',
-      options: ['A request/correlation ID created at the edge, passed along, and included in every log line', 'Sorting all logs by timestamp across the whole company', 'Logging the user’s email address in each service', 'Giving each service its own log file'],
+      options: ['One request ID, passed along and written in every log line', 'Sorting all logs by timestamp across the whole company', 'Logging the user’s email address in each service', 'Giving each service its own log file'],
       answer: 0,
       why: [null, 'Thousands of requests share the same seconds, so timestamps alone cannot separate them.', 'Emails are personal data and may be the same for many requests.', 'Separate files make it harder to follow one request across services.'],
       explain: 'The same ID on every line, in every service, makes one search return the whole story of one request.' },
@@ -351,7 +351,7 @@ KS.lesson('ob-logs', {
       ],
       outro: 'Good logs are **structured, contextual, correlated, central and clean of secrets**.' },
 
-    { type: 'short', q: 'What is the name for a unique ID attached to a request and passed through every service so its logs can be joined up? (two words)', accept: ['correlation id', 'request id', 'correlationid', 'requestid', 'trace id'], hint: 'It correlates log lines to one request.',
+    { type: 'short', q: 'What is the name for a unique ID attached to a request and passed through every service so its logs can be joined up? (two words)', accept: ['correlation id', 'request id', 'correlationid', 'requestid', 'trace id', 'correlation ids', 'request ids', 'correlation identifier', 'request identifier'], hint: 'It correlates log lines to one request.',
       explain: 'A **correlation ID** (or request ID) is generated at the edge, passed in a header and included in every log line.' }
   ],
 
@@ -499,8 +499,8 @@ KS.lesson('ob-metrics', {
       answer: 199, unit: 'ms', tolerance: 1.2, min: 10, max: 20000,
       explain: '(99 × 100 + 10,000) ÷ 100 = 19,900 ÷ 100 = 199 ms. It looks fine, yet one user waited ten seconds. Percentiles expose that, and the average hides it.' },
 
-    { type: 'tf', after: 5, statement: 'If the average response time is 200 ms, then nearly all users experience about 200 ms.', answer: false,
-      explain: 'An average can hide a long tail: many fast requests and a few very slow ones. Use percentiles (p95, p99) to see what the slowest users get.' },
+    { type: 'tf', after: 5, statement: 'Even when the average response time is 200 ms, some users can be waiting several seconds.', answer: true,
+      explain: 'An average can hide a long tail: many fast requests and a few very slow ones. That is why you use percentiles (p95, p99) to see what the slowest users get.' },
 
     { type: 'bucket', prompt: 'RED (for a service) or USE (for a resource)?',
       buckets: ['RED: service', 'USE: resource'],
@@ -708,8 +708,8 @@ KS.lesson('ob-traces', {
       lines: [3],
       explain: 'The outgoing request carries no `traceparent` header, so the pricing service starts a brand-new, unrelated trace. Forward the trace context (instrumentation libraries do this automatically).' },
 
-    { type: 'tf', statement: 'Each service in a distributed trace creates its own unrelated trace ID, and the tools match them up later by timestamp.', answer: false,
-      explain: 'There is one trace ID for the whole request, created at the start and passed to every service in a header. Timestamps are far too unreliable for matching.' },
+    { type: 'tf', statement: 'Every span in one distributed trace carries the same trace ID, passed from service to service.', answer: true,
+      explain: 'There is one trace ID for the whole request, created at the start and passed to every service in a header. That shared ID is what lets the tools stitch the spans together; timestamps would be far too unreliable.' },
 
     { type: 'bucket', prompt: 'What does this waterfall pattern most likely mean?',
       buckets: ['Slow dependency', 'Missed parallelism', 'Repeated calls (N+1)'],
@@ -744,7 +744,7 @@ KS.lesson('ob-traces', {
       ],
       outro: 'Traces show **where** time goes, in one picture. Then metrics and logs explain **how bad** and **why**.' },
 
-    { type: 'short', q: 'What is the name for one timed step within a trace, such as "query the database"?', accept: ['span'], hint: 'It is also a word for how far something stretches.',
+    { type: 'short', q: 'What is the name for one timed step within a trace, such as "query the database"?', accept: ['span', 'spans', 'a span'], hint: 'It is also a word for how far something stretches.',
       explain: 'A **span** is one unit of work in a trace, with a name, start time, duration and a parent span.' }
   ],
 
@@ -909,7 +909,7 @@ KS.lesson('ob-instrumentation', {
       explain: 'Batching and a collector keep telemetry off the request path and give you one place to control what gets stored.' },
 
     { type: 'mcq', q: 'What is the main benefit of OpenTelemetry?',
-      options: ['Instrument once with a standard, then choose or change the backend freely', 'It stores and displays all your telemetry itself', 'It makes your code run faster', 'It replaces the need for logs, metrics and traces'],
+      options: ['Instrument once, then pick or switch the backend freely', 'It stores and displays all your telemetry itself', 'It makes your code run faster', 'It replaces the need for logs, metrics and traces'],
       answer: 0,
       why: [null, 'OpenTelemetry produces and moves telemetry. Storing and displaying it is the job of a backend such as Jaeger, Tempo or a commercial tool.', 'It adds a little overhead. It does not speed anything up.', 'It is the standard way of producing the three signals, not a replacement for them.'],
       explain: 'OTel decouples how you produce telemetry from where it goes, so switching vendors does not mean re-instrumenting everything.' },
@@ -1115,7 +1115,7 @@ KS.lesson('ob-slo-alerting', {
       explain: 'Page on user-visible symptoms and fast budget burn. Internal causes and slow-moving issues are for dashboards and tickets, handled in working hours.' },
 
     { type: 'mcq', q: 'Your service has used 95% of this month’s error budget with ten days left. What does the error-budget idea suggest?',
-      options: ['Slow down risky releases and invest in reliability until the budget recovers', 'Release faster to make up for lost time', 'Quietly change the SLO to something easier', 'Hide the numbers from the product team'],
+      options: ['Slow risky releases and fix reliability until it recovers', 'Release faster to make up for lost time', 'Quietly change the SLO to something easier to meet', 'Hide the numbers from the product team'],
       answer: 0,
       why: [null, 'More risky changes would burn the last 5% and break the SLO.', 'Moving the target to dodge the problem defeats its purpose. SLOs are changed deliberately, not to hide a miss.', 'The budget is meant to be a shared, visible number so the trade-off is agreed openly.'],
       explain: 'The budget is the agreed room for risk. When it is nearly spent, reliability work takes priority over new features.' },
@@ -1165,7 +1165,7 @@ KS.lesson('ob-slo-alerting', {
       distractors: ['RED', 'runbook'],
       explain: 'Measurement, target, contract, and the allowance that the target leaves.' },
 
-    { type: 'short', q: 'What do we call a postmortem that asks "how did the system allow this?" instead of "who is at fault?"', accept: ['blameless', 'blameless postmortem'], hint: 'Without blame.',
+    { type: 'short', q: 'What do we call a postmortem that asks "how did the system allow this?" instead of "who is at fault?"', accept: ['blameless', 'blameless postmortem', 'blameless postmortems', 'blameless review'], hint: 'Without blame.',
       explain: 'A **blameless** postmortem focuses on system and process causes, which keeps people honest and makes improvements stick.' }
   ],
 
@@ -1200,7 +1200,7 @@ KS.boss('observability', {
   intro: 'A thick fog has rolled over your production system and a pager is howling. To clear it, you must pick the right signal, read the numbers honestly and respond like a calm professional.',
   questions: [
     { type: 'mcq', q: 'Which statement best separates monitoring from observability?',
-      options: ['Monitoring watches predicted problems; observability lets you ask new questions about unpredicted ones', 'Monitoring uses metrics and observability uses logs', 'Monitoring is for small systems and observability is for large ones', 'They are two names for the same thing'],
+      options: ['Monitoring checks predicted problems; observability explains surprises', 'Monitoring uses metrics and observability uses logs', 'Monitoring is for small systems and observability is for large ones', 'They are two names for the same thing'],
       answer: 0,
       why: [null, 'Both use all three kinds of signal. The difference is what you can do with them.', 'Size matters little. The difference is predicted versus unpredicted questions.', 'They overlap but are not identical: observability is about being able to explain behaviour you did not plan for.'],
       explain: 'Monitoring covers questions chosen in advance. Observability is the ability to understand surprises from the data the system emits.' },

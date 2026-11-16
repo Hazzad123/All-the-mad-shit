@@ -68,6 +68,7 @@ Choose the right move at each step. Wrong choices explain why.`,
 
     mount(root, api) {
       const ui = api.ui, h = api.h;
+      if (ui.needsWebCrypto(root)) return;
       const APP = 'https://photoprint.example', AS_URL = 'https://accounts.example', CB = APP + '/callback';
       const as = newAS();
       const s = { step: 0, busy: false, now: 0, verifier: '', challenge: '', state: '', code: '', tok: null, fb: null, wire: '', sawExpired: false, lastWire: '', photos: null };

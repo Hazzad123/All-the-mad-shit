@@ -101,3 +101,6 @@
   .lab-node { min-width: 74px; padding: 7px 6px 6px; } .lab-node-ico { font-size: 1.3rem; } .lab-node-label { font-size: .74rem; }
   .lab-stage { padding: 14px 10px; } .lab-cols { gap: 16px; } .lab-title { font-size: 1.25rem; }
 }
+
+/* light theme: dark text on the brown warn packet was 3.3:1 */
+:root[data-theme="light"] .lab-packet.labelled.tn-warn { color: #fff; }

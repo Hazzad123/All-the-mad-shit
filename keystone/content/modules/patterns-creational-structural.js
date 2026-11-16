@@ -334,8 +334,8 @@ KS.lesson('gof-factory', {
       why: [null, 'Speed is not the issue. The concern is how many places need to change.', '`new` works anywhere. The problem is design, not syntax.', 'Memory is not the concern here either.'],
       explain: '`new` names the exact class. Each use scatters that choice, so swapping providers means finding every one.' },
 
-    { type: 'tf', after: 4, statement: 'In Factory Method, the shared code in the parent class calls an overridable method and never needs to know which concrete class the subclass creates.', answer: true,
-      explain: 'That is the whole trick: the parent works against the product interface, and each subclass supplies the concrete product.' },
+    { type: 'tf', after: 4, statement: 'In Factory Method, the parent class must know every concrete class its subclasses might create.', answer: false,
+      explain: 'The opposite: the shared code in the parent calls an overridable method and works against the product interface. Each subclass supplies the concrete product, so the parent never names it.' },
 
     { type: 'match', after: 7, prompt: 'Match each description to the name.',
       pairs: [['One function with an if that returns the right object', 'Simple factory'], ['A parent calls an overridable method that makes the product', 'Factory Method'], ['One object that creates a whole matching set of products', 'Abstract Factory'], ['The caller writes the exact class itself', 'Plain `new`']],
@@ -376,14 +376,14 @@ KS.lesson('gof-factory', {
           createGateway() { return new PixGateway(); }
         }` },
       answer: 'b',
-      explain: 'In the factory-method version a new region is a new subclass. The hard-wired version needs another branch inside `pay`, so each region edits existing code.' },
+      explain: 'With the factory method, each new region is a new subclass. The hard-wired version needs another branch inside `pay`, so each region edits existing code.' },
 
     { type: 'cloze', code: true, text: 'class Checkout {\n  {{createGateway}}() {\n    throw new Error("subclass decides");\n  }\n  pay(order) {\n    this.createGateway().charge(order.total);\n  }\n}\nclass EuCheckout {{extends}} Checkout {\n  createGateway() { return new SepaGateway(); }\n}',
       distractors: ['implements', 'super', 'static'],
       explain: 'The parent declares the hook method and the subclass overrides it with `extends`. Calling `this.createGateway()` runs the subclass version.' },
 
     { type: 'mcq', q: 'A game must build a whole UI in either a Dark or a Light theme, with buttons, menus and scrollbars that always match. Which pattern fits best?',
-      options: ['Abstract Factory, one factory per theme making matching widgets', 'Factory Method, because there is one product', 'A plain constructor with many `if` statements', 'Simple factory returning one button'],
+      options: ['Abstract Factory, one factory per theme', 'Factory Method, because there is one product', 'A plain constructor with many `if` statements', 'Simple factory returning one button'],
       answer: 0,
       why: [null, 'There are several related products, not one, and they must match.', 'Scattering `if (dark)` through the code makes it easy to mix themes by mistake.', 'A single product does not cover menus and scrollbars.'],
       explain: 'A family of related objects that must stay consistent is exactly what an Abstract Factory is for.' },
@@ -553,7 +553,7 @@ KS.lesson('gof-builder-prototype', {
 
   activities: [
     { type: 'mcq', after: 1, q: 'What does the telescoping constructor problem describe?',
-      options: ['Constructors that keep growing longer, with many positional options that are hard to read', 'A class that inherits through many levels of parents', 'A constructor that calls itself forever', 'Creating one object that is far too big for memory'],
+      options: ['A constructor whose list of positional options keeps growing', 'A class that inherits through many levels of parents', 'A constructor that calls itself forever', 'Creating one object that is far too big for memory'],
       answer: 0,
       why: [null, 'That is a deep hierarchy, a different smell.', 'That would be infinite recursion, a bug and not a pattern problem.', 'Size is not the issue. Readability of the arguments is.'],
       explain: 'Each new option lengthens the constructor, and calls become strings of `null`, `true` and `false` that nobody can read.' },
@@ -575,7 +575,7 @@ KS.lesson('gof-builder-prototype', {
           }
         }
         new OrderBuilder().express().giftWrap();` },
-      lines: [4, 5],
+      lines: [3, 4],
       explain: '`express()` never returns `this`, so it gives back `undefined`, and `.giftWrap()` then crashes. Every fluent step must return the builder.' },
 
     { type: 'ab', q: 'Which call is easier to read and less likely to be written wrongly?',
@@ -790,7 +790,7 @@ KS.lesson('gof-singleton', {
       explain: 'Both parts are in the definition. The "only one" part is useful. The "reachable from anywhere" part is the one that causes the trouble.' },
 
     { type: 'mcq', after: 3, q: 'Why is calling `Config.getInstance()` inside a method called "global state in disguise"?',
-      options: ['Any code can reach and change the shared object, and the class does not say it depends on it', 'It makes the program run noticeably slower', 'It stops the program from using more than one config file', 'It only works in the first function that calls it'],
+      options: ['Anyone can change it, and the signature hides the dependency', 'It makes the program run noticeably slower', 'It stops the program from using more than one config file', 'It only works in the first function that calls it'],
       answer: 0,
       why: [null, 'Speed is not the concern. Hidden coupling is.', 'The trouble is shared mutable access, not the number of files.', 'It works wherever it is called, which is exactly the problem.'],
       explain: 'The dependency is invisible in the signature and the object is shared by everyone, so any change to it can affect code far away.' },
@@ -823,7 +823,7 @@ KS.lesson('gof-singleton', {
           }
         }` },
       answer: 'b',
-      explain: 'The injected version states what it needs and lets a test hand it a fake database. The first one hides the dependency and is stuck with the real shared one.' },
+      explain: 'The injected version states what it needs and lets a test hand it a fake database. The reaches-out version hides the dependency and is stuck with the real shared one.' },
 
     { type: 'multi', q: 'Which of these are real criticisms of the classic Singleton?',
       options: ['It creates hidden dependencies between classes', 'It makes tests influence each other through shared state', 'It cannot be used with more than ten classes', 'It ties code to a concrete class rather than an interface', 'It always makes the program crash on start-up'],
@@ -1006,7 +1006,7 @@ KS.lesson('gof-adapter-facade', {
 
   activities: [
     { type: 'mcq', after: 2, q: 'Your code expects `charge(pence)` but the vendor library offers `makePayment({cents, currency})`. What does an Adapter do?',
-      options: ['Wraps the vendor object so it presents `charge(pence)` and translates the call', 'Edits the vendor library so its methods are renamed', 'Rewrites your checkout to call `makePayment` everywhere', 'Merges both interfaces into one new, bigger class'],
+      options: ['Wraps the vendor object behind `charge(pence)` and translates', 'Edits the vendor library so its methods are renamed', 'Rewrites your checkout to call `makePayment` everywhere', 'Merges both interfaces into one new, bigger class'],
       answer: 0,
       why: [null, 'You usually cannot edit vendor code, and an adapter exists to avoid needing to.', 'That spreads the vendor’s shape through your code, the opposite of the goal.', 'An adapter does not merge. It translates between two shapes that stay as they are.'],
       explain: 'The adapter implements the interface your code expects and, inside, calls the vendor in its own style. Neither side changes.' },
@@ -1505,7 +1505,7 @@ KS.lesson('gof-composite-bridge-flyweight', {
 
   activities: [
     { type: 'mcq', after: 1, q: 'In the Composite pattern, why do single products and bundles share an interface?',
-      options: ['So callers can ask either for its price without checking which kind it is', 'So bundles can inherit private fields from products', 'So that a product can contain other products', 'To make price calculation run faster'],
+      options: ['So callers can price either one without checking its kind', 'So bundles can inherit private fields from products', 'So that a product can contain other products', 'To make price calculation run faster'],
       answer: 0,
       why: [null, 'They share a contract, not private fields.', 'Only the composite holds children. A leaf does not.', 'Speed is not the aim. Simple callers are.'],
       explain: 'A shared interface lets code treat one item and a whole tree the same, with recursion handling the nesting inside the composite.' },
@@ -1535,8 +1535,8 @@ KS.lesson('gof-composite-bridge-flyweight', {
       items: [['A menu whose items can be actions or whole sub-menus', 0], ['Reports in 3 formats going to 4 destinations without 12 classes', 1], ['A text editor sharing the shape of each letter between millions of characters', 2], ['A file system where "size" works on files and folders alike', 0], ['Drawing shapes with either of two graphics libraries, with shapes and libraries growing separately', 1], ['A map with millions of identical tree icons', 2]],
       explain: 'Nesting that should be treated uniformly is Composite, two sides that grow independently is Bridge, and many repeats of the same heavy data is Flyweight.' },
 
-    { type: 'tf', statement: 'Data shared through a Flyweight should be immutable, because changing it would change it for every object that shares it.', answer: true,
-      explain: 'One shared copy means one change affects all users. That is why the shared (intrinsic) part is kept read-only and the changing part is stored outside.' },
+    { type: 'tf', statement: 'Any object using a Flyweight can safely change the shared data, because each object keeps its own copy.', answer: false,
+      explain: 'There is only one shared copy, so one change would affect every object that uses it. That is why the shared (intrinsic) part is kept read-only and the changing part is stored outside.' },
 
     { type: 'scenario', title: 'The document editor', meters: { memory: 50, clarity: 50 },
       intro: 'You are building a rich text editor. A document holds paragraphs, which hold words, which hold characters. People paste 400-page documents.',
@@ -1592,7 +1592,7 @@ KS.boss('patterns-creational-structural', {
   intro: 'The Basilisk hoards a library of blueprints and turns careless architects to stone with one question: which pattern is this, and should you use it at all? Read the problems, name the shapes, and resist the urge to over-build.',
   questions: [
     { type: 'mcq', q: 'A teammate wants a Factory, a Builder and a Singleton for a 40-line script that prints one report. What is the best response?',
-      options: ['Ask which real problem each one solves today, and keep only those with an answer', 'Approve them, since patterns always improve code', 'Add a fourth pattern so the design is balanced', 'Ban patterns from the project'],
+      options: ['Ask what real problem each one solves, and keep only those', 'Approve them all, since patterns always improve code', 'Add a fourth pattern so the design is balanced', 'Ban patterns from the project'],
       answer: 0,
       why: [null, 'Patterns cost extra classes and indirection, so they must earn their keep.', 'Adding more patterns adds more cost for no benefit.', 'Overcorrecting. Patterns are valuable once a real problem appears.'],
       explain: 'A pattern treats a problem you actually have. With no pain, the simple version is clearer.' },
@@ -1602,7 +1602,7 @@ KS.boss('patterns-creational-structural', {
       explain: 'Prototype, Abstract Factory and Singleton make objects. Proxy, Flyweight, Composite and Bridge shape structures. Observer is about how objects react to each other, which the next module covers.' },
 
     { type: 'mcq', q: 'An installer must create a matching Button, Checkbox and ScrollBar, in either a Windows or a macOS style, and never mix the two. Which pattern fits?',
-      options: ['Abstract Factory, with one factory per operating system', 'Singleton, so only one style exists', 'Prototype, copying a Windows button', 'Facade, hiding the three widgets'],
+      options: ['Abstract Factory, with one factory per operating system', 'Singleton, so only one style can ever exist', 'Prototype, cloning one Windows button for the rest', 'Facade, hiding the three widgets behind one class'],
       answer: 0,
       why: [null, 'Singleton limits instances. It does not choose a matching family.', 'Cloning one widget does not guarantee the other two match.', 'A facade simplifies using subsystems. It does not decide which family is created.'],
       explain: 'A family of related products that must stay consistent is the signature use of an Abstract Factory.' },
@@ -1652,7 +1652,7 @@ KS.boss('patterns-creational-structural', {
       distractors: ['refund', 'super', 'static'],
       explain: 'A decorator holds the thing it wraps, passed in from outside, and forwards the call to it.' },
 
-    { type: 'short', q: 'Which GoF pattern is a stand-in with the same interface as the real object, used to control access to it?', accept: ['proxy'], hint: 'Starts with P.',
+    { type: 'short', q: 'Which GoF pattern is a stand-in with the same interface as the real object, used to control access to it?', accept: ['proxy', 'proxy pattern'], hint: 'Starts with P.',
       explain: 'A Proxy looks like the real object but controls when, whether or how the real one is reached: lazily, with caching, with permission checks or remotely.' },
 
     { type: 'multi', q: 'Which situations call for Composite, Bridge or Flyweight?',
@@ -1731,4 +1731,3 @@ KS.sheet('patterns-creational-structural', {
   ]
 });
 
-/* @@END */

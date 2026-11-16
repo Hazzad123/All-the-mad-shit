@@ -111,12 +111,12 @@ KS.lesson('nw-osi', {
       explain: 'Each layer wraps what it received from the layer above, so the *last* header added is the outermost. The receiver unwraps in the opposite order.' },
 
     { type: 'mcq', after: 5, q: 'Where does TLS (the encryption behind HTTPS) sit in the OSI model?',
-      options: ['It does not fit neatly: it runs between TCP and HTTP, and people disagree about which layer to call it', 'Layer 1, because encryption scrambles the physical signal', 'Layer 3, because it protects IP packets', 'Layer 7, and nobody disputes it'],
+      options: ['No single layer: it sits between TCP and HTTP', 'Layer 1, because encryption scrambles the physical signal', 'Layer 3, because it protects the IP packets themselves', 'Layer 7, and every textbook agrees on that'],
       answer: 0,
       why: [null, 'Physical is about signals on a wire. TLS is software working on data long before it is turned into signals.', 'IP packets themselves are not encrypted by TLS. TLS protects the data inside the TCP connection.', 'It is close to the application, but the usual textbook answers vary (5, 6 or 7), so the honest answer is that it straddles layers.'],
       explain: 'OSI is a reference model, not a law. TLS sits on top of TCP and under HTTP, which does not match any single OSI box.' },
 
-    { type: 'tf', statement: 'The real internet is built as seven separate layers, exactly as the OSI model describes.', answer: false,
+    { type: 'tf', statement: 'The real internet does not follow the OSI model’s seven layers exactly; OSI is mainly a model for thinking and talking.', answer: true,
       explain: 'The internet runs on the four-layer TCP/IP model. OSI is a teaching and reference model. Its layer numbers are still used as handy nicknames.' },
 
     { type: 'bucket', prompt: 'Which part of the stack does each thing belong to?', buckets: ['Layers 1–2: the local link', 'Layers 3–4: delivery', 'Layer 7: the application'],
@@ -127,7 +127,7 @@ KS.lesson('nw-osi', {
       distractors: ['deletes', 'compresses', 'decryption'],
       explain: 'Wrapping without opening is the whole idea: each layer only deals with its own envelope, never the contents.' },
 
-    { type: 'short', q: 'At which OSI layer number do TCP and UDP live?', accept: ['4', 'four', 'layer 4'], hint: 'Transport is the one in the middle.',
+    { type: 'short', q: 'At which OSI layer number do TCP and UDP live?', accept: ['4', 'four', 'layer 4', 'layer four'], hint: 'Transport is the one in the middle.',
       explain: 'TCP and UDP are **transport** protocols, layer 4. That is why a "layer 4" device can see ports but not URLs.' },
 
     { type: 'scenario', title: 'The site will not load', intro: 'Your laptop shows an error when you open the company website. A colleague says: "just start at the bottom and work up." You try it.',
@@ -501,7 +501,7 @@ KS.lesson('nw-tcp-udp', {
       explain: 'The client opens, the server answers and opens its own side, the client confirms. Only then does real data flow, which is why every new TCP connection costs about one round trip first.' },
 
     { type: 'mcq', after: 3, q: 'A sender transmits pieces 1, 2 and 3. Piece 2 is lost. What does TCP do?',
-      options: ['It resends only piece 2, then delivers everything to the program in order', 'It restarts the whole transfer from piece 1', 'It delivers pieces 1 and 3 and ignores the gap', 'It closes the connection and reports failure'],
+      options: ['It resends piece 2, then delivers all three in order', 'It restarts the whole transfer from piece 1', 'It delivers pieces 1 and 3 and ignores the gap', 'It closes the connection and reports a failure'],
       answer: 0,
       why: [null, 'Resending everything would waste time. TCP resends only what is missing.', 'That is closer to UDP behaviour. TCP hides the gap from the program.', 'Closing happens only after many failed attempts, not after one lost piece.'],
       explain: 'TCP tracks what has been acknowledged and resends just the gap. The application only ever sees an unbroken, ordered stream.' },
@@ -717,7 +717,7 @@ KS.lesson('nw-proxies', {
       why: [null, 'Real visitors come from many addresses. The app only sees the connection from the proxy.', 'The app has to use TCP (or something else) to work at all. The cause is the extra hop.', 'DNS decides where visitors connect to, not who the app thinks is calling.'],
       explain: 'The app\'s connection is with the proxy, so the proxy\'s address is what the app sees. The proxy passes the original address along in `X-Forwarded-For`, and the app should trust it only from that proxy.' },
 
-    { type: 'short', q: 'Which HTTP header usually carries the original client address through a proxy?', accept: ['X-Forwarded-For'], hint: 'It starts with X-Forwarded.',
+    { type: 'short', q: 'Which HTTP header usually carries the original client address through a proxy?', accept: ['X-Forwarded-For', 'XFF'], hint: 'It starts with X-Forwarded.',
       explain: '`X-Forwarded-For` lists the client address (and any proxies it passed through). Only trust it when it was set by your own proxy.' },
 
     { type: 'cloze', text: 'A {{forward}} proxy acts for the client, a {{reverse}} proxy acts for the servers, and a {{VPN}} tunnels all of a device\'s traffic.',
@@ -915,7 +915,7 @@ KS.lesson('nw-firewalls', {
       lines: [1],
       explain: 'Rule 1 matches every packet and the first match wins, so rules 2 and 3 can never fire. The broad rule belongs at the bottom (or not at all).' },
 
-    { type: 'tf', after: 5, statement: 'A stateful firewall needs a separate inbound rule to let the replies to your own outgoing requests back in.', answer: false,
+    { type: 'tf', after: 5, statement: 'A stateful firewall lets the replies to your own outgoing requests back in without a separate inbound rule.', answer: true,
       explain: 'A stateful firewall remembers the connection you opened and lets its replies back in automatically. A stateless filter is the one that needs explicit rules for replies.' },
 
     { type: 'match', prompt: 'Match each term to its meaning.',
@@ -1150,7 +1150,7 @@ KS.lesson('nw-toolbox', {
       items: ['`dig` the name to check it resolves', '`ping` the address to check the host is reachable', '`traceroute` to find where the route stops', '`curl -v` to see how the port and the app answer'],
       explain: 'Work from the lowest, cheapest question upward: name, machine, route, then the application itself. Each answer rules a whole region out.' },
 
-    { type: 'tf', statement: 'If ping gets no reply, the server is definitely down.', answer: false,
+    { type: 'tf', statement: 'A server can be up and serving its website even when it does not answer ping.', answer: true,
       explain: 'Many servers and firewalls ignore ping on purpose. The website may work perfectly well on port 443. Confirm with `curl` against the real port.' },
 
     { type: 'spot', prompt: 'DNS clearly worked here. Tap a line that proves curl already had the server\'s address.',
@@ -1247,13 +1247,13 @@ KS.boss('networking', {
       explain: 'Ports and addresses are visible at layer 4. URLs, headers and form fields are only visible at layer 7.' },
 
     { type: 'mcq', q: '`curl -v` to your API fails instantly with "Connection refused". What is the best reading?',
-      options: ['The machine answered, but nothing is listening on that port', 'A firewall is silently dropping packets', 'DNS could not resolve the name', 'The server is switched off'],
+      options: ['The machine answered, but nothing listens on that port', 'A firewall is silently dropping the packets', 'DNS could not turn the name into an address', 'The server machine is switched off at the wall'],
       answer: 0,
       why: [null, 'A dropping firewall causes silence and a timeout, not an instant refusal.', 'curl already had an address to connect to, so the name was resolved.', 'A switched-off machine cannot send a refusal. Something replied.'],
       explain: 'A fast refusal means the machine itself said no. The program that should be listening is probably down, or you used the wrong port.' },
 
     { type: 'mcq', q: 'The same request hangs for 30 seconds and then times out. Which explanation fits best?',
-      options: ['A firewall is dropping the packets, or the host is down', 'Nothing is listening on the port', 'The domain name has a typo', 'The server rejected your password'],
+      options: ['A firewall is dropping the packets, or the host is down', 'Nothing is listening on the port you asked for', 'The domain name in the URL has a typo', 'The server rejected the password you sent'],
       answer: 0,
       why: [null, 'That produces an instant "refused", not a long wait.', 'A typo produces a quick resolution error, before any connection is tried.', 'A password check happens after a connection exists. This never connected.'],
       explain: 'Silence means nothing answered. Dropped packets (often a firewall) or a missing host cause timeouts.' },

@@ -72,13 +72,24 @@
 
   // ---------- modal ----------
   /** U.modal({title, body: Node|string(md), actions:[{label, kind, onClick, close:true}], wide, onClose}) → {close, el} */
+  let modalSeq = 0;
   U.modal = function (o) {
     const prev = document.activeElement;
-    const box = h('div.modal' + (o.wide ? '.wide' : '') + (o.cls ? '.' + o.cls : ''), { role: 'dialog', 'aria-modal': 'true' });
+    const titleId = 'modal-title-' + (++modalSeq);
+    const box = h('div.modal' + (o.wide ? '.wide' : '') + (o.cls ? '.' + o.cls : ''), { role: 'dialog', 'aria-modal': 'true', 'aria-labelledby': o.title ? titleId : null, 'aria-label': o.title ? null : 'Dialog' });
     const back = h('div.modal-back', box);
     function close() { back.classList.add('out'); document.removeEventListener('keydown', onKey, true); setTimeout(function () { back.remove(); }, 180); if (o.onClose) o.onClose(); if (prev && prev.focus) try { prev.focus(); } catch (e) { /* gone */ } }
-    function onKey(e) { if (e.key === 'Escape' && o.dismiss !== false) { e.stopPropagation(); close(); } }
-    if (o.title || o.dismiss !== false) box.appendChild(h('div.modal-head', h('h3', o.title || ''), o.dismiss !== false ? h('button.icon-btn', { type: 'button', 'aria-label': 'Close', onclick: close }, U.icon('x')) : null));
+    function onKey(e) {
+      if (e.key === 'Escape' && o.dismiss !== false) { e.stopPropagation(); close(); return; }
+      if (e.key === 'Tab') {   // keep keyboard focus inside the dialog
+        const els = Array.from(box.querySelectorAll('button:not(:disabled),[href],input:not(:disabled),select,textarea,[tabindex]:not([tabindex="-1"])')).filter(function (x) { return x.offsetParent !== null || x === document.activeElement; });
+        if (!els.length) return;
+        const first = els[0], last = els[els.length - 1];
+        if (e.shiftKey && (document.activeElement === first || !box.contains(document.activeElement))) { e.preventDefault(); last.focus(); }
+        else if (!e.shiftKey && (document.activeElement === last || !box.contains(document.activeElement))) { e.preventDefault(); first.focus(); }
+      }
+    }
+    if (o.title || o.dismiss !== false) box.appendChild(h('div.modal-head', h('h3', { id: titleId }, o.title || ''), o.dismiss !== false ? h('button.icon-btn', { type: 'button', 'aria-label': 'Close', onclick: close }, U.icon('x')) : null));
     const body = h('div.modal-body'); box.appendChild(body);
     if (typeof o.body === 'string') body.appendChild(KS.mdEl(o.body)); else if (o.body) body.appendChild(o.body);
     if (o.actions && o.actions.length) {
@@ -237,7 +248,7 @@
     if (pop && !pop.contains(e.target)) U.closePop();
   });
   document.addEventListener('keydown', function (e) {
-    if (e.key === 'Escape') U.closePop();
+    if (e.key === 'Escape' && pop) { e.preventDefault(); U.closePop(); }   // handled: Esc closes the popover, not the lesson
     if ((e.key === 'Enter' || e.key === ' ') && document.activeElement && document.activeElement.classList && document.activeElement.classList.contains('term')) { e.preventDefault(); U.termPopover(document.activeElement, document.activeElement.dataset.term); }
   });
   window.addEventListener('hashchange', U.closePop);

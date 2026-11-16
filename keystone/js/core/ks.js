@@ -3,6 +3,18 @@
   'use strict';
   const KS = (window.KS = window.KS || {});
   KS.version = '1.0.0';
+  /** Ask the service worker whether every file is cached. Resolves true only when the site really works offline. */
+  KS.checkOffline = function () {
+    return new Promise(function (resolve) {
+      const sw = navigator.serviceWorker; if (!sw || !sw.controller) return resolve(false);
+      const t = setTimeout(function () { resolve(false); }, 5000);
+      sw.addEventListener('message', function on(e) {
+        if (!e.data || e.data.type !== 'offline-status') return;
+        sw.removeEventListener('message', on); clearTimeout(t); resolve(!!e.data.ready);
+      });
+      sw.controller.postMessage({ type: 'offline-status' });
+    });
+  };
 
   // ---------- DOM helpers ----------
   function append(el, kid) {
@@ -12,8 +24,10 @@
     el.appendChild(document.createTextNode(String(kid)));
   }
   function setAttrs(el, attrs) {
-    for (const k in attrs) {
-      const v = attrs[k];
+    if (!attrs) return;
+    const keys = Object.keys(attrs);
+    for (let i = 0; i < keys.length; i++) {
+      const k = keys[i]; const v = attrs[k];
       if (v == null || v === false) continue;
       if (k === 'class') { if (v) el.setAttribute('class', ((el.getAttribute('class') || '') + ' ' + v).trim()); }
       else if (k === 'style') {

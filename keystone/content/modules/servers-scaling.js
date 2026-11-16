@@ -143,7 +143,7 @@ KS.lesson('sv-web-servers', {
       distractors: ['database', 'browser', 'forward proxy'],
       explain: 'Each layer has one job: the web server is the front door, and the application server is where your business logic runs.' },
 
-    { type: 'short', q: 'What do we call a middleman that accepts requests on behalf of servers and forwards them? (Two words.)', accept: ['reverse proxy', 'reverseproxy'], hint: 'The opposite of a proxy that stands in for users.',
+    { type: 'short', q: 'What do we call a middleman that accepts requests on behalf of servers and forwards them? (Two words.)', accept: ['reverse proxy', 'reverseproxy', 'reverse proxies'], hint: 'The opposite of a proxy that stands in for users.',
       explain: 'A **reverse proxy**. Visitors talk to it, and it talks to the real servers on their behalf.' },
 
     { type: 'scenario', title: 'The slow site with the bored CPU', intro: 'A small shop runs a single Node.js app that does everything: it serves images and scripts, handles HTTPS, and builds order pages. On sale day it crawls, yet the database is nearly idle.',
@@ -308,7 +308,7 @@ KS.lesson('sv-server-tour', {
 
   activities: [
     { type: 'mcq', after: 2, q: 'Why can an event-driven server like Nginx handle thousands of mostly idle connections with a few workers?',
-      options: ['A worker never sits waiting on one slow connection; it reacts to events and moves on', 'It gives each connection a dedicated high-speed thread', 'It refuses connections that are idle', 'It keeps every response in the cache forever'],
+      options: ['Workers never wait on one slow connection; they react to events', 'It gives each connection a dedicated high-speed thread', 'It refuses connections that are idle', 'It keeps every response in the cache forever'],
       answer: 0,
       why: [null, 'Dedicated threads per connection is the other model, which costs more memory per visitor.', 'Idle connections are kept; they simply cost almost nothing.', 'Caching is a separate matter.'],
       explain: 'The worker loop reacts to events (data arrived, file ready) and immediately goes on to the next thing. A quiet connection costs almost nothing, so one worker can juggle thousands.' },
@@ -723,7 +723,7 @@ KS.lesson('sv-load-balancing', {
       distractors: ['sticky session', 'round robin', 'layer 1'],
       explain: 'Health checks decide who is eligible. Layer 7 balancers understand HTTP, layer 4 balancers do not.' },
 
-    { type: 'short', q: 'Which load-balancing algorithm sends each request to the server with the fewest requests currently in progress? (Two words.)', accept: ['least connections', 'leastconnections', 'least connection'], hint: 'It counts how many are open right now.',
+    { type: 'short', q: 'Which load-balancing algorithm sends each request to the server with the fewest requests currently in progress? (Two words.)', accept: ['least connections', 'leastconnections', 'least connection', 'least conn', 'fewest connections'], hint: 'It counts how many are open right now.',
       explain: '**Least connections**. It adapts to uneven request times, which round robin cannot.' },
 
     { type: 'scenario', title: 'Server 3 goes down at lunchtime', intro: 'Your shop runs three app servers behind a load balancer set to round robin with sticky sessions. At 12:30, server 3 crashes. Support starts to hear from customers.',
@@ -920,7 +920,7 @@ KS.lesson('sv-stateless', {
       lines: [1],
       explain: 'The `carts` object lives in this one process’s memory. With two servers each has its own `carts`, and a restart empties it. Baskets belong in the database or a shared store.' },
 
-    { type: 'tf', statement: 'A stateless application server stores no data at all, anywhere.', answer: false,
+    { type: 'tf', statement: 'A stateless application server still works with plenty of data; it just keeps it in shared stores rather than in its own memory.', answer: true,
       explain: 'Stateless means the **server** keeps nothing between requests that others need. The data still exists, in the database, the shared store and object storage, which are built to hold state safely.' },
 
     { type: 'ab', q: 'Which session storage lets you add and remove app servers freely?',
@@ -1137,7 +1137,7 @@ KS.lesson('sv-capacity', {
       items: [['Queue length for a pool of background image-resizing workers', 0], ['Average CPU across web servers doing heavy page rendering', 0], ['Requests per second per server on a web tier', 0], ['The time of day on its own, for traffic that is unpredictable', 1], ['The size of the database backup folder', 1], ['CPU of a tier that mostly waits on a slow database', 1]],
       explain: 'A good signal rises when you need more workers and falls when you do not. A CPU reading is meaningless if the tier is just waiting on something else, and unrelated numbers say nothing about load.' },
 
-    { type: 'tf', statement: 'If you size your servers for the average daily traffic, you will be fine at the busiest time of day.', answer: false,
+    { type: 'tf', statement: 'Servers sized only for the average daily traffic can struggle at the busiest time of day.', answer: true,
       explain: 'Peak traffic can be several times the average. Plan for the peak, with headroom, or the site slows exactly when the most people are using it.' },
 
     { type: 'scenario', title: 'Launch-day sums', intro: 'You are planning the servers for a ticket-booking site. The marketing team forecasts 2 million daily active users at launch, each making about 25 requests. A single app server, load-tested, handles 250 requests per second before slowing down.',
@@ -1310,7 +1310,7 @@ KS.lesson('sv-latency', {
       explain: 'Memory (about 100 ns) beats SSD (about 100 µs), which beats a data-centre round trip (about 0.5 ms), a disk seek (about 10 ms) and a worldwide round trip (about 150 ms). Each step is a big jump, which is why avoiding slower layers is so valuable.' },
 
     { type: 'mcq', after: 4, q: 'A service reports an average latency of 290 ms, but its p50 is 100 ms and its p99 is 2,000 ms. What does that tell you?',
-      options: ['Most users are fast, but a slow tail drags the average up and some users wait much longer', 'Every user waits about 290 ms', 'The service is slower than 2 seconds for half of all users', 'The p99 must be a measuring error'],
+      options: ['Most are fast, but a slow tail drags the average up', 'Every user waits about 290 ms', 'The service is slower than 2 seconds for half of all users', 'The p99 must be a measuring error'],
       answer: 0,
       why: [null, 'The average hides the spread. Nobody experiences 290 ms in this picture.', 'p50 is 100 ms, so half of users are at or below that.', 'A slow tail like this is real and common.'],
       explain: 'The median shows the typical user is fine, and p99 shows the unlucky ones wait twenty times longer. The average blurs both, which is why percentiles are the honest summary.' },

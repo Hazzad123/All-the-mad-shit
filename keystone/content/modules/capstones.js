@@ -126,7 +126,7 @@ KS.lesson('cap-url-shortener', {
       explain: '100,000,000 ÷ 2,600,000 is about 38, so roughly 40 per second. Tiny next to the redirects: with 100 clicks per link, that is about 4,000 per second. The ratio tells you where to spend your effort.' },
 
     { type: 'mcq', after: 5, q: 'Your team picks a plain counter for keys: each new link gets the next number (1,000 then 1,001), written in base62. What is the main weakness of this choice?',
-      options: ['Anyone can guess the next key, so private-looking links can be found by counting', 'Two links will often be given the same key', 'The keys become too long to fit in a URL', 'The database cannot store numbers that large'],
+      options: ['Keys can be guessed by counting, exposing private-looking links', 'Two different links will often be given the same key', 'The keys become too long to fit in a URL', 'The database cannot store numbers that large'],
       answer: 0,
       why: [null, 'A counter never repeats a number, so collisions are not the issue. That is the weakness of hash-and-chop.', 'Seven base62 characters hold about 3.5 trillion values, far more than needed.', 'Numbers that size are routine for any database.'],
       explain: 'A counter is unique but predictable. If links should be unguessable you either scramble the number or use random keys. Scaling the single counter is a second problem, usually solved by giving each server a block of numbers.' },
@@ -172,7 +172,7 @@ KS.lesson('cap-url-shortener', {
       explain: 'Base62 is compact and URL-friendly. Truncating a hash throws away information, so two URLs can share a key; the fix is to check the table and try again with a salt or a fresh key.' },
 
     { type: 'mcq', q: 'Which single change most reduces the load on the database for a read-heavy service like this?',
-      options: ['A cache in front of it, so popular keys are answered from memory', 'Making the short keys one character longer', 'Switching every redirect from 302 to 200', 'Storing the long URLs in uppercase'],
+      options: ['A cache in front, so popular keys come from memory', 'Making the short keys one character longer', 'Switching every redirect from 302 to 200', 'Storing the long URLs in uppercase'],
       answer: 0,
       why: [null, 'Key length changes how many links fit, not how many reads happen.', 'A 200 would show a page instead of redirecting; it is not a redirect at all.', 'Case has no effect on load.'],
       explain: 'With 100 reads for every write, and a few links getting most of the traffic, a cache absorbs the bulk of the reads. The database then mostly serves misses and new links.' },
@@ -746,7 +746,7 @@ KS.lesson('cap-checkout', {
     { type: 'tf', statement: 'Because a payment webhook may be delivered more than once, the code that handles it should be safe to run twice.', answer: true,
       explain: 'Delivery of webhooks is "at least once". Handling the same event twice must not, for example, ship two parcels, so the handler checks whether it has already processed that event ID.' },
 
-    { type: 'short', q: 'What name is given to a series of local steps across services, each with an undo, used instead of one big transaction?', accept: ['saga', 'the saga', 'order saga'], hint: 'A long story of adventures.',
+    { type: 'short', q: 'What name is given to a series of local steps across services, each with an undo, used instead of one big transaction?', accept: ['saga', 'the saga', 'order saga', 'sagas', 'saga pattern'], hint: 'A long story of adventures.',
       explain: 'A **saga** replaces the all-or-nothing transaction with a chain of steps and compensating actions that run in reverse if something fails.' }
   ],
 
@@ -1107,7 +1107,7 @@ KS.lesson('cap-ride-hailing', {
     { type: 'tf', statement: 'Because drivers’ positions change every few seconds, each position update should be stored permanently in the main trips database.', answer: false,
       explain: 'Only the latest position matters for matching, so it lives in fast memory and is overwritten. History goes to a cheap append-only log. Writing every update to the trips database would drown it.' },
 
-    { type: 'short', q: 'The short string that names a map cell, where nearby places usually share the same start, is called a what? (one word)', accept: ['geohash'], hint: 'Geo + hash.',
+    { type: 'short', q: 'The short string that names a map cell, where nearby places usually share the same start, is called a what? (one word)', accept: ['geohash', 'geohashes', 'a geohash'], hint: 'Geo + hash.',
       explain: 'A **geohash** encodes a location as a short string; the longer the string, the smaller the cell. Nearby places usually share a prefix, but cell borders are the exception, so you search neighbours too.' },
 
     { type: 'explain', prompt: 'Explain why finding nearby drivers uses a map index rather than comparing the rider to every driver.',
@@ -1284,7 +1284,7 @@ KS.lesson('cap-auth-platform', {
           );
           res.json(inv.rows[0]);
         });` },
-      lines: [4, 5],
+      lines: [3, 4],
       explain: 'The query filters on the invoice ID alone. The tenant is read on line 2 but never used, so any logged-in user who guesses an ID gets another company’s invoice. It needs "AND tenant_id = $2".' },
 
     { type: 'mcq', q: 'Priya is an admin at Acme but only a viewer at Globex. Where should her role be stored?',
@@ -1548,7 +1548,7 @@ KS.lesson('cap-incident', {
     { type: 'tf', statement: 'During an incident, a status update is only worth sending once you have found the root cause.', answer: false,
       explain: 'People need impact, what is known, what is being done and when the next update will arrive. "Cause unknown, rolling back, next update at 03:45" is useful. Silence is not.' },
 
-    { type: 'short', q: 'What is the first question to ask when a previously working system suddenly breaks: "what ... ?" (one word)', accept: ['changed', 'change'], hint: 'Deploys, config, traffic, dependencies…',
+    { type: 'short', q: 'What is the first question to ask when a previously working system suddenly breaks: "what ... ?" (one word)', accept: ['changed', 'change', 'what changed'], hint: 'Deploys, config, traffic, dependencies…',
       explain: 'Most incidents follow a change: a release, a config edit, a traffic shift or something at a dependency. "What changed?" gives you the most promising suspect fastest.' },
 
     { type: 'explain', prompt: 'A new colleague asks why we roll back first and investigate later. Explain it in your own words.',
@@ -1585,11 +1585,11 @@ KS.boss('capstones', {
   title: 'The Architect’s Gauntlet',
   intro: 'Eight systems stand between you and the architect’s hat: a link shortener, a chat, a feed, a checkout, a video site, a taxi app, a multi-tenant platform and a 3 a.m. outage. Use the method, make the calls, and pay attention to the trade-offs.',
   questions: [
-    { type: 'short', q: 'Which redirect status code would a URL shortener choose if it wants every click to reach its servers so it can count them and change the link later?', accept: ['302', '307'], hint: 'The temporary one.',
+    { type: 'short', q: 'Which redirect status code would a URL shortener choose if it wants every click to reach its servers so it can count them and change the link later?', accept: ['302', '307', '302 found', '307 temporary redirect'], hint: 'The temporary one.',
       explain: 'A **302** (or 307) is temporary, so browsers ask again every time. A 301 may be remembered by browsers, which saves load but hides clicks and makes the link harder to switch off.' },
 
     { type: 'mcq', q: 'In a chat app, why does the server give each message a sequence number per conversation instead of ordering by the time on the sender’s phone?',
-      options: ['Phone clocks disagree, but one server-assigned counter gives a single agreed order', 'Phones cannot read the time while the app is closed', 'Timestamps are too large to store in a database', 'Sequence numbers make messages encrypted'],
+      options: ['Phone clocks disagree; one server counter gives one agreed order', 'Phones cannot read the time while the app is closed', 'Timestamps are too large to store in a database', 'Sequence numbers make messages encrypted'],
       answer: 0,
       why: [null, 'Phones can read the time; the issue is that the clocks are not in agreement.', 'Timestamps are tiny. Size is not the concern.', 'Numbering has nothing to do with encryption.'],
       explain: 'Order only has to be agreed within one conversation, so a simple counter from one place per chat does the job. It also gives the offline "send me everything after number 410" catch-up for free.' },

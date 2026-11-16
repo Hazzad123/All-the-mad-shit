@@ -1,8 +1,8 @@
-/* Module: authz — Authorization.  Schema: docs/CONTENT_GUIDE.md.  Check with: node tools/validate.mjs authz */
+/* Module: authz — Authorisation.  Schema: docs/CONTENT_GUIDE.md.  Check with: node tools/validate.mjs authz */
 
 // ═══════════════════════════════════════════════════════════════════════════
 KS.lesson('az-basics', {
-  eli5: 'Authorization is the bouncer’s second question. Once the system knows who you are, it still has to decide whether you may do this particular thing to that particular item.',
+  eli5: 'Authorisation is the bouncer’s second question. Once the system knows who you are, it still has to decide whether you may do this particular thing to that particular item.',
 
   cards: [
     { kind: 'concept', title: 'You are in. Now what?',
@@ -10,7 +10,7 @@ KS.lesson('az-basics', {
 
         Now you try the door to the server room. Beep. Red light.
 
-        The system knows exactly who you are. It simply has not been told you may go in there. That decision is **authorization**: *what is this person allowed to do?*
+        The system knows exactly who you are. It simply has not been told you may go in there. That decision is **authorisation**: *what is this person allowed to do?*
 
         Software has thousands of "doors": read this invoice, delete that photo, refund this order, view the admin page. Every one needs the same question asked and answered, every time.` },
 
@@ -24,7 +24,7 @@ KS.lesson('az-basics', {
         Software works the same way: being a known, logged-in user opens very few doors by itself. Each door has its own rule about who gets through.` },
 
     { kind: 'diagram', title: 'Every request is a question',
-      body: 'Strip away the jargon and every authorization check asks the same thing: **may this subject do this action to this resource?**',
+      body: 'Strip away the jargon and every authorisation check asks the same thing: **may this subject do this action to this resource?**',
       nodes: [
         { id: 's', label: 'Subject: Priya', icon: '🧑', x: 0, y: 0 },
         { id: 'a', label: 'Action: delete', icon: '🗑️', x: 1, y: 0 },
@@ -58,7 +58,7 @@ KS.lesson('az-basics', {
         }`,
         notes: {
           2: 'Authentication already happened earlier. This line just *uses* its answer. Knowing who the user is does not decide anything yet.',
-          5: 'The authorization check: subject (`user`), action (read, implied by the function) and resource (`invoice`). If it fails we stop **before** any data leaves.',
+          5: 'The authorisation check: subject (`user`), action (read, implied by the function) and resource (`invoice`). If it fails we stop **before** any data leaves.',
           10: 'The policy. Two ways to pass: you own the invoice, or you hold a permission that lets you read all of them. Anything else falls through to "no".'
         } } },
 
@@ -71,9 +71,9 @@ KS.lesson('az-basics', {
 
         Think of a guest list: you are on it or you are not. There is no list of everyone who is *banned*.` },
 
-    { kind: 'compare', title: 'Authentication vs authorization',
+    { kind: 'compare', title: 'Authentication vs authorisation',
       body: 'They are often abbreviated *authn* and *authz*, and they are constantly confused. They answer different questions, at different times.',
-      cols: ['Authentication', 'Authorization'],
+      cols: ['Authentication', 'Authorisation'],
       rows: [
         ['Question', 'Who are you?', 'What may you do?'],
         ['Happens', 'First, usually once per session or token', 'After, on every single request'],
@@ -110,7 +110,7 @@ KS.lesson('az-basics', {
 
   activities: [
     { type: 'mcq', after: 0, q: 'A user logs in successfully, then opens the admin page and sees "Access denied". Which statement is true?',
-      options: ['Authentication worked; authorization said no to this action', 'Authentication failed, so the system could not trust the login', 'The system forgot who the user was part-way through the session', 'The password was correct but too weak to open admin pages'],
+      options: ['Authentication worked; authorisation said no to this action', 'Authentication failed, so the system could not trust the login', 'The system forgot who the user was part-way through the session', 'The password was correct but too weak to open admin pages'],
       answer: 0,
       why: [null, 'If login had failed, they would never have got as far as seeing any page.', 'The system knows exactly who they are. That is why it can refuse them by name.', 'Password strength is not what decides which pages you may open.'],
       explain: 'Logging in proves identity. Whether that identity may open the admin page is a separate decision, made by the rules, and here the answer was no.' },
@@ -183,20 +183,20 @@ KS.lesson('az-basics', {
       outro: 'The pattern to remember: **start closed, grant specific actions, and treat "I could not tell" as "no".**' },
 
     { type: 'explain', prompt: 'A colleague says: "Users have to log in to use the app, so it is secure." Explain what is missing.',
-      model: 'Logging in only proves who someone is (authentication). Every request still needs an authorization check: may this user do this action to this resource? Without it, any logged-in user could read or change anyone’s data. Rules should default to deny and give each user the least access they need.',
-      keywords: ['authentication', 'authorization', 'who', 'allowed', 'default deny', 'least privilege'] }
+      model: 'Logging in only proves who someone is (authentication). Every request still needs an authorisation check: may this user do this action to this resource? Without it, any logged-in user could read or change anyone’s data. Rules should default to deny and give each user the least access they need.',
+      keywords: ['authentication', 'authorisation', 'who', 'allowed', 'default deny', 'least privilege'] }
   ],
 
   flashcards: [
-    { q: 'What three things does every authorization check involve?', a: 'A subject (who or what is asking), an action (what they want to do) and a resource (what it is done to). Sometimes also the context.' },
-    { q: 'What is the difference between authentication and authorization?', a: 'Authentication proves who you are. Authorization decides what you may do. The first happens once, the second on every request.' },
+    { q: 'What three things does every authorisation check involve?', a: 'A subject (who or what is asking), an action (what they want to do) and a resource (what it is done to). Sometimes also the context.' },
+    { q: 'What is the difference between authentication and authorisation?', a: 'Authentication proves who you are. Authorisation decides what you may do. The first happens once, the second on every request.' },
     { q: 'What does "default deny" mean?', a: 'If no rule explicitly allows a request, it is refused. Mistakes then fail safe.' },
     { q: 'State the principle of least privilege.', a: 'Give every user, app and service only the access it needs to do its job, and no more, so a stolen account can do limited harm.' },
     { q: 'What does "failing open" mean?', a: 'When a check hits an error or missing data and accidentally allows the request. The fix is to make every uncertain path end in deny.' }
   ],
 
   glossary: [
-    { term: 'Authorization', def: 'Deciding whether an identified subject may perform an action on a resource.', like: 'Which doors your hotel key card opens.', aka: ['authz'] },
+    { term: 'Authorisation', def: 'Deciding whether an identified subject may perform an action on a resource.', like: 'Which doors your hotel key card opens.', aka: ['authz'] },
     { term: 'Subject', def: 'The party making a request: a person, an app or a service.', like: 'The person holding the key card.' },
     { term: 'Resource', def: 'The thing being accessed: a file, an invoice, an API endpoint, a database row.', like: 'The room behind the door.' },
     { term: 'Policy', def: 'The rules that turn a subject, an action and a resource into allow or deny.', like: 'The building’s rulebook for who gets into which room.' },
@@ -206,7 +206,7 @@ KS.lesson('az-basics', {
 
   takeaways: [
     'Every request is a question: may this **subject** do this **action** to this **resource**?',
-    'Authentication says who you are. Authorization decides what you may do, on every request.',
+    'Authentication says who you are. Authorisation decides what you may do, on every request.',
     '**Default deny**: nothing is allowed unless a rule says so. Errors end in "no".',
     '**Least privilege**: only the access the job needs. It limits the damage when something goes wrong.'
   ]
@@ -227,7 +227,7 @@ KS.lesson('az-acl', {
 
         That list is attached to *this* document. Another document has a different list. When someone opens the file, the app reads the list and asks: is this person on it, and does the entry allow what they are trying to do?
 
-        That is an **access control list**, or **ACL**. It is the oldest and most familiar way to do authorization.` },
+        That is an **access control list**, or **ACL**. It is the oldest and most familiar way to do authorisation.` },
 
     { kind: 'metaphor', title: 'A guest list on every door',
       body: `Picture a corridor of rooms. On each door hangs a clipboard.
@@ -335,7 +335,7 @@ KS.lesson('az-acl', {
       why: [null, 'Putting the list on the user is a different design (capabilities and roles lean this way). An ACL hangs from the item.', 'The browser belongs to the user, who can edit anything there. Never store rules where the person being checked controls them.', 'A single global table is possible, but that is not what makes something an ACL.'],
       explain: 'The defining feature of an ACL is that the permissions travel with the resource. Each door carries its own guest list.' },
 
-    { type: 'short', after: 2, q: 'In Unix file permissions, what single word names the special user who normally controls a file and may change its permissions?', accept: ['owner'], hint: 'The first of the three triplets.',
+    { type: 'short', after: 2, q: 'In Unix file permissions, what single word names the special user who normally controls a file and may change its permissions?', accept: ['owner', 'the owner', 'file owner'], hint: 'The first of the three triplets.',
       explain: 'The **owner** has their own triplet, and can change who else gets access. Group and others come after.' },
 
     { type: 'match', prompt: 'Match each part of `-rw-r-----` to what it means.',
@@ -482,7 +482,7 @@ KS.lesson('az-rbac', {
           1: 'Table one: what each **role** is allowed to do. Permissions are named as `thing:action`, which keeps them readable.',
           7: 'Table two: which **roles** each person holds. This is the only thing that changes when staff join, leave or move.',
           13: '`|| []` is default deny at work: an unknown user has no roles, so no permissions.',
-          17: 'Sam holds `billing`, which includes `invoice:refund`.'
+          18: 'Sam holds `billing`, which includes `invoice:refund`.'
         } } },
 
     { kind: 'pitfall', title: 'Check permissions, not role names',
@@ -779,7 +779,7 @@ KS.lesson('az-abac', {
 
   activities: [
     { type: 'mcq', after: 0, q: 'Which rule is a natural fit for ABAC rather than plain RBAC?',
-      options: ['Managers may approve payments only up to £10,000 and only in office hours', 'Editors may edit the documents in their workspace', 'Admins may delete user accounts in the system', 'Viewers may read the shared dashboards'],
+      options: ['Managers may approve payments under £10,000 in office hours', 'Editors may edit and publish the documents in the workspace', 'Admins may delete or suspend any user account in the system', 'Viewers may read the shared dashboards'],
       answer: 0,
       why: [null, 'That is a straightforward role-to-permission mapping.', 'A role grants this directly.', 'Also a plain role-to-permission case.'],
       explain: 'The first rule depends on facts: the amount and the time. Those cannot be written down in a role without making one for every amount and hour.' },
@@ -869,7 +869,7 @@ KS.lesson('az-abac', {
     { term: 'Policy engine', def: 'A component that evaluates written rules against a request’s facts and returns allow or deny.', like: 'A referee with the rulebook open.' },
     { term: 'Policy as code', def: 'Keeping access rules in versioned, reviewed and tested files, like source code.', like: 'The rulebook is in git, not in someone’s head.' },
     { term: 'Open Policy Agent', def: 'An open-source, general-purpose policy engine whose rules are written in the Rego language.', aka: ['OPA'] },
-    { term: 'Cedar', def: 'An open-source policy language created by AWS for writing and evaluating authorization rules.' }
+    { term: 'Cedar', def: 'An open-source policy language created by AWS for writing and evaluating authorisation rules.' }
   ],
 
   takeaways: [
@@ -1058,7 +1058,7 @@ KS.lesson('az-rebac', {
 
   flashcards: [
     { q: 'What is ReBAC?', a: 'Relationship-based access control: permissions are derived from relationships between users and objects, like owner, member and parent folder.' },
-    { q: 'What is Zanzibar?', a: 'Google’s authorization system, described in a 2019 paper: it stores relationship facts and computes access by following them.' },
+    { q: 'What is Zanzibar?', a: 'Google’s authorisation system, described in a 2019 paper: it stores relationship facts and computes access by following them.' },
     { q: 'Name two open-source ReBAC systems.', a: 'OpenFGA and SpiceDB, both inspired by Zanzibar.' },
     { q: 'When does ReBAC beat RBAC?', a: 'When access depends on how someone connects to a specific object: sharing, ownership, teams and folder nesting.' },
     { q: 'What must you keep in sync with ReBAC?', a: 'The relationship facts and your real data. Stale or missing facts silently grant or deny access.' }
@@ -1068,7 +1068,7 @@ KS.lesson('az-rebac', {
     { term: 'ReBAC', def: 'Relationship-based access control: access is computed from relationships such as owner, member and parent.', like: 'The village door that asks only whether you are family.', aka: ['relationship-based access control'] },
     { term: 'Relation', def: 'A named link between two things in the model, such as member, owner or parent.', like: 'One arrow on the family tree.' },
     { term: 'Inheritance', def: 'Access flowing from a container, like a folder or team, to what is inside it.', like: 'A building pass that opens every room on the floor.' },
-    { term: 'Zanzibar', def: 'Google’s global authorization system, published in 2019, that influenced later open-source tools.', like: 'The blueprint other projects copied.' }
+    { term: 'Zanzibar', def: 'Google’s global authorisation system, published in 2019, that influenced later open-source tools.', like: 'The blueprint other projects copied.' }
   ],
 
   takeaways: [
@@ -1089,7 +1089,7 @@ KS.lesson('az-scopes-claims', {
 
         It should not. You asked for printing, so the app should be able to *read photos* and nothing else.
 
-        That is the job of **scopes**. When an app gets access on your behalf (the [[OAuth|oauth]] flow from the authentication module), it receives a **token**, and the token lists what that app may do. The list is called its scopes, for example \`photos.read\`.
+        That is the job of **scopes**. When an app gets access on your behalf (the [[OAuth|OAuth 2.0]] flow from the authentication module), it receives a **token**, and the token lists what that app may do. The list is called its scopes, for example \`photos.read\`.
 
         So there are two different questions: what may the *user* do, and what may this *token* do?` },
 
@@ -1339,7 +1339,7 @@ KS.lesson('az-enforcement', {
       ] },
 
     { kind: 'sequence', title: 'Decision point and enforcement point',
-      body: 'Authorization has two jobs that are often separated: **deciding** and **doing**.',
+      body: 'Authorisation has two jobs that are often separated: **deciding** and **doing**.',
       actors: ['Service (PEP)', 'Policy engine (PDP)'],
       steps: [
         { note: 'The **policy enforcement point** (PEP) is the code that stands in the way of the action. The **policy decision point** (PDP) is the thing that works out allow or deny.' },
@@ -1383,7 +1383,7 @@ KS.lesson('az-enforcement', {
 
         The trouble: attackers get in. One compromised server, one stolen laptop, one vulnerable service, and "inside" is where they are.
 
-        **Zero trust** says: *never trust a request just because of where it came from.* Every call between services is authenticated and authorized too.
+        **Zero trust** says: *never trust a request just because of where it came from.* Every call between services is authenticated and authorised too.
 
         In practice, each service has an identity, and calls use **mutual TLS** (both sides present certificates, so each proves who it is) or signed tokens. The receiving service then asks: is *this* service allowed to do *this* to *that*?` },
 
@@ -1423,7 +1423,7 @@ KS.lesson('az-enforcement', {
       explain: 'The query is not scoped to the caller’s tenant. Anyone who is logged in can read any invoice by changing the id. It needs `AND tenant_id = $2` using the tenant from the verified token.' },
 
     { type: 'tf', after: 7, statement: 'In a zero-trust design, a request from inside the company network is trusted without further checks because it must have come through the firewall.', answer: false,
-      explain: 'Zero trust is the opposite: network location earns no trust. Services authenticate each other and authorize each call.' },
+      explain: 'Zero trust is the opposite: network location earns no trust. Services authenticate each other and authorise each call.' },
 
     { type: 'match', prompt: 'Match each term to its meaning.',
       pairs: [['Policy decision point (PDP)', 'Works out allow or deny from the rules'], ['Policy enforcement point (PEP)', 'Code that asks, then carries out the verdict'], ['Row-level security', 'The database hides rows the caller may not see'], ['Mutual TLS', 'Both sides of a connection prove who they are with certificates']],
@@ -1444,7 +1444,7 @@ KS.lesson('az-enforcement', {
       explain: 'The verified token cannot be edited by the caller. A tenant id in the request body is simply whatever the caller chooses to type.' },
 
     { type: 'multi', q: 'Which statements about defence in depth are true?',
-      options: ['A mistake in one layer can be caught by another', 'Row-level security can protect data even when a query forgets its tenant filter', 'Internal service calls need authorization too', 'If the gateway checks everything, services need no checks', 'The client app is a reliable place to enforce rules'],
+      options: ['A mistake in one layer can be caught by another', 'Row-level security can protect data even when a query forgets its tenant filter', 'Internal service calls need authorisation too', 'If the gateway checks everything, services need no checks', 'The client app is a reliable place to enforce rules'],
       answers: [0, 1, 2],
       explain: 'Layers overlap on purpose. But the gateway cannot know business rules, and the client belongs to the user, who can change anything running on their device.' },
 
@@ -1466,14 +1466,14 @@ KS.lesson('az-enforcement', {
           ] },
         { text: 'The invoice service calls an internal Customers service, which currently accepts anything from the internal network. What do you do?',
           choices: [
-            { label: 'Give each service an identity (mutual TLS or signed tokens) and have Customers authorize each caller', score: 2, effects: { 'tenant isolation': 20, 'team speed': -5 }, feedback: 'Zero trust in practice: network location earns nothing, so a compromised neighbour cannot freely read customer data.' },
+            { label: 'Give each service an identity (mutual TLS or signed tokens) and have Customers authorise each caller', score: 2, effects: { 'tenant isolation': 20, 'team speed': -5 }, feedback: 'Zero trust in practice: network location earns nothing, so a compromised neighbour cannot freely read customer data.' },
             { label: 'Rely on the firewall: only our servers can reach it', score: 0, effects: { 'tenant isolation': -15 }, feedback: 'Until one server is compromised. Then every internal service is wide open.' },
             { label: 'Hide the Customers service’s address', score: 0, effects: { 'tenant isolation': -10 }, feedback: 'Obscurity is not a control. Addresses leak through configs, logs and scans.' }
           ] }
       ],
-      outro: 'The pattern to remember: **scope every query, add a database backstop, and authorize every call, including internal ones.**' },
+      outro: 'The pattern to remember: **scope every query, add a database backstop, and authorise every call, including internal ones.**' },
 
-    { type: 'explain', prompt: 'Explain why authorization is enforced in more than one place (gateway, service and database) rather than just one.',
+    { type: 'explain', prompt: 'Explain why authorisation is enforced in more than one place (gateway, service and database) rather than just one.',
       model: 'Each layer knows different things. The gateway can check the token, audience and scope but not business rules. The service knows rules like who owns an order, so it must check every object. The database can add row-level security as a backstop if code forgets a filter. Layers also protect against mistakes and compromised internal services, which is defence in depth and zero trust.',
       keywords: ['gateway', 'service', 'database', 'business rules', 'backstop', 'defence in depth', 'zero trust'] }
   ],
@@ -1482,7 +1482,7 @@ KS.lesson('az-enforcement', {
     { q: 'What does an API gateway check, and what can it not?', a: 'Coarse things: valid token, audience, scope and route. It cannot know business rules such as who owns an order.' },
     { q: 'What are a PDP and a PEP?', a: 'The policy decision point works out allow or deny. The policy enforcement point is the code that asks and carries out the answer.' },
     { q: 'How do you keep a multi-tenant app from leaking data across tenants?', a: 'Scope every query to the tenant taken from the verified token, and back it with row-level security in the database.' },
-    { q: 'What is zero trust?', a: 'Never trust a request just because it comes from inside the network. Authenticate and authorize every call, including between services.' },
+    { q: 'What is zero trust?', a: 'Never trust a request just because it comes from inside the network. Authenticate and authorise every call, including between services.' },
     { q: 'What is mutual TLS?', a: 'A TLS connection where both client and server present certificates, so each proves its identity.' }
   ],
 
@@ -1491,7 +1491,7 @@ KS.lesson('az-enforcement', {
     { term: 'Policy enforcement point', def: 'The code that asks the decision point and then allows or blocks the action.', like: 'The door staff who follow the referee’s call.', aka: ['PEP'] },
     { term: 'Multi-tenancy', def: 'Serving many separate customers (tenants) from the same application and database.', like: 'An apartment block: shared building, private flats.' },
     { term: 'Row-level security', def: 'A database feature that limits which rows each connection may see, according to policies.', like: 'A filing cabinet that only opens the drawers meant for you.', aka: ['RLS'] },
-    { term: 'Zero trust', def: 'A design where no request is trusted for where it comes from; everything is authenticated and authorized.', like: 'Showing your pass at every door, even inside the building.' },
+    { term: 'Zero trust', def: 'A design where no request is trusted for where it comes from; everything is authenticated and authorised.', like: 'Showing your pass at every door, even inside the building.' },
     { term: 'Defence in depth', def: 'Using several overlapping layers of protection so one failure does not expose everything.', like: 'A gate, a locked room and a safe.' }
   ],
 
@@ -1499,7 +1499,7 @@ KS.lesson('az-enforcement', {
     '**Gateway** for coarse checks, **service** for business rules, **database** as a backstop.',
     'A **PDP** decides, a **PEP** enforces. Forgetting to ask is the common bug.',
     'Multi-tenancy: scope **every** query to the tenant from the verified token; add row-level security.',
-    '**Zero trust**: authorize service-to-service calls too. Layer defences so one mistake is not a breach.'
+    '**Zero trust**: authorise service-to-service calls too. Layer defences so one mistake is not a breach.'
   ]
 });
 
@@ -1562,7 +1562,7 @@ KS.lesson('az-failures', {
     { kind: 'pitfall', title: '“But the ids are unguessable”',
       body: `A tempting fix: switch from \`1041\` to long random ids (UUIDs) so nobody can guess a neighbour's.
 
-        It helps a little and it is **not** authorization. Ids leak: in emails, shared screenshots, browser history, logs, analytics and links forwarded to a colleague. Anyone holding the id can then read the object.
+        It helps a little and it is **not** authorisation. Ids leak: in emails, shared screenshots, browser history, logs, analytics and links forwarded to a colleague. Anyone holding the id can then read the object.
 
         Random ids are a nice extra layer. The actual fix is always the same: **check that this user may access this object, on every access.**
 
@@ -1604,8 +1604,8 @@ KS.lesson('az-failures', {
           7: 'One extra property and an ordinary user is now an admin. Allow only specific fields (`name`, `email`) and take role, owner and tenant from the server’s own records.'
         } } },
 
-    { kind: 'steps', title: 'How to test authorization',
-      body: 'Normal tests prove that the right person succeeds. Authorization bugs hide in the other direction, so you must test who should be **refused**.',
+    { kind: 'steps', title: 'How to test authorisation',
+      body: 'Normal tests prove that the right person succeeds. Authorisation bugs hide in the other direction, so you must test who should be **refused**.',
       steps: [
         { title: 'Create two users', body: 'Call them A and B, each with their own data. Add an admin and an anonymous caller for good measure.' },
         { title: 'Cross over their objects', body: 'Log in as A and request B’s invoice by id. It must be refused. This catches IDOR.' },
@@ -1635,7 +1635,7 @@ KS.lesson('az-failures', {
 
   activities: [
     { type: 'mcq', after: 3, q: 'A logged-in user changes `/invoices/1041` to `/invoices/1042` and sees someone else’s invoice. What is the missing control?',
-      options: ['An ownership (authorization) check on that object', 'A stronger password policy', 'HTTPS encryption on the connection', 'A longer login session timeout'],
+      options: ['An ownership check on that object', 'A stronger password policy for users', 'HTTPS encryption on the connection', 'A longer login session timeout'],
       answer: 0,
       why: [null, 'The user logged in with their own valid password. Password strength changes nothing here.', 'HTTPS protects data in transit. This user is receiving the data legitimately from the server.', 'Session length is unrelated. The issue is what the logged-in user may see.'],
       explain: 'This is an IDOR. Authentication was fine, but the server never asked whether this user may access invoice 1042.' },
@@ -1660,7 +1660,7 @@ KS.lesson('az-failures', {
       items: [['A customer reads another customer’s order by changing the id', 0], ['An ordinary user calls the admin "delete account" endpoint', 1], ['A user edits another user’s profile through a guessable URL', 0], ['A user adds "role":"admin" to their own profile update', 1], ['A support agent opens a colleague’s private notes', 0], ['A trial user turns on a paid-only feature by editing a request', 1]],
       explain: 'Horizontal means reaching peers’ things at the same level. Vertical means gaining a higher level of power than you were given.' },
 
-    { type: 'short', q: 'What three-letter-plus acronym names the bug where changing an id in a URL reaches someone else’s object?', accept: ['IDOR'], hint: 'Insecure direct object reference.',
+    { type: 'short', q: 'What four-letter acronym names the bug where changing an id in a URL reaches someone else’s object?', accept: ['IDOR', 'IDORs'], hint: 'Insecure direct object reference.',
       explain: '**IDOR**: the app uses an identifier supplied by the user to fetch an object, without checking the user’s right to it.' },
 
     { type: 'ab', q: 'Which version of the profile update is safer?',
@@ -1706,7 +1706,7 @@ KS.lesson('az-failures', {
             { label: 'Log it and review attempts monthly', score: 1, effects: { 'customer safety': 0 }, feedback: 'Logging is useful, but a review next month is after the money has gone. Block it now, log it as well.' }
           ] }
       ],
-      outro: 'The pattern to remember: **authorize on the server, for the function and the object, on every request, and prove it with negative tests.**' },
+      outro: 'The pattern to remember: **authorise on the server, for the function and the object, on every request, and prove it with negative tests.**' },
 
     { type: 'explain', prompt: 'Explain IDOR and how to fix it, and why hiding buttons or using random ids does not solve it.',
       model: 'IDOR is when the app uses an id from the user, such as an invoice number in the URL, to fetch an object without checking that the user may access it, so changing the id reaches someone else’s data. The fix is to check ownership or permission on every object access on the server. Hiding buttons or using random ids only hides things from the interface, since requests can be sent by hand and ids leak.',
@@ -1718,7 +1718,7 @@ KS.lesson('az-failures', {
     { q: 'What is the correct fix for IDOR?', a: 'Check ownership or permission on every object access, on the server. Random ids are only an extra layer.' },
     { q: 'Why is hiding the admin button not security?', a: 'The server still accepts the request if sent by hand. Every function needs its own server-side permission check.' },
     { q: 'Horizontal vs vertical privilege escalation?', a: 'Horizontal: reaching another user’s things at your own level. Vertical: gaining a higher level of power, such as admin.' },
-    { q: 'How do you test authorization?', a: 'With negative tests: user A must not read B’s data, ordinary users must not call admin endpoints, and no token must fail.' }
+    { q: 'How do you test authorisation?', a: 'With negative tests: user A must not read B’s data, ordinary users must not call admin endpoints, and no token must fail.' }
   ],
 
   glossary: [
@@ -1743,10 +1743,10 @@ KS.boss('authz', {
   intro: 'A stone golem guards a vault of customer data and answers only to correct permissions. Beat it by showing you can choose the right model, put the check in the right place and spot the holes attackers use.',
   questions: [
     { type: 'mcq', q: 'A request arrives with a valid login. What is the next question the system must answer before acting?',
-      options: ['May this subject do this action to this resource?', 'Is the password strong enough?', 'Is the connection encrypted?', 'Has the user logged in before?'],
+      options: ['May this subject do this action to this resource?', 'Is the user’s password strong enough to trust?', 'Is the connection to the server encrypted?', 'Has this user logged in from this device before?'],
       answer: 0,
       why: [null, 'Password strength matters at login. By now authentication is already done.', 'Encryption protects the journey. It says nothing about permission.', 'History does not decide permission for this action.'],
-      explain: 'Authentication says who. Authorization asks the subject, action, resource question on every request, and defaults to deny.' },
+      explain: 'Authentication says who. Authorisation asks the subject, action, resource question on every request, and defaults to deny.' },
 
     { type: 'tf', statement: 'With default deny, forgetting to write a rule for a new feature leaves the feature closed to users.', answer: true,
       explain: 'Anything not explicitly allowed is refused, so a forgotten rule shows up as a bug report, not a breach.' },
@@ -1773,12 +1773,12 @@ KS.boss('authz', {
       explain: 'Each model has its own failure mode. The last option is false: people routinely hold several roles, and their permissions combine.' },
 
     { type: 'mcq', q: 'An app’s token has the scope `files.delete`. The user it acts for may only read files. The app tries to delete a file. What happens?',
-      options: ['It is denied, because the effective permission is the intersection of scope and user rights', 'It is allowed, because the scope names the action', 'It is allowed, because tokens override user permissions', 'It is allowed if the token has not expired'],
+      options: ['Denied: it needs both the scope and the user’s own right', 'Allowed, because the scope names the delete action exactly', 'Allowed, because a token’s scopes override user permissions', 'Allowed, as long as the token has not yet expired'],
       answer: 0,
       why: [null, 'A scope can only narrow what the user may do, never widen it.', 'A token is delegated authority from the user, so it cannot exceed the user’s own.', 'Expiry is one check among several. It does not grant extra power.'],
       explain: 'The app can do only what both the token’s scopes and the user’s permissions allow.' },
 
-    { type: 'short', q: 'Which claim in a token says which service it was issued for?', accept: ['aud', 'audience'], hint: 'Three letters, or the full word.',
+    { type: 'short', q: 'Which claim in a token says which service it was issued for?', accept: ['aud', 'audience', 'aud claim', 'audience claim'], hint: 'Three letters, or the full word.',
       explain: 'The **audience** claim (`aud`) must name the API receiving the token. Otherwise a genuine token for another service could be replayed.' },
 
     { type: 'match', prompt: 'Match each term to what it means.',
@@ -1809,11 +1809,11 @@ KS.boss('authz', {
 });
 
 KS.sheet('authz', {
-  title: 'Authorization: cheat sheet',
+  title: 'Authorisation: cheat sheet',
   sections: [
     { title: 'The core ideas',
       md: `- Every request asks: may this **subject** do this **action** to this **resource** (in this context)?
-        - **Authentication** = who you are. **Authorization** = what you may do. The first is not the second.
+        - **Authentication** = who you are. **Authorisation** = what you may do. The first is not the second.
         - **Default deny:** nothing is allowed unless a rule says so. Errors end in "no", never "yes" (do not fail open).
         - **Least privilege:** the minimum access the job needs.
         - \`401\` = unknown caller. \`403\` = known, refused.` },
@@ -1858,7 +1858,7 @@ KS.sheet('authz', {
 
         - **PDP** decides, **PEP** enforces. Forgetting to ask is the bug.
         - **Multi-tenant:** every query scoped to the tenant from the *verified token*.
-        - **Zero trust:** authorize service-to-service calls (mutual TLS, service identities). Layer defences.` },
+        - **Zero trust:** authorise service-to-service calls (mutual TLS, service identities). Layer defences.` },
 
     { title: 'Broken access control',
       md: `- #1 category in the OWASP Top 10 in recent editions.

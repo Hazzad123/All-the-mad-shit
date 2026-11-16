@@ -124,7 +124,7 @@ KS.lesson('dp-composition', {
 
   activities: [
     { type: 'mcq', after: 0, q: 'A notifier needs 2 channels (email, SMS), 2 priorities (normal, urgent) and 2 timings (now, scheduled). With one subclass per combination, how many classes?',
-      options: ['8, because each option multiplies the total', '6, one per option listed', '3, one per kind of option', '2, one per channel'],
+      options: ['8, one per combination', '6, one per option listed', '3, one per kind of option', '2, one per channel'],
       answer: 0,
       why: [null, 'That would be adding the options. Combinations multiply: 2 × 2 × 2.', 'Each *combination* needs its own class under inheritance, not each kind of option.', 'Priorities and timings need classes too.'],
       explain: 'With inheritance every combination needs its own class: 2 × 2 × 2 = 8. Add a third channel and it is 12. Composition needs only 2 + 2 + 2 small parts.' },
@@ -133,8 +133,8 @@ KS.lesson('dp-composition', {
       items: [['A SavingsAccount and an Account', 0], ['A Checkout and its PaymentGateway', 1], ['A Circle and a Shape', 0], ['An Order and its ShippingPolicy', 1], ['A Notifier and its Channel', 1], ['A Truck and a Vehicle', 0]],
       explain: 'A gateway, a policy and a channel are things the object **uses**, and you may want to swap them. An account type, a shape and a vehicle describe what the object **is**.' },
 
-    { type: 'tf', statement: 'With inheritance, an existing object can change which subclass it belongs to while the program is running.', answer: false,
-      explain: 'An object’s class is fixed when it is created. With composition you can hand it a different part at any moment, which is a big part of why it is more flexible.' },
+    { type: 'tf', statement: 'With composition, an object can swap one of its parts for another while the program is running.', answer: true,
+      explain: 'The part lives in a field, so you can hand the object a different one at any moment. With inheritance an object’s class is fixed when it is created, which is a big part of why composition is more flexible.' },
 
     { type: 'spot', prompt: 'One line here is a design smell. Tap it.',
       code: { lang: 'js', src: `
@@ -469,8 +469,8 @@ KS.lesson('dp-abstractions', {
         }`,
         notes: {
           1: 'The service imports a **specific** database library.',
-          6: 'It **creates** the real database itself. There is no way to give it anything else.',
-          10: 'It also knows the database speaks SQL and what table to use. All "how" detail.'
+          5: 'It **creates** the real database itself. There is no way to give it anything else.',
+          9: 'It also knows the database speaks SQL and what table to use. All "how" detail.'
         } } },
 
     { kind: 'metaphor', title: 'The wall socket',
@@ -567,7 +567,7 @@ KS.lesson('dp-abstractions', {
 
   activities: [
     { type: 'mcq', after: 3, q: 'What does a "seam" let you do?',
-      options: ['Swap one implementation for another without editing the code that uses it', 'Split one big file into several smaller ones', 'Make a method run faster by caching its result', 'Hide private fields from other classes'],
+      options: ['Swap in another implementation without editing callers', 'Split one big file into several smaller, tidier files', 'Make a method faster by caching what it returns', 'Hide private fields from code in other classes'],
       answer: 0,
       why: [null, 'Splitting files is a tidy-up. A seam is about substitution.', 'Caching is an unrelated optimisation.', 'That is encapsulation, covered earlier.'],
       explain: 'A seam is a join in the code where something can be replaced from outside. Depending on an interface creates one, which is why a fake database can stand in for the real one.' },
@@ -769,9 +769,9 @@ KS.lesson('dp-hollywood', {
 
   activities: [
     { type: 'mcq', after: 2, q: 'What best separates a framework from a library?',
-      options: ['A framework calls your code, whereas you call a library', 'A framework is bigger than a library', 'A library only works in one language', 'A framework is always paid for'],
+      options: ['A framework calls your code; you call a library', 'A framework has more features and code than a library', 'A library only works in one programming language', 'A framework is a paid product, a library is free'],
       answer: 0,
-      why: [null, 'Size can differ but it is not the defining difference.', 'Both work in a given language, so this does not separate them.', 'Many frameworks are free.'],
+      why: [null, 'Size can differ but it is not the defining difference.', 'Both work in a given language, so this does not separate them.', 'Many frameworks are free, and some libraries are paid for.'],
       explain: 'The test is who drives. With a library you call it when you want. With a framework you register code and it calls you at the moment it chooses.' },
 
     { type: 'tf', after: 4, statement: 'With inversion of control, the framework decides when your code runs.', answer: true,
@@ -797,7 +797,7 @@ KS.lesson('dp-hollywood', {
           today() { return this.clock.now(); }
         }` },
       answer: 'a',
-      explain: 'The first class is given its clock from outside, so a test can hand in a fixed one. The second creates its own, which is the opposite of injection.' },
+      explain: 'The hands-it-in class gets its clock from outside, so a test can supply a fixed one. The builds-its-own class creates its clock itself, which is the opposite of injection.' },
 
     { type: 'spot', prompt: 'Tap the line where this class grabs control of its own dependency.',
       code: { lang: 'js', src: `
@@ -810,7 +810,7 @@ KS.lesson('dp-hollywood', {
             this.mail.send(this.pdf.make(invoice));
           }
         }` },
-      lines: [4, 5],
+      lines: [3, 4],
       explain: 'Both constructor lines build concrete helpers inside the class. Taking them as constructor arguments hands control to the outside and makes swapping easy.' },
 
     { type: 'match', prompt: 'Match each idea with the best description.',
@@ -1224,7 +1224,7 @@ KS.lesson('dp-ocp', {
       why: [null, 'Bug fixes and refactoring are fine. The rule is about adding features.', 'OCP is about design, not language keywords.', 'It is not a permissions rule.'],
       explain: 'The aim is that new behaviour arrives as **new code** that plugs in, so tried-and-tested code is not reopened and risked.' },
 
-    { type: 'tf', after: 6, statement: 'The Open/Closed Principle means you must never edit a class again, even to fix a bug.', answer: false,
+    { type: 'tf', after: 6, statement: 'Fixing a bug inside an existing class does not break the Open/Closed Principle.', answer: true,
       explain: 'OCP is about adding features without editing the core. Fixing a bug is a normal change. The principle just says new cases should be new code.' },
 
     { type: 'spot', prompt: 'This function will need editing every time the business wants another export format. Tap a line that shows the problem.',
@@ -1255,7 +1255,7 @@ KS.lesson('dp-ocp', {
           return (rules[customer.type] ?? (() => 0))(total);
         }` },
       answer: 'b',
-      explain: 'Adding a type to the second version is a new entry in a table, with `discount` untouched. The first version has to be edited and re-tested each time.' },
+      explain: 'With rules by type, adding a type is just a new table entry and `discount` stays untouched. The if-chain has to be edited and re-tested each time.' },
 
     { type: 'cloze', code: true, text: 'const formats = {\n  pdf: toPdf,\n  csv: toCsv\n};\nfunction exportReport(report, {{format}}) {\n  return formats[format](report);\n}\n// a new format is an extension; exportReport stays {{closed}}',
       distractors: ['open', 'report', 'switch'],
@@ -1870,7 +1870,7 @@ KS.lesson('dp-dip', {
       items: [['Rules for when an invoice is overdue', 0], ['The SQL that stores invoices', 1], ['Deciding who gets a loyalty discount', 0], ['The SMTP code that sends an email', 1], ['Calculating the price of a basket', 0], ['A call to a courier’s web API', 1]],
       explain: 'Policy is the knowledge that makes your business yours. Details are mechanisms you could swap without changing a single rule.' },
 
-    { type: 'tf', statement: 'Dependency injection and dependency inversion are two names for the same thing.', answer: false,
+    { type: 'tf', statement: 'You can use dependency injection without following dependency inversion, for example by injecting a concrete class.', answer: true,
       explain: 'Inversion is a principle about the direction of dependencies and who owns the abstraction. Injection is one technique for handing an object its helpers. You can do one without the other.' },
 
     { type: 'spot', prompt: 'This looks like DIP but is not. Tap the line that gives it away.',
@@ -2075,7 +2075,7 @@ KS.lesson('dp-dry', {
 
   activities: [
     { type: 'mcq', after: 3, q: 'According to DRY, what must have a single authoritative home?',
-      options: ['Every piece of knowledge, such as a business rule or a rate', 'Every line of code', 'Every function name', 'Every file in the project'],
+      options: ['Every piece of knowledge, like a business rule', 'Every line of code that appears more than once', 'Every function name used across the project', 'Every file and folder in the project'],
       answer: 0,
       why: [null, 'Similar lines are not always the same fact. DRY is not about lines.', 'Names are not the issue.', 'Files are a different matter.'],
       explain: 'DRY is about knowledge: a fact or rule the system relies on. Code that merely looks alike is a different question.' },
@@ -2271,8 +2271,8 @@ KS.lesson('dp-yagni', {
       why: [null, 'It is about speculative features, not all thinking. Known requirements and hard-to-undo choices still deserve planning.', 'YAGNI depends on good tests so changes stay cheap.', 'That is unrelated to DRY or YAGNI.'],
       explain: 'The advice is to build for known, present needs and add the rest when it becomes real, keeping the code clean so adding it later is easy.' },
 
-    { type: 'tf', after: 6, statement: 'YAGNI means you can skip tidy code and tests, because future changes will be rewritten anyway.', answer: false,
-      explain: 'YAGNI relies on cheap change, which good tests and clean structure provide. It is about not building speculative features, not about being careless.' },
+    { type: 'tf', after: 6, statement: 'YAGNI works best when tidy code and good tests make later changes cheap.', answer: true,
+      explain: 'Putting a feature off is only safe if adding it later is cheap, and good tests and clean structure provide that. YAGNI is about not building speculative features, not about being careless.' },
 
     { type: 'spot', prompt: 'Which line is speculative flexibility nobody asked for?',
       code: { lang: 'js', src: `
@@ -2294,7 +2294,7 @@ KS.lesson('dp-yagni', {
           calculate(order, region, date) { /* ... */ }
         }` },
       answer: 'a',
-      explain: 'One named constant and one small function meets the need and keeps the rate in a single place. The engine is built for countries and dates nobody has asked about.' },
+      explain: 'One named constant and one small function meets the need and keeps the rate in one place. The tax engine is built for countries and dates nobody has asked about.' },
 
     { type: 'bucket', prompt: 'Easy to change later, or costly to change later?', buckets: ['Cheap to change', 'Costly to change'],
       items: [['The name of a private helper function', 0], ['The URL structure of a public API', 1], ['The column layout of a table holding millions of rows', 1], ['How a screen arranges its buttons', 0], ['A date format that other systems parse', 1], ['A local variable’s name', 0]],
@@ -2472,7 +2472,7 @@ KS.lesson('dp-demeter', {
 
   activities: [
     { type: 'mcq', after: 3, q: 'Which of these is NOT someone a method may freely talk to under the Law of Demeter?',
-      options: ['An object returned by a method of one of its friends', 'Its own direct fields', 'Its parameters', 'Objects it creates itself'],
+      options: ['An object a friend’s method hands back', 'Objects stored in its own fields', 'Objects passed in as its parameters', 'Objects it creates with `new` itself'],
       answer: 0,
       why: [null, 'Fields are direct friends.', 'Parameters are friends: they were handed to you.', 'You made it, so you know it.'],
       explain: 'Anything you get back from a friend is a stranger. Reaching through it means you now depend on its structure.' },
@@ -2661,7 +2661,7 @@ KS.lesson('dp-tell-dont-ask', {
 
   activities: [
     { type: 'mcq', after: 3, q: 'What is Tell, Don’t Ask advising?',
-      options: ['Tell an object what to do instead of pulling out its data and deciding for it', 'Never write getter methods', 'Always send messages between objects over a network', 'Ask your teammates before changing a class'],
+      options: ['Tell an object to act instead of deciding for it with its data', 'Avoid getter methods: every field should stay private', 'Always send messages between objects over a network', 'Ask your teammates before you change someone else’s class'],
       answer: 0,
       why: [null, 'Getters are fine for reading and display. The advice is about decisions.', 'It is about method calls between objects, not networks.', 'It is about code design, not communication between people.'],
       explain: 'Decisions that depend on an object’s data belong inside that object. Callers state their intent and trust the object to apply its own rules.' },
@@ -2824,7 +2824,7 @@ KS.boss('principles', {
       explain: 'DIP is a principle about the direction of dependencies and who owns the abstraction. Injection is a technique for supplying an object’s helpers, and you can use one without the other.' },
 
     { type: 'short', q: 'Which letter of SOLID stands for the idea that a subclass must work wherever its parent does?',
-      accept: ['L', 'Liskov', 'LSP'], hint: 'It is named after Barbara Liskov.',
+      accept: ['L', 'Liskov', 'LSP', 'Liskov substitution', 'Liskov principle'], hint: 'It is named after Barbara Liskov.',
       explain: 'L is for Liskov Substitution: a subtype must be usable wherever its base type is expected, without surprises.' }
   ]
 });
@@ -2889,4 +2889,3 @@ KS.sheet('principles', {
   ]
 });
 
-/* @@END */

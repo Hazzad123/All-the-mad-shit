@@ -349,7 +349,7 @@ KS.lesson('sd-replication', {
       ],
       outro: 'Replication is a set of trade-offs: **safe vs fast, simple vs local, and always the lag.**' },
 
-    { type: 'short', q: 'What do we call the delay between a change reaching the leader and reaching a follower? (two words)', accept: ['replication lag', 'lag'], hint: 'It starts with "replication".',
+    { type: 'short', q: 'What do we call the delay between a change reaching the leader and reaching a follower? (two words)', accept: ['replication lag', 'lag', 'replica lag', 'replication delay'], hint: 'It starts with "replication".',
       explain: '**Replication lag** is that gap. It is the cause of stale reads, and it grows when followers are overloaded or the network is slow.' }
   ],
 
@@ -488,7 +488,7 @@ KS.lesson('sd-sharding', {
 
   activities: [
     { type: 'mcq', after: 3, q: 'You shard an orders table by order date, using ranges (one shard per month). What is the most likely problem?',
-      options: ['All current writes hit the newest shard, which becomes a hot spot', 'Old orders become impossible to read', 'The hash function gives uneven results', 'Replication stops working'],
+      options: ['All new writes hit the newest shard: a hot spot', 'Old months’ shards can no longer be read', 'The hash function spreads orders unevenly', 'Replication between shards stops working'],
       answer: 0,
       why: [null, 'Reading old months works fine; those shards are just quiet.', 'There is no hash in range sharding.', 'Replication is a separate matter.'],
       explain: 'New data is always "now", so one range receives all the writes while earlier shards sit idle. A key with an even, many-valued spread (such as order ID hashed) avoids this.' },
@@ -514,7 +514,7 @@ KS.lesson('sd-sharding', {
       explain: 'Good keys have many distinct values, spread traffic evenly and appear in most queries. Boolean flags, country and dates have too few values or concentrate recent traffic.' },
 
     { type: 'estimate', q: 'You use hash-mod-N with 9 shards and add a 10th. About what percentage of keys change shard?',
-      answer: 90, unit: '% of keys', min: 1, max: 100, tolerance: 1.2,
+      answer: 90, unit: '% of keys', scale: 'linear', min: 0, max: 100, tolerance: 8,
       explain: 'With mod N, adding one shard to N moves about N out of N+1 keys: 9 out of 10, so roughly 90%. With consistent hashing only about 1 in 10 (10%) would move.' },
 
     { type: 'tf', statement: 'With consistent hashing, adding a new machine forces almost all keys to be reassigned, just like hash-mod-N.', answer: false,
@@ -664,7 +664,7 @@ KS.lesson('sd-cap', {
       explain: 'The trade-off only bites during a partition. When the network is healthy you can have both consistency and availability. And partitions are a fact of life, so P is not really something you drop.' },
 
     { type: 'mcq', after: 4, q: 'A network partition cuts Node B off from Node A. A client asks B for a value. B returns an error rather than a possibly-stale answer. B is behaving as…',
-      options: ['CP: it preserved consistency and gave up availability', 'AP: it preserved availability', 'Neither: this is a bug', 'CA: it avoided the partition'],
+      options: ['CP: it kept consistency and gave up availability', 'AP: it kept availability and gave up consistency', 'Neither: this is a bug in node B', 'CA: it avoided the partition altogether'],
       answer: 0,
       why: [null, 'AP would have answered with whatever it had.', 'Refusing to answer wrongly is a deliberate and common design.', 'A "CA" distributed system does not exist in practice, since partitions will happen.'],
       explain: 'Refusing to answer protects correctness at the cost of availability for that request: a CP choice.' },
@@ -864,7 +864,7 @@ KS.lesson('sd-consistency', {
       answers: [1, 2, 3],
       explain: 'The rule is R + W > N, so the sums must be at least 4. (2,2), (3,1) and (1,3) qualify. (1,1) is 2 and (2,1) is 3, so reads may miss the newest write.' },
 
-    { type: 'short', q: 'With N = 5 copies and W = 3, what is the smallest R that guarantees a quorum read? (a number)', accept: ['3', 'three'], hint: 'R + W must be greater than N.',
+    { type: 'short', q: 'With N = 5 copies and W = 3, what is the smallest R that guarantees a quorum read? (a number)', accept: ['3', 'three', 'R = 3'], hint: 'R + W must be greater than N.',
       explain: 'R + 3 must exceed 5, so R must be at least 3. With R = 2 the sums only reach 5, which is not strictly greater.' },
 
     { type: 'match', prompt: 'Match each idea to what it gives you.',
@@ -1195,7 +1195,7 @@ KS.boss('scaling-data', {
       items: [['Charging a customer’s card', 0], ['Showing a view counter', 1], ['Choosing which server is leader', 0], ['Loading someone’s feed', 1], ['Reserving the last seat on a flight', 0], ['Adding to a wish-list', 1]],
       explain: 'Where a wrong answer costs money or breaks uniqueness, a short refusal is cheaper. Where staleness is harmless and merging is easy, stay available.' },
 
-    { type: 'short', q: 'With N = 3 and R = 2, what is the smallest write quorum W that guarantees reads see the latest write? (a number)', accept: ['2', 'two'], hint: 'R + W must be greater than N.',
+    { type: 'short', q: 'With N = 3 and R = 2, what is the smallest write quorum W that guarantees reads see the latest write? (a number)', accept: ['2', 'two', 'W = 2'], hint: 'R + W must be greater than N.',
       explain: 'R + W > 3 with R = 2 means W must be at least 2. W = 1 gives a sum of 3, which is not strictly greater.' },
 
     { type: 'ab', q: 'Two phones edit the same shared shopping list while offline. Which merge strategy is better?',

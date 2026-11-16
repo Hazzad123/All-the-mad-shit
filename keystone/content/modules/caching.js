@@ -189,7 +189,7 @@ KS.lesson('ca-http', {
 
         Almost certainly not. Your browser kept copies from the first visit. It has its own cache, and it can reuse a file without so much as asking the server.
 
-        That is the best kind of caching: **no network, no server, no cost**. But the browser will only do it if the server says it is allowed to, and for how long. Those instructions travel in an [[HTTP header]] called \`Cache-Control\`.` },
+        That is the best kind of caching: **no network, no server, no cost**. But the browser will only do it if the server says it is allowed to, and for how long. Those instructions travel in an [[HTTP header|Header]] called \`Cache-Control\`.` },
 
     { kind: 'metaphor', title: 'The library book and its due date',
       body: `When you borrow a library book, it is stamped **"return by 14 June"**. Until then you do not ask the library whether you may keep it. You just read it.
@@ -309,7 +309,7 @@ KS.lesson('ca-http', {
       lines: [3],
       explain: 'The header lets any shared cache, such as a CDN or a company proxy, keep this personal page for a year, so other people could be served it. It should be `private` at most, and `no-store` is safer for sensitive pages.' },
 
-    { type: 'short', q: 'Which status code means "your cached copy is still current, no body needed"?', accept: ['304'], hint: 'It begins with a 3, as in redirection-ish.',
+    { type: 'short', q: 'Which status code means "your cached copy is still current, no body needed"?', accept: ['304', '304 Not Modified'], hint: 'It begins with a 3, as in redirection-ish.',
       explain: '`304 Not Modified`, the reply to a conditional request when the ETag still matches.' },
 
     { type: 'scenario', title: 'Why do users still see the old logo?', intro: 'You deployed a redesign on Monday. By Tuesday, customers on forums are still posting screenshots of the old header. You open the response headers for `/css/site.css`.',
@@ -669,8 +669,8 @@ KS.lesson('ca-server', {
       why: [null, 'That describes a **local** cache. A shared cache is shared by every server.', 'Servers do not talk to each other; they all talk to the cache.', 'A shared cache has no per-writer ownership.'],
       explain: 'A distributed cache is one shared notepad. Whoever stores an answer saves everyone else the trip to the database.' },
 
-    { type: 'tf', after: 4, statement: 'Memcached keeps its data safe on disk, so nothing is lost if the server restarts.', answer: false,
-      explain: 'Memcached is memory only: a restart clears it. Redis *can* be configured to save data to disk, but a cache should be rebuildable either way.' },
+    { type: 'tf', after: 4, statement: 'Memcached keeps its data only in memory, so restarting the server empties the cache.', answer: true,
+      explain: 'True: Memcached is memory only: a restart clears it. Redis *can* be configured to save data to disk, but a cache should be rebuildable either way.' },
 
     { type: 'match', prompt: 'Match each need to the best server-side cache use.',
       pairs: [['Know who is logged in on any server', 'Store sessions in a shared cache'], ['A 2-second report that 800 people run', 'Cache the query result'], ['Count each user’s requests per minute', 'An atomic counter with an expiry'], ['A homepage built from five queries', 'Cache the finished page or fragment']] },
@@ -700,7 +700,7 @@ KS.lesson('ca-server', {
       lines: [2],
       explain: 'The key ignores `currency`, so the first visitor’s currency is stored under `price:42` and handed to everyone for five minutes. The key needs every input that changes the answer, such as `price:42:GBP`.' },
 
-    { type: 'short', q: 'In a cache, what is the name for the label an entry is stored and looked up under, such as `user:42:name`?', accept: ['key', 'cache key'], hint: 'It is the thing you pass to GET.',
+    { type: 'short', q: 'In a cache, what is the name for the label an entry is stored and looked up under, such as `user:42:name`?', accept: ['key', 'cache key', 'the key', 'keys'], hint: 'It is the thing you pass to GET.',
       explain: 'The **key**. Good keys name the thing and include every variable that changes the answer.' },
 
     { type: 'scenario', title: 'Three servers, three different answers', intro: 'Your shop runs on three app servers. To save time, the previous developer cached the product list in each app’s own memory (a local cache) for ten minutes. Support emails: "Prices on the site keep changing when I refresh."',
@@ -1101,7 +1101,7 @@ KS.lesson('ca-invalidation', {
 
   activities: [
     { type: 'mcq', after: 2, q: 'Why keep a TTL on entries even when the code deletes the cache entry whenever the data changes?',
-      options: ['It is a safety net for races and forgotten code paths that leave stale entries behind', 'Deleting on change never works, so the TTL does the real job', 'Without a TTL, Redis refuses to store the entry', 'It makes each read faster'],
+      options: ['A safety net for races and missed code paths that leave stale data', 'Deleting on change never works, so the TTL does the real job', 'Without a TTL, Redis refuses to store the entry', 'It makes each cache hit faster to read'],
       answer: 0,
       why: [null, 'Deleting on change usually works well. The TTL covers the cases where it does not.', 'Redis happily stores entries with no TTL.', 'The TTL does not affect how fast a hit is.'],
       explain: 'A reader can refill the cache with an old value just after the writer deleted it, and some code paths may forget to delete. A TTL guarantees even those mistakes heal in time.' },
@@ -1129,7 +1129,7 @@ KS.lesson('ca-invalidation', {
       answer: 'b',
       explain: 'Adding up to 10% random time means the entries expire across a six-minute window instead of in the same second, so the rebuilds trickle in instead of arriving as a wall.' },
 
-    { type: 'short', q: 'Which eviction policy removes the entry that was used least recently? Give the three-letter abbreviation.', accept: ['LRU'], hint: 'Least Recently ...',
+    { type: 'short', q: 'Which eviction policy removes the entry that was used least recently? Give the three-letter abbreviation.', accept: ['LRU', 'least recently used'], hint: 'Least Recently ...',
       explain: '**LRU**, least recently used. It assumes that what you used a moment ago you will probably want again, and what you have ignored for ages you will not.' },
 
     { type: 'scenario', title: '12:00:00: the database is on fire', intro: 'You run the backend for a news site. Every day at noon, the database collapses for about 20 seconds. The monitoring shows a spike in queries at exactly 12:00:00, and your home-page cache entry has a 60-minute TTL set at 11:00.',
@@ -1250,7 +1250,7 @@ KS.boss('caching', {
       answer: 6000, unit: 'rebuilds', min: 10, max: 100000, tolerance: 1.5,
       explain: '3,000 × 2 = **6,000** requests arrive before the first rebuild finishes, and every one of them misses. With a lock, a single rebuild would do.' },
 
-    { type: 'short', q: 'Which eviction policy drops the entry that has gone longest without being used? (Three-letter abbreviation.)', accept: ['LRU'], hint: 'Least Recently ...',
+    { type: 'short', q: 'Which eviction policy drops the entry that has gone longest without being used? (Three-letter abbreviation.)', accept: ['LRU', 'least recently used'], hint: 'Least Recently ...',
       explain: '**LRU**, least recently used. LFU, by contrast, drops the one used least often.' },
 
     { type: 'mcq', q: 'One celebrity’s profile receives most of the traffic, and the cache server holding that key is overloaded while the others sit idle. What is this, and what helps?',

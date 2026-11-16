@@ -76,11 +76,16 @@
       s.src = 'content/modules/' + id + '.js?v=' + KS.version;
       s.async = true;
       s.onload = function () { C.loaded[id] = true; delete pending[id]; KS.bus.emit('module', id); resolve(true); };
-      s.onerror = function () { C.missing[id] = true; delete pending[id]; resolve(false); };
+      // A failed load (usually no connection) is remembered so pages don't retry in a loop, but it is not
+      // permanent: C.retry() and coming back online clear it.
+      s.onerror = function () { C.missing[id] = true; C.failed[id] = true; delete pending[id]; s.remove(); resolve(false); };
       document.head.appendChild(s);
     });
     return pending[id];
   };
+  C.failed = {};
+  C.retry = function (id) { delete C.missing[id]; delete C.failed[id]; return C.loadModule(id); };
+  window.addEventListener('online', function () { Object.keys(C.failed).forEach(function (id) { delete C.missing[id]; delete C.failed[id]; }); });
   C.loadLesson = function (lessonId) { const m = C.metaById[lessonId]; return m ? C.loadModule(m.module.id) : Promise.resolve(false); };
   let allPromise = null;
   /** Load every module (in curriculum order, a few at a time). Resolves when done. */

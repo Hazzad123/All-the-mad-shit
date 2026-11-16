@@ -117,7 +117,7 @@ KS.lesson('dl-ci', {
 
   activities: [
     { type: 'mcq', after: 2, q: 'Why is merging small changes often safer than merging one big change at the end of a sprint?',
-      options: ['Each merge has few conflicts, and a bug is easy to trace to the last small change', 'Small merges skip the review, so they are faster', 'Git refuses to merge anything larger than a few lines', 'Fewer total lines of code get written that way'],
+      options: ['Each merge has few conflicts, and a bug is easy to trace', 'Small merges skip code review, so they reach main faster', 'Git refuses to merge anything larger than a few lines', 'Fewer total lines of code get written that way'],
       answer: 0,
       why: [null, 'Small changes are reviewed too; they are just quick to review.', 'Git has no such limit. It is a habit, not a tool restriction.', 'The amount of code written is the same. Only the size of each merge changes.'],
       explain: 'Drift is what hurts. Frequent small merges keep everyone close to the shared code, so conflicts stay tiny and the cause of a failure is obvious.' },
@@ -357,7 +357,7 @@ KS.lesson('dl-cd', {
       items: [['You want a full copy tested, then an instant switch, and an instant switch back', 0], ['You can afford to run two full environments for a while', 0], ['You want real users to find problems before most users do', 1], ['You have strong monitoring and can compare error rates', 1], ['Marketing wants the feature visible only on launch day, though the code is already live', 2], ['You want to turn one feature off in seconds without redeploying', 2]],
       explain: 'Blue/green is about a clean all-at-once switch. Canary is about learning from a small slice. Flags separate the moment of release from the moment of deployment.' },
 
-    { type: 'short', q: 'What do you call returning to the previous known-good version after a bad release?', accept: ['rollback', 'roll back', 'a rollback'], hint: 'Two words squashed together; the undo button of releases.',
+    { type: 'short', q: 'What do you call returning to the previous known-good version after a bad release?', accept: ['rollback', 'roll back', 'a rollback', 'rolling back', 'roll it back'], hint: 'Two words squashed together; the undo button of releases.',
       explain: 'A rollback redeploys the last good version (or points traffic back at the old copy). It is only trustworthy if you have practised it.' },
 
     { type: 'scenario', title: 'The Tuesday release', intro: 'Your team ships a redesigned search page. The pipeline is green and the team is nervous, because last time a bad release hit everyone for 40 minutes.',
@@ -553,7 +553,7 @@ KS.lesson('dl-iac', {
       lines: [5],
       explain: 'A real password in a file means it lives in the Git history for everyone with access, forever. Reference it from a secrets store instead.' },
 
-    { type: 'short', q: 'What one word describes a server that is never modified after it starts, only replaced?', accept: ['immutable'], hint: 'The opposite of "mutable", meaning changeable.',
+    { type: 'short', q: 'What one word describes a server that is never modified after it starts, only replaced?', accept: ['immutable', 'immutable server', 'immutable infrastructure'], hint: 'The opposite of "mutable", meaning changeable.',
       explain: 'Immutable infrastructure: build a new image, start new servers, throw the old ones away.' },
 
     { type: 'scenario', title: 'The console hotfix', intro: 'Your team manages its infrastructure with Terraform files in Git. At 5pm on Friday the site is slow. A colleague, Priya, quietly bumps one server\'s size in the cloud web console, and it helps. On Monday you open the repo.',
@@ -902,7 +902,7 @@ KS.lesson('dl-cloud-patterns', {
 
   activities: [
     { type: 'mcq', after: 1, q: 'Which problem is a sidecar best suited to?',
-      options: ['Adding logging, security or retries beside an app without changing the app\'s code', 'Combining five service calls into one reply for a phone', 'Slowly replacing a legacy system', 'Splitting reads and writes into two data models'],
+      options: ['Adding logging or retries beside an app without editing it', 'Combining five service calls into one reply for a phone app', 'Slowly replacing a legacy system', 'Splitting reads and writes into two data models'],
       answer: 0,
       why: [null, 'That is gateway aggregation.', 'That is the strangler fig.', 'That is CQRS.'],
       explain: 'A sidecar is a helper deployed next to your application that takes over cross-cutting chores, so the application itself stays simple.' },
@@ -1112,7 +1112,7 @@ KS.lesson('dl-operations', {
 
   activities: [
     { type: 'mcq', after: 2, q: 'Why is it better for an app to read its database address from an environment variable than to have it written in the code?',
-      options: ['The same artefact can run in any environment, and only the configuration changes', 'Environment variables make the app run faster', 'It stops anyone from ever finding the address', 'The code no longer needs a database'],
+      options: ['One build runs in every environment; only the config changes', 'Environment variables are read faster than values in code', 'It stops anyone from ever finding the address', 'The code no longer needs a database'],
       answer: 0,
       why: [null, 'Speed is not affected. This is about flexibility and safety.', 'Environment variables are not a hiding place; it is about keeping environment details out of the code.', 'The app still needs the database; it just learns where it is at start-up.'],
       explain: 'Separating config from code lets you build once and promote the same artefact through dev, staging and production, and stops the code itself knowing where production lives.' },
@@ -1207,7 +1207,7 @@ KS.boss('delivery', {
   intro: 'Cut off one bad release and two more grow in its place. Show that you can keep main green, ship safely, describe infrastructure in files, choose cloud services wisely and run what you build.',
   questions: [
     { type: 'mcq', q: 'A team merges once a month and every merge is a nightmare. What does continuous integration change?',
-      options: ['Small changes merge many times a day, with an automatic build and test on each one', 'Merges are done by a robot with no human review', 'The team stops using branches entirely, whatever happens', 'Tests run only on the night before a release'],
+      options: ['Small changes merge many times a day, each built and tested', 'Merges are done by a robot with no human review', 'The team stops using branches entirely, whatever happens', 'Tests run only on the night before a release'],
       answer: 0,
       why: [null, 'Review still happens. The robot checks build and tests; people still read changes.', 'Short-lived branches are fine. What matters is that they are merged quickly.', 'CI runs checks on every change, not just before a release.'],
       explain: 'Small, frequent merges keep copies of the code from drifting, and the automatic pipeline gives fast feedback on every one.' },
@@ -1224,7 +1224,7 @@ KS.boss('delivery', {
       explain: 'Canary is gradual exposure; blue/green is a clean swap between two full copies; a flag separates deploying from releasing.' },
 
     { type: 'mcq', q: 'Version 2 of an app renames a database column and rewrites existing rows. It goes wrong and you roll back the code to version 1. What is the most likely problem?',
-      options: ['Version 1 looks for a column that no longer exists, because data does not roll back like code', 'Version 1 refuses to start on a newer database', 'The load balancer forgets the old version', 'The rollback deletes the new column automatically'],
+      options: ['Version 1 expects the old column, but data does not roll back', 'Version 1 refuses to start on a newer database', 'The load balancer forgets the old version', 'The rollback deletes the new column and its data automatically'],
       answer: 0,
       why: [null, 'It is not about the app refusing; it fails when it queries the missing column.', 'Load balancers are not the issue here.', 'Rollbacks of code do not touch the database.'],
       explain: 'Code is files and swaps back easily. Data changes need small, compatible steps so old and new versions can both work.' },
@@ -1256,7 +1256,7 @@ KS.boss('delivery', {
       explain: 'Each step hands another layer of work to the provider, in exchange for less control.' },
 
     { type: 'mcq', q: 'Your service runs on three servers, all in one availability zone. What is the weakness?',
-      options: ['One zone is the unit that can fail together, so one outage takes out all three', 'Availability zones cannot host more than two servers', 'Servers in one zone cannot talk to each other', 'Three servers is too few for any cloud'],
+      options: ['One zone can fail as a unit, taking out all three at once', 'Availability zones cannot host more than two servers each', 'Servers in one zone cannot talk to each other', 'Three servers is too few for any cloud'],
       answer: 0,
       why: [null, 'There is no such limit.', 'Servers in a zone communicate normally.', 'The count is not the problem; the shared location is.'],
       explain: 'Spreading across zones means the loss of one data centre removes part of your capacity, not all of it.' },

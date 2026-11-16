@@ -10,7 +10,13 @@
   const TABS = [['today', 'home', 'Today'], ['learn', 'map', 'Learn'], ['play', 'game', 'Play'], ['me', 'user', 'Me']];
   let viewEl, tabEl, focusEl, cleanup = null, cur = { name: 'today', args: [] };
 
-  function parse() { const p = location.hash.replace(/^#\/?/, '').split('/').map(function (x) { try { return decodeURIComponent(x); } catch (e) { return x; } }); return { name: p[0] || 'today', args: p.slice(1) }; }
+  // Studio route names (from shared search results, or a link forwarded from Studio) mapped to Pocket's pages.
+  const ALIAS = { home: 'today', journey: 'learn', module: 'learn', arcade: 'play', labs: 'play', library: 'lib', roadmaps: 'lib' };
+  function parse() {
+    const p = location.hash.replace(/^#\/?/, '').split('/').map(function (x) { try { return decodeURIComponent(x); } catch (e) { return x; } });
+    const name = p[0] || 'today';
+    return { name: ALIAS[name] || name, args: p.slice(1) };
+  }
   function go(hash) { if (location.hash === hash) render(); else location.hash = hash; }
   function isCur(n) { return cur.name === n; }
 
@@ -41,7 +47,7 @@
     root.appendChild(h('div.pq-grid',
       q('#/play/flash', '🃏', 'Flashcards', sr.due ? sr.due + ' due' : 'caught up', sr.due > 0),
       q('#/play/swipe', '👆', 'Fact or Cap?', 'swipe, 12 cards'),
-      q('#/play/daily', '📅', 'Daily', S.day().d ? 'done ✓' : '+15 bonus XP', !S.day().d),
+      q('#/play/daily', '📅', 'Daily', S.dayTotals().d ? 'done ✓' : '+15 bonus XP', !S.dayTotals().d),
       q('#/play/rush', '❤️', 'Quiz Rush', '3 hearts')));
     if (nx) {
       const ls = S.peek(nx.id); const inProg = ls && ls.pos > 0 && !ls.done;
@@ -87,7 +93,7 @@
     const root = h('div.page'); root.appendChild(topBar()); const sr = KS.srs.counts();
     root.appendChild(head('Play', 'Quick games from what you have learned.'));
     root.appendChild(h('div.pgames', KS.arcade.games.filter(function (g) { return !g.lab; }).map(function (g) {
-      const hot = (g.id === 'flash' && sr.due) || (g.id === 'daily' && !S.day().d);
+      const hot = (g.id === 'flash' && sr.due) || (g.id === 'daily' && !S.dayTotals().d);
       return h('a.pgame' + (hot ? '.hot' : ''), { href: '#/play/' + g.id }, h('span.pg-e', g.emoji), h('div', h('b', g.title), h('div.muted.small', g.blurb)), h('span.pg-t', '~' + g.mins + 'm'));
     })));
     root.appendChild(h('h2.psec', '🧪 Labs'));
@@ -133,7 +139,14 @@
       const wrap = h('div.plab', h('header.game-top', h('button.icon-btn', { type: 'button', 'aria-label': 'Back', onclick: function () { go('#/play'); } }, U.icon('left')), h('div.game-title', (KS.labs.get(a[0]) || {}).title || 'Lab')), h('div.plab-body'));
       host.appendChild(wrap); const body = wrap.querySelector('.plab-body');
       const run = function () { const ctl = KS.labs.mount(body, a[0], { compact: true }); cleanup = function () { ctl.destroy(); }; };
-      if (KS.labs.get(a[0])) run(); else { body.appendChild(U.spinner('Loading lab…')); KS.labs.whenReady().then(function () { KS.clear(body); if (KS.labs.get(a[0])) run(); else body.appendChild(U.empty('🚧', 'Lab not available yet', '')); }); }
+      const opened = location.hash;
+      if (KS.labs.get(a[0])) run(); else {
+        body.appendChild(U.spinner('Loading lab…'));
+        KS.labs.whenReady().then(function () {
+          if (location.hash !== opened || !body.isConnected) return;   // the learner has moved on: don't mount into a page that's gone
+          KS.clear(body); if (KS.labs.get(a[0])) run(); else body.appendChild(U.empty('🚧', 'Lab not available yet', ''));
+        });
+      }
     }
   };
 
@@ -155,7 +168,7 @@
   if (!S.flag('onboarded')) { S.flag('onboarded', true); }
   KS.bus.on('imported', function () { U.applyTheme(); if (!document.body.classList.contains('focus-mode')) render(true); });
   KS.bus.on('labs:ready', function () { if (isCur('play')) render(true); });
-  KS.labs.whenReady().then(function () { return C.loadAll(); }).then(function () { KS.game.check(true); KS.offlineReady = true; });
+  KS.labs.whenReady().then(function () { return C.loadAll(); }).then(function () { KS.game.check(true); return KS.checkOffline(); }).then(function (ok) { KS.offlineReady = ok; });
   KS.sync.gist.auto();
   if ('serviceWorker' in navigator && /^https?:$/.test(location.protocol) && !/^(localhost|127.0.0.1)$/.test(location.hostname)) window.addEventListener('load', function () { navigator.serviceWorker.register('sw.js').catch(function () {}); });
 })();

@@ -113,7 +113,7 @@ KS.lesson('ap-what', {
 
   activities: [
     { type: 'mcq', after: 1, q: 'Which decision is most likely to count as "architecture"?',
-      options: ['Splitting the system into separate programs that talk over a network', 'Renaming a function to something clearer', 'Changing the padding on a button', 'Fixing a typo in an error message'],
+      options: ['Splitting the system into programs talking over a network', 'Renaming a function to something clearer for readers', 'Changing the padding on a button', 'Fixing a typo in an error message'],
       answer: 0,
       why: [null, 'Cheap to undo, so not the kind of decision that needs early thought.', 'A quick edit with no knock-on effects.', 'Trivial to change at any time.'],
       explain: 'Splitting into separate programs shapes deployment, team boundaries, failure modes and data ownership, and it is expensive to reverse. The others are changed in minutes.' },
@@ -710,7 +710,7 @@ KS.lesson('ap-component-coupling', {
       items: ['Spot the arrow that closes the loop', 'Define an interface owned by the calling component', 'Have the other component implement that interface', 'Wire the two together at start-up', 'Draw the arrows again and check for loops'],
       explain: 'First find the offending arrow, then create the interface where the call is made, implement it on the far side and join them at the edge. Checking the diagram last proves the loop is gone.' },
 
-    { type: 'tf', after: 5, statement: 'In this context, a “stable” component is one that never has bugs.', answer: false,
+    { type: 'tf', after: 5, statement: 'In this context, a “stable” component is one that is hard to change because many others depend on it.', answer: true,
       explain: 'Stable here means hard to change, usually because many components depend on it. A stable component can still be buggy; it is just costly to alter.' },
 
     { type: 'bucket', after: 8, prompt: 'Which part of the main sequence does each component sit in?', buckets: ['Healthy: abstract and stable', 'Healthy: concrete and unstable', 'Zone of pain', 'Zone of uselessness'],
@@ -980,7 +980,7 @@ KS.lesson('ap-policy-detail', {
       ],
       outro: 'The pattern to remember: **keep the rules independent, then choose the tools when you have evidence.**' },
 
-    { type: 'short', q: 'What do we call the business rules at the heart of a system, as opposed to the tools that carry them out?', accept: ['policy'], hint: 'Six letters. Governments make it too.',
+    { type: 'short', q: 'What do we call the business rules at the heart of a system, as opposed to the tools that carry them out?', accept: ['policy', 'policies'], hint: 'Six letters. Governments make it too.',
       explain: 'Policy is the business rules. Databases, frameworks and screens are details that serve it.' },
 
     { type: 'explain', prompt: 'Explain the difference between policy and detail, and why keeping them apart helps.',
@@ -1133,7 +1133,7 @@ KS.lesson('ap-boundaries', {
         }`,
         notes: {
           2: 'The legacy system’s own names and codes. Nothing in your own code should ever see these.',
-          5: 'The translation table lives in one place, at the boundary.',
+          4: 'The translation table lives in one place, at the boundary.',
           7: 'Your code gets clean names (`id`, `status`, `total`) in your own language. If the legacy system is retired, only this function goes.'
         } },
       note: 'The term comes from Domain-Driven Design, which a later module covers properly. For now: a translator at the door, so their model does not corrupt yours.' },
@@ -1148,7 +1148,7 @@ KS.lesson('ap-boundaries', {
 
   activities: [
     { type: 'mcq', after: 1, q: 'Where is the best place to draw a boundary?',
-      options: ['Between things that change for different reasons or at different speeds', 'Between every pair of classes, to be safe', 'Around the largest folder in the project', 'Only between the code and the server it runs on'],
+      options: ['Between things that change for different reasons', 'Between every pair of classes, to be safe', 'Around the largest folder in the project', 'Only between the code and the server it runs on'],
       answer: 0,
       why: [null, 'That would drown the code in indirection. Boundaries have a price.', 'Folder size has nothing to do with how things change.', 'A boundary is about change, not about hardware.'],
       explain: 'Boundaries pay off where they stop change leaking: between rules and databases, your code and third parties, logic and screens. Elsewhere they are cost without benefit.' },
@@ -1179,7 +1179,7 @@ KS.lesson('ap-boundaries', {
           mailer.send(user.email, 'password-reset');
         }` },
       answer: 'b',
-      explain: 'The second version only knows about a `mailer` contract. Which provider sits behind it, and how its templates are named, are the adapter’s business.' },
+      explain: 'The contract version only knows about a `mailer`. Which provider sits behind it, and how its templates are named, are the adapter’s business.' },
 
     { type: 'bucket', prompt: 'Does this belong inside the boundary (policy) or outside it (detail)?', buckets: ['Inside: policy', 'Outside: detail'],
       items: [['The rule that refunds need a paid order', 0], ['The SQL that loads an order', 1], ['The HTTP status code for “not found”', 1], ['The interface describing “save an order”', 0], ['A translation from a legacy system’s status codes', 1], ['The calculation of total including tax', 0]],
@@ -1368,7 +1368,7 @@ KS.lesson('ap-quality-attributes', {
       explain: 'This is the classic performance-versus-freshness trade-off. A cache answers quickly from stored copies, but a copy can be out of date until it is refreshed.' },
 
     { type: 'mcq', after: 6, q: 'What is a fitness function?',
-      options: ['An automated check that an architectural quality still holds', 'A function that makes the code run faster', 'A gym schedule for the development team', 'A diagram of the main components'],
+      options: ['An automated check that an architectural quality still holds', 'A function that tunes the code so it runs faster', 'A gym schedule for the development team', 'A diagram of the main components'],
       answer: 0,
       why: [null, 'Fitness functions check a quality; they do not optimise the code themselves.', null, 'A diagram describes structure but cannot fail a build if the structure is broken.'],
       explain: 'A fitness function turns a quality or structural rule into an automated check, such as "the domain code never imports the database code" or "95% of responses are under 300 ms". It fails the build when the rule is broken.' },

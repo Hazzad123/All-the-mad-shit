@@ -121,7 +121,7 @@ KS.lesson('as-overview', {
       explain: 'Structural styles are about how code is divided. Distributed styles are about which computers do what. Messaging styles are about how parts tell each other things.' },
 
     { type: 'mcq', q: 'What is the main value of an architectural style?',
-      options: ['Its constraints make a system predictable: you know how parts connect and where changes land', 'It guarantees the system will be fast', 'It removes the need to think about quality attributes', 'It tells you which programming language to use'],
+      options: ['Its rules make it predictable how parts connect and where changes land', 'It guarantees the system will be fast at any scale', 'It removes the need to think about quality attributes', 'It tells you which programming language to use'],
       answer: 0,
       why: [null, 'No style guarantees speed. Each makes some qualities easier and others harder.', 'Styles are chosen *because* of quality attributes, not instead of them.', 'Styles are language-neutral.'],
       explain: 'A style is a set of rules about what the parts are and how they may connect. Because the rules are known, people can predict behaviour and plan changes.' },
@@ -178,7 +178,7 @@ KS.lesson('as-overview', {
     { term: 'Architectural style', def: 'A broad, named way of organising a whole system, giving rules about the kinds of parts and how they connect.', like: 'A cuisine: it sets the general flavours and what to expect.' },
     { term: 'Architectural pattern', def: 'A proven solution to a recurring structural problem within a system, at a smaller scale than a style.', like: 'A dish within a cuisine: a risotto, a stir-fry.' },
     { term: 'Design pattern', def: 'A small, reusable arrangement of a few classes that solves a common design problem.', like: 'A kitchen technique, such as how to dice an onion.' },
-    { term: 'Constraint', def: 'A rule a style imposes on how parts may connect, which makes the system more predictable.', like: 'The rules of a game that let everyone predict what will happen.' }
+    { term: 'Architectural constraint', def: 'A rule a style imposes on how parts may connect, which makes the system more predictable.', like: 'The rules of a game that let everyone predict what will happen.' }
   ],
 
   takeaways: [
@@ -344,8 +344,8 @@ KS.lesson('as-monolith', {
       explain: 'Line 3 reaches into billing’s `internal` folder instead of using its public interface. Now billing cannot reorganise its insides without breaking orders, which is how boundaries in a monolith quietly erode into mud.' },
 
     { type: 'ab', q: 'A monolith’s checkout is slow because one report job hogs the CPU. Which is the better first move?',
-      a: { lang: 'text', label: 'Split everything', src: 'Break the whole system into twenty services.' },
-      b: { lang: 'text', label: 'Try the cheap fix', src: 'Run the report on a background worker queue.' },
+      a: { lang: 'text', label: 'Split into services', src: 'Break the whole system into twenty services.' },
+      b: { lang: 'text', label: 'Move the report job', src: 'Run the report on a background worker queue.' },
       answer: 'b',
       explain: 'The problem is one job hogging resources. Moving it to a background worker fixes that at a fraction of the cost of redesigning everything, and gives you real evidence about what else hurts.' },
 
@@ -539,7 +539,7 @@ KS.lesson('as-layered', {
       items: ['The controller receives the HTTP request', 'The service is asked for the order', 'The repository runs the SQL query', 'The service applies the rules to the loaded order', 'The controller sends back JSON'],
       explain: 'The request falls down through presentation, business and persistence, then the answer climbs back up with each layer doing only its own job.' },
 
-    { type: 'tf', after: 6, statement: 'In a system with closed layers, the presentation layer may call the persistence layer directly to save time.', answer: false,
+    { type: 'tf', after: 6, statement: 'In a system with closed layers, the presentation layer must go through the business layer to reach the persistence layer.', answer: true,
       explain: 'Closed layers must be passed through. Skipping the business layer means rules can be bypassed and the presentation layer starts to depend on storage details.' },
 
     { type: 'spot', prompt: 'This controller breaks the layering rule. Tap the line.',
@@ -781,7 +781,7 @@ KS.lesson('as-component-based', {
           constructor(prices) { this.prices = prices; }
         }` },
       answer: 'b',
-      explain: 'Passing the dependency in means a test can supply a dummy, and production can supply any component with the right plug. The first version is welded to one database.' },
+      explain: 'Passing the dependency in means a test can supply a dummy, and production can supply any component with the right plug. The version that creates its own lookup is welded to one database.' },
 
     { type: 'spot', prompt: 'These two “components” are not really separate. Tap the line that couples them.',
       code: { lang: 'js', src: `
@@ -971,7 +971,7 @@ KS.lesson('as-client-server', {
       items: [['Starts the conversation', 0], ['Waits for requests to arrive', 1], ['Typically serves many others at once', 1], ['Shows the answer to a human', 0], ['Does the lookups and the heavy work', 1], ['Chooses when to ask', 0]],
       explain: 'The client moves first and presents results; the server waits, works and responds. They are roles a program plays, not types of machine.' },
 
-    { type: 'tf', after: 1, statement: 'A single computer cannot be both a client and a server at the same time.', answer: false,
+    { type: 'tf', after: 1, statement: 'A single computer can be both a client and a server at the same time.', answer: true,
       explain: '"Client" and "server" are roles. A laptop can run a browser (client) and a local development server (server) together, and an application server is a server to the web server and a client to the database.' },
 
     { type: 'mcq', after: 4, q: 'A photo-editing app does all its work on your own computer and can run offline. What kind of client is it?',
@@ -987,7 +987,7 @@ KS.lesson('as-client-server', {
       distractors: ['peer', 'two-tier', 'layer'],
       explain: 'The client always moves first. Counting groups of machines (tiers) gives two-tier, three-tier and so on.' },
 
-    { type: 'short', q: 'What do we call a client that leaves almost all the work to the server? (one word)', accept: ['thin'], hint: 'The opposite of "fat" or "thick".',
+    { type: 'short', q: 'What do we call a client that leaves almost all the work to the server? (one word)', accept: ['thin', 'thin client'], hint: 'The opposite of "fat" or "thick".',
       explain: 'A thin client relies on the server for nearly everything. A thick client does most of the work itself.' },
 
     { type: 'ab', q: 'A shop’s mobile app checks that the discount code is valid. Where should the real check live?',
@@ -1222,7 +1222,7 @@ KS.lesson('as-p2p', {
 
   glossary: [
     { term: 'Peer-to-peer', def: 'A style in which every node acts as both client and server and no central party is in charge.', aka: ['P2P'], like: 'A potluck dinner where everyone brings a dish and eats.' },
-    { term: 'Node', def: 'One participant (computer or program) in a distributed or peer-to-peer network.', aka: ['peer'], like: 'One guest at the potluck.' },
+    { term: 'Peer node', def: 'One participant (computer or program) in a distributed or peer-to-peer network.', aka: ['peer'], like: 'One guest at the potluck.' },
     { term: 'Distributed hash table', def: 'A lookup table spread across many peers, each holding a slice of the keys, so lookups can find the right peer without a central index.', aka: ['DHT'], like: 'A phone book torn into pages and given out among everyone.' },
     { term: 'Swarm', def: 'In BitTorrent, the group of peers that are sharing the same file.', like: 'All the guests at one particular potluck.' },
     { term: 'Signalling', def: 'The step in which two peers exchange connection details, usually via a server, before connecting directly.', like: 'A mutual friend who passes on your phone number.' }
@@ -1610,7 +1610,7 @@ KS.lesson('as-pubsub', {
           chargeCustomer(m);
         }` },
       answer: 'a',
-      explain: 'With at-least-once delivery duplicates happen. Recording the message ID makes the handler idempotent, so a repeat does nothing. The second version would charge the customer twice.' },
+      explain: 'With at-least-once delivery duplicates happen. Recording the message ID makes the handler idempotent, so a repeat does nothing. The handler that always acts would charge the customer twice.' },
 
     { type: 'cloze', text: 'A publisher sends to a {{topic}}, a broker makes a copy for every {{subscriber}}, and this one-to-many delivery is called {{fan-out}}.',
       distractors: ['queue', 'cookie', 'mediator'],
@@ -1791,7 +1791,7 @@ KS.lesson('as-distributed', {
 
   activities: [
     { type: 'mcq', after: 1, q: 'Which of these best defines a distributed system?',
-      options: ['Separate computers cooperating by sending messages over a network', 'Any program that uses more than one thread', 'Any system with more than one programmer', 'A system that runs only in the cloud'],
+      options: ['Separate computers cooperating by messages over a network', 'Any program that runs work on more than one thread', 'Any system with more than one programmer', 'A system that runs only in the cloud'],
       answer: 0,
       why: [null, 'Threads share memory inside one machine. That is a concurrency issue, not distribution.', 'Team size has nothing to do with how the software runs.', 'You can have a distributed system in a basement or in the cloud. Where it runs is irrelevant.'],
       explain: 'The defining facts are separate machines with no shared memory or clock, communicating only by messages, and able to fail independently.' },
@@ -1928,7 +1928,7 @@ KS.boss('arch-styles', {
       explain: 'Idempotency is what makes retries safe after a timeout or a duplicate delivery.' },
 
     { type: 'mcq', q: 'A small team is building an internal tool for 300 users. Which starting point does the module recommend?',
-      options: ['A simple, possibly modular, monolith, adding complexity only when something hurts', 'Thirty small services for independence', 'A peer-to-peer network to avoid servers', 'A fully event-driven design so nothing is coupled'],
+      options: ['A simple (maybe modular) monolith, adding parts when it hurts', 'Thirty small services for independence', 'A peer-to-peer network to avoid servers', 'A fully event-driven design so that nothing is coupled'],
       answer: 0,
       why: [null, 'Thirty services bring network failures and operations work the team does not need.', 'P2P suits sharing among many; it adds discovery and trust problems here.', 'Events bring a flow you cannot see. They are worth it where independence has real value.'],
       explain: 'Start with the simplest shape that serves your needs, keep clear module boundaries, and distribute only for real reasons such as scale, availability or team independence.' }

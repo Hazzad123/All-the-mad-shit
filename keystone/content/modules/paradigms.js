@@ -120,7 +120,7 @@ KS.lesson('pp-what', {
       why: [null, 'This spells out the walking and checking: the steps are the point.', 'Still a loop with a rule inside. You are directing the process.', 'Counters and walking are all "how", with no "what" in sight.'],
       explain: 'A declarative description names the result and leaves out the procedure. The other three each hand over a recipe.' },
 
-    { type: 'tf', after: 7, statement: 'A language can only follow one programming paradigm.', answer: false,
+    { type: 'tf', after: 7, statement: 'One program can mix several paradigms, such as objects and functional pipelines.', answer: true,
       explain: 'Paradigms are styles, not locks. JavaScript, Python, Java and C# all let you mix imperative loops, objects and functional pipelines in one program.' },
 
     { type: 'cloze', code: true, text: `const total = orders
@@ -509,7 +509,7 @@ KS.lesson('pp-functional-basics', {
 
   activities: [
     { type: 'mcq', after: 2, q: 'What does it mean to say functions are "first-class" in a language?',
-      options: ['They can be stored in variables, passed as arguments and returned like any other value', 'They always run before the other code in a file', 'They can only be called once per program', 'They are faster than methods on a class'],
+      options: ['They can be stored, passed and returned like any value', 'They always run before the other code in a file', 'They can only be called once in each program', 'They run faster than methods defined on a class'],
       answer: 0,
       why: [null, 'Order of execution has nothing to do with it.', 'A first-class function can be called as often as you like.', 'Speed is unrelated. First-class describes what you may *do* with a function.'],
       explain: 'First-class means functions are ordinary values. That is what lets `map` accept a function, and what makes higher-order functions possible.' },
@@ -896,7 +896,7 @@ KS.lesson('pp-oop-intro', {
 
   activities: [
     { type: 'mcq', after: 2, q: 'Which description best fits an object in OOP?',
-      options: ['A bundle of data together with the functions that work on that data', 'A function that returns several values at once', 'A row stored in a database table', 'A file that holds many functions'],
+      options: ['Data bundled with the functions that work on it', 'A function that returns several values at once', 'A row stored in a database table', 'A file that holds many related functions'],
       answer: 0,
       why: [null, 'Returning many values is just a function with a richer result. Objects are about bundling state with behaviour.', 'A row is stored data with no behaviour attached.', 'A file groups code, but its functions need not share any state.'],
       explain: 'The defining idea is state plus behaviour in one unit: the basket knows its items and knows how to total them.' },
@@ -1393,7 +1393,7 @@ KS.lesson('pp-mixing', {
           .filter(e => e.target.id === 'buy')
           .debounce(500)
           .subscribe(addToBasket);` },
-      options: ['Reactive: a stream of events shaped by operators, with a subscriber', 'Structured: a loop that jumps with goto', 'Class-based OOP with inheritance', 'Pure functional code with no events involved'],
+      options: ['Reactive: an event stream shaped by operators', 'Structured: a loop that jumps with goto', 'Class-based OOP with inheritance', 'Pure functional code with no events involved'],
       answer: 0,
       why: [null, 'There is no loop and no goto. The structure is a chain of operators.', 'Nothing here defines a class or uses `this`.', 'The `subscribe` and `debounce` show that events over time are the heart of it.'],
       explain: '`filter` and `debounce` are stream operators, and `subscribe` attaches the reaction. Recognising those tell-tale words lets you read unfamiliar code calmly.' },
@@ -1506,7 +1506,7 @@ withVat(100);   // 120`,
     { type: 'estimate', q: 'A sensor emits 500 readings a second but your code handles only 200 a second. If nothing is dropped, roughly how many readings pile up waiting after one minute?', answer: 18000, unit: 'readings', min: 100, max: 1000000,
       explain: 'The backlog grows by 500 − 200 = 300 readings every second. Over 60 seconds that is 18,000. This is why backpressure needs a policy rather than hope.' },
 
-    { type: 'short', q: 'Which array method folds a whole list into a single value?', accept: ['reduce', 'fold'], hint: 'Starts with an initial value, such as 0, and a running total.',
+    { type: 'short', q: 'Which array method folds a whole list into a single value?', accept: ['reduce', 'fold', 'foldl', 'fold left', 'reduce()'], hint: 'Starts with an initial value, such as 0, and a running total.',
       explain: '`reduce` (called `fold` in some languages) applies a function to a running result and each item in turn, ending with one value.' }
   ]
 });

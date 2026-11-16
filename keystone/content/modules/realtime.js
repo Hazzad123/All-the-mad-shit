@@ -95,7 +95,7 @@ KS.lesson('rt-why', {
       why: [null, 'A server can only reply to a request. It has no line to the phone to push down.', 'There is no automatic delivery in plain HTTP. The client has to open the conversation.', 'Browsers do not poll for you unless the page’s code tells them to.'],
       explain: 'In plain HTTP the client always speaks first. The server can answer only when asked, which is exactly the problem the real-time techniques work around.' },
 
-    { type: 'tf', after: 3, statement: 'A system described as “real-time” delivers updates with no delay at all.', answer: false,
+    { type: 'tf', after: 3, statement: '“Real-time” means updates arrive fast enough that people do not notice the delay, not with zero delay.', answer: true,
       explain: 'Nothing crosses a network instantly. “Real-time” means fast enough that a human would not notice, and that threshold depends on the job: milliseconds for a game, many seconds for a dashboard.' },
 
     { type: 'match', after: 5, prompt: 'Match each technique to its one-line idea.',
@@ -391,8 +391,7 @@ KS.lesson('rt-sse', {
           2: '\`text/event-stream\` is the agreement. It tells the browser "keep reading, this will not end soon, and it is made of events".',
           3: 'Do not let proxies or the browser keep a stored copy. Every event is fresh.',
           5: 'An optional **id** for this event. The browser remembers the latest one, which is what lets it catch up after a drop.',
-          6: 'The **data** is the message itself. Any text; JSON is common. (More than one \`data:\` line in one event are joined together.)',
-          7: 'A **blank line** ends the event. Until it arrives, the browser keeps collecting lines. Forget it and nothing is delivered.',
+          6: 'The **data** is the message itself. Any text; JSON is common. (More than one \`data:\` line in one event are joined together.) The **blank line** after it ends the event: until it arrives, the browser keeps collecting lines. Forget it and nothing is delivered.',
           9: 'An optional **event** name. It lets the page react to different kinds of event differently. Without it the type is the default, \`message\`.'
         } } },
 
@@ -413,8 +412,7 @@ KS.lesson('rt-sse', {
           1: 'Opens a normal GET request to \`/events\` and keeps reading. That is the whole setup.',
           2: 'Runs for each event **without** a name. \`e.data\` is the text after \`data:\`.',
           5: 'Named events, such as \`event: goal\` on the server, need \`addEventListener\` with that name.',
-          8: 'Runs when the connection drops. You do **not** have to reconnect: the browser does that for you. This is just a chance to show a banner.',
-          10: 'To stop listening for good, call \`source.close()\`.'
+          8: 'Runs when the connection drops. You do **not** have to reconnect: the browser does that for you. This is just a chance to show a banner. (To stop listening for good, call \`source.close()\`.)'
         } } },
 
     { kind: 'sequence', title: 'A drop, and catching up',
@@ -482,7 +480,7 @@ KS.lesson('rt-sse', {
       items: ['The connection drops while the user is offline', 'The browser waits a short while', 'It reconnects with a Last-Event-ID header', 'The server replays the events the user missed', 'The stream carries on as normal'],
       explain: 'The browser handles the first three steps for you. The server’s only job is to read the header and replay from that point.' },
 
-    { type: 'tf', after: 5, statement: 'With SSE you must write your own code to reconnect after a dropped connection.', answer: false,
+    { type: 'tf', after: 5, statement: 'With SSE, the browser reconnects by itself after a dropped connection.', answer: true,
       explain: 'Reconnection is built into \`EventSource\`. The browser retries after a short wait and sends \`Last-Event-ID\`. You only need to give events ids if you want a replay.' },
 
     { type: 'bucket', prompt: 'Which of these suits SSE well, and which needs something else?', buckets: ['Good fit for SSE', 'Needs two-way or something else'],
@@ -691,7 +689,7 @@ KS.lesson('rt-websockets', {
       items: ['The browser sends an HTTP GET asking to upgrade', 'The server replies 101 Switching Protocols', 'Both sides send frames whenever they like', 'Pings and pongs check the line is still alive', 'One side sends a close frame and the connection ends'],
       explain: 'It starts as HTTP, switches protocol, runs as a two-way channel kept alive with pings and pongs, and ends with a close. The first two steps are the only HTTP part.' },
 
-    { type: 'short', q: 'Which kind of control frame asks the other side “are you still there?”', accept: ['ping'], hint: 'Pong is the reply.',
+    { type: 'short', q: 'Which kind of control frame asks the other side “are you still there?”', accept: ['ping', 'ping frame'], hint: 'Pong is the reply.',
       explain: 'A **ping** frame asks; the other side answers with a **pong**. A missing pong tells you the connection is probably dead.' },
 
     { type: 'cloze', text: 'A {{webhook}} is when one server sends an HTTP {{POST}} to a URL on another server. Because deliveries are retried, the receiver should be ready to see the same event {{twice}}.',
@@ -774,7 +772,7 @@ KS.boss('realtime', {
       answer: 5000, unit: 'requests per second', tolerance: 2,
       explain: '20,000 ÷ 4 = **5,000 requests per second**, and most return “nothing new”. This is the waste that long polling, SSE and WebSockets avoid.' },
 
-    { type: 'tf', statement: 'In long polling, the server replies to each request immediately, exactly as in short polling.', answer: false,
+    { type: 'tf', statement: 'In long polling, the server holds each request open until it has news or a time limit passes.', answer: true,
       explain: 'The server deliberately holds the request until it has news (or a timeout), which is why the reply arrives the moment there is something to say.' },
 
     { type: 'order', prompt: 'Put an SSE reconnection in order.',
@@ -793,7 +791,7 @@ KS.boss('realtime', {
       explain: 'Unlike `EventSource`, a `WebSocket` does not reconnect by itself. Logging “closed” and doing nothing leaves the player stranded after any network blip. It should retry with a growing delay and re-join.' },
 
     { type: 'mcq', q: 'You deploy a chat app with WebSockets on three servers. Alice and Bob are in the same room but connected to different servers, and cannot see each other’s messages. What is the standard fix?',
-      options: ['A shared pub/sub channel between the servers', 'Make the browsers poll as well', 'Use HTTP/3 instead', 'Increase the ping interval'],
+      options: ['A pub/sub channel shared by the servers', 'Make the browsers poll the server as well', 'Switch every connection over to HTTP/3', 'Change how often each server sends pings'],
       answer: 0,
       why: [null, 'Polling alongside a WebSocket would add load without fixing the cause: servers do not share events.', 'The HTTP version does not change which server holds which connection.', 'Pings keep connections alive; they do not move messages between servers.'],
       explain: 'Each server knows only its own connections. A pub/sub backplane lets one server publish an event and every other server forward it to its users.' },

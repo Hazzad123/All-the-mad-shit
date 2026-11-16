@@ -635,7 +635,7 @@ KS.lesson('os-memory', {
 
   activities: [
     { type: 'mcq', after: 2, q: 'Two different processes both read "address 4000" in their own code. What happens?',
-      options: ['Each reads its own private memory, because the OS maps the same virtual address to different real places', 'They read the same real location, so they see each other\'s data', 'The second process is blocked until the first finishes', 'The kernel crashes because of the clash'],
+      options: ['Each reads its own memory: the OS maps them to different real places', 'They read the same real location, so they see each other\'s data', 'The second process is blocked until the first one finishes', 'The kernel crashes, because two processes claimed one address'],
       answer: 0,
       why: [null, 'That would break isolation. Virtual memory exists to prevent exactly this.', 'There is no clash to wait for; the addresses are different places underneath.', 'Overlapping virtual addresses are completely normal.'],
       explain: 'Virtual addresses are private to each process. The OS keeps a map to real RAM, so "4000" means something different in every process.' },
@@ -1015,7 +1015,7 @@ KS.lesson('os-linux-terminal', {
 
   activities: [
     { type: 'mcq', after: 4, q: 'A file shows `-rw-r-----` in `ls -l`. Who can do what?',
-      options: ['The owner can read and write, the group can read, everyone else has no access', 'Everyone can read, and only the owner can write', 'The owner can run it, and everyone else can read it', 'Only the group can read it; the owner has no access'],
+      options: ['Owner reads and writes, group reads, others get nothing', 'Everyone can read it, and only the owner can write to it', 'The owner can run it, and everyone else can read it', 'Only the group can read it; the owner has no access at all'],
       answer: 0,
       why: [null, 'That would be `rw-r--r--`. Here the last three characters are all dashes.', 'There is no x anywhere, so nobody can run it.', 'The first set belongs to the owner, and it has rw.'],
       explain: 'Read the string as: type, then owner (rw-), group (r--), other (---). The final three dashes mean everyone outside the owner and group gets nothing.' },
@@ -1338,7 +1338,7 @@ KS.boss('os', {
   intro: 'Deep in the machine room, something with a lot of tentacles is hogging every resource. Prove you understand processes, memory, I/O and the terminal, and it will let your server go.',
   questions: [
     { type: 'mcq', q: 'Why can a bug in your web app not crash the whole computer, while a bug in the kernel can?',
-      options: ['Your app runs in restricted user space and must ask the kernel for privileged things', 'Kernel code is always better tested', 'User programs run on a separate processor', 'The kernel restarts apps automatically when they fail'],
+      options: ['Your app runs in walled-off user space; only the kernel has full power', 'Kernel code is always far better tested than app code', 'User programs run on a separate processor from the kernel', 'The kernel restarts apps automatically when they fail'],
       answer: 0,
       explain: 'User space is walled off: a user program can only damage itself. The kernel has full hardware access, so a fault there takes everything down.' },
 

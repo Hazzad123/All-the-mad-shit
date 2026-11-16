@@ -129,7 +129,8 @@
   ui.slider = function (label, o, onChange) {
     const out = h('span.lab-slider-val'); const fmt = o.fmt || function (v) { return String(v); };
     const input = h('input', { type: 'range', min: String(o.min), max: String(o.max), step: String(o.step || 1), value: String(o.value), 'aria-label': label });
-    const upd = function () { out.textContent = fmt(+input.value); };
+    // Screen readers read the formatted value ("2 million users"), not the raw slider number ("6.3").
+    const upd = function () { const t = fmt(+input.value); out.textContent = t; input.setAttribute('aria-valuetext', String(t)); };
     input.addEventListener('input', function () { upd(); onChange(+input.value); }); upd();
     const el = h('label.lab-slider', h('span.lab-slider-top', h('span', label), out), input);
     el.set = function (v) { input.value = String(v); upd(); }; el.get = function () { return +input.value; };
@@ -145,9 +146,10 @@
   };
   /** Segmented control: ui.seg([['a','Label A'], ['b','Label B']], 'a', onChange) */
   ui.seg = function (options, value, onChange) {
-    const el = h('div.lab-seg', { role: 'tablist' }); const btns = {};
-    options.forEach(function (o) { const v = Array.isArray(o) ? o[0] : o, t = Array.isArray(o) ? o[1] : o; const b = h('button', { type: 'button', role: 'tab', onclick: function () { el.set(v); onChange(v); } }, t); btns[v] = b; el.appendChild(b); });
-    el.set = function (v) { for (const k in btns) { btns[k].classList.toggle('on', k === v); btns[k].setAttribute('aria-selected', String(k === v)); } el._v = v; };
+    // A group of toggle buttons (these are mode pickers, not tabs): the chosen one is aria-pressed.
+    const el = h('div.lab-seg', { role: 'group' }); const btns = {};
+    options.forEach(function (o) { const v = Array.isArray(o) ? o[0] : o, t = Array.isArray(o) ? o[1] : o; const b = h('button', { type: 'button', onclick: function () { el.set(v); onChange(v); } }, t); btns[v] = b; el.appendChild(b); });
+    el.set = function (v) { for (const k in btns) { btns[k].classList.toggle('on', k === v); btns[k].setAttribute('aria-pressed', String(k === v)); } el._v = v; };
     el.get = function () { return el._v; }; el.set(value);
     return el;
   };
@@ -167,7 +169,8 @@
   };
   /** Scrolling event log. log.add('text **md**', 'good'|'bad'|'warn'|'info'|'dim') */
   ui.log = function (max) {
-    const el = h('div.lab-log', { 'aria-live': 'polite' }); max = max || 60;
+    // role=log, but not announced line by line: busy simulations log every second. Goals are announced by toast.
+    const el = h('div.lab-log', { role: 'log', 'aria-live': 'off', tabindex: '0', 'aria-label': 'Event log' }); max = max || 60;
     const api = { el: el, add: function (text, kind) { const row = h('div.lab-log-row' + (kind ? '.' + kind : ''), { html: KS.md.inline(text) }); el.appendChild(row); while (el.children.length > max) el.removeChild(el.firstChild); el.scrollTop = el.scrollHeight; return row; }, clear: function () { KS.clear(el); } };
     return api;
   };
@@ -242,6 +245,14 @@
   ui.cols = function () { return h('div.lab-cols', Array.prototype.slice.call(arguments).map(function (c) { return Array.isArray(c) ? h('div.lab-col', c) : c; })); };
   ui.col = function () { return h('div.lab-col', Array.prototype.slice.call(arguments)); };
   ui.note = function (md, tone) { return h('div.lab-note' + (tone ? '.tn-' + tone : ''), { html: KS.md(md) }); };
+  /** Labs that use real cryptography call this first: on plain-http pages the browser hides Web Crypto,
+   *  so show why the lab can't run (instead of buttons that silently do nothing). Returns true if it is missing. */
+  L.hasWebCrypto = !!(typeof crypto !== 'undefined' && crypto && crypto.subtle);
+  ui.needsWebCrypto = function (root) {
+    if (L.hasWebCrypto) return false;
+    root.appendChild(ui.note('This lab needs the browser\'s **Web Crypto** feature, which is only available on secure pages (https or localhost). Open the site that way to try it.', 'warn'));
+    return true;
+  };
   ui.kv = function (pairs) { return h('dl.lab-kv', pairs.map(function (p) { return [h('dt', p[0]), h('dd', { html: KS.md.inline(String(p[1])) })]; })); };
   ui.code = function (src, lang, opts) { return KS.codeBlock(src, lang, opts); };
   ui.tabs = function (tabs, onChange) { // tabs: [[id, label, renderFn(host)]]

@@ -496,7 +496,7 @@ KS.lesson('es-dynamics-salesforce', {
       answers: [0, 1, 4],
       explain: 'Fit with your existing tools, ecosystem and API access are all fair criteria. The other two options are myths.' },
 
-    { type: 'short', q: 'In Salesforce, what is a table-like type of data, such as Account or Contact, called? (one word)', accept: ['object', 'objects'], hint: 'Developers use the same word for an instance of a class.',
+    { type: 'short', q: 'In Salesforce, what is a table-like type of data, such as Account or Contact, called? (one word)', accept: ['object', 'objects', 'sObject', 'standard object'], hint: 'Developers use the same word for an instance of a class.',
       explain: 'Salesforce stores data as **objects**, with fields (columns) and records (rows).' },
 
     { type: 'scenario', title: 'The request that grows', intro: 'Hollis’s sales director asks for a "quick tweak" to the CRM. You are the architect and the platform is Salesforce.',
@@ -642,7 +642,7 @@ KS.lesson('es-ibm-emc', {
     { kind: 'concept', title: 'Compliance, retention and legal holds',
       body: `Some records must be **kept** for a minimum time (tax, safety, employment records, depending on country). Others should be **deleted** after a time, because holding data forever is itself a risk.
 
-        A **retention policy** says how long each type of document lives. Then, when the time is up, the system disposes of it.
+        A **records retention policy** says how long each type of document lives. Then, when the time is up, the system disposes of it.
 
         A **legal hold** pauses that: if a dispute is looming, the relevant documents must be frozen and *not* deleted, even if their retention has expired.
 
@@ -653,7 +653,7 @@ KS.lesson('es-ibm-emc', {
     { type: 'match', after: 3, prompt: 'Match each BPM job to what it covers.',
       pairs: [['Model', 'Drawing the process in a standard notation such as BPMN'], ['Run', 'Starting an instance per request and handing out tasks'], ['Monitor', 'Showing where work is stuck and how long it takes'], ['Process instance', 'One live run of the process, for one request'], ['Work item', 'The task currently waiting for a person or system']] },
 
-    { type: 'tf', after: 3, statement: 'In a BPM suite, the process diagram is just documentation for people to read; the engine ignores it.', answer: false,
+    { type: 'tf', after: 3, statement: 'In a BPM suite, the engine runs the process diagram itself, rather than treating it as documentation.', answer: true,
       explain: 'In a BPM suite the diagram is executable: the engine follows it step by step, handing tasks to people and calling systems.' },
 
     { type: 'mcq', after: 5, q: 'Two people both want to edit the same policy. What does a DMS typically do to stop one overwriting the other?',
@@ -701,7 +701,7 @@ KS.lesson('es-ibm-emc', {
             { label: 'Say the manager remembers approving it', score: 0, effects: { 'audit result': -25, 'stress': 20 }, feedback: 'Memory is not evidence.' },
             { label: 'Produce an email chain', score: 1, effects: { 'audit result': -5 }, feedback: 'Better than nothing, but emails are easy to dispute and incomplete.' }
           ] },
-        { text: 'Legal warns of a dispute with a supplier. Several of their contracts are due for deletion next month under the retention policy.',
+        { text: 'Legal warns of a dispute with a supplier. Several of their contracts are due for deletion next month under the records retention policy.',
           choices: [
             { label: 'Apply a legal hold to those contracts', score: 2, effects: { 'audit result': 15, 'stress': -10 }, feedback: 'A hold overrides the normal retention schedule and preserves the evidence.' },
             { label: 'Let retention run; those are the rules', score: 0, effects: { 'audit result': -30, 'stress': 25 }, feedback: 'Destroying documents that are relevant to a dispute can be seriously illegal.' },
@@ -727,7 +727,7 @@ KS.lesson('es-ibm-emc', {
     { term: 'Process instance', def: 'One live run of a process, for one specific request, tracked by the BPM engine.', like: 'One runner’s journey through the relay course.' },
     { term: 'BPMN', def: 'A standard notation for drawing business processes, readable by both analysts and developers.', like: 'Sheet music for business processes.', aka: ['Business Process Model and Notation'] },
     { term: 'Workflow', def: 'The ordered flow of tasks and decisions that carries work from one person or system to the next.', like: 'The route the baton takes.' },
-    { term: 'Retention policy', def: 'A rule stating how long a type of document must be kept and when it should be destroyed.', like: 'A best-before date for paperwork.' },
+    { term: 'Records retention policy', def: 'A rule stating how long a type of document must be kept and when it should be destroyed.', like: 'A best-before date for paperwork.' },
     { term: 'Audit trail', def: 'A tamper-resistant log of who did what, and when.', like: 'The CCTV for your records.', aka: ['audit log'] },
     { term: 'Legal hold', def: 'A freeze that stops documents being deleted because they may be needed in a legal matter.', like: 'A police cordon around evidence.' }
   ],

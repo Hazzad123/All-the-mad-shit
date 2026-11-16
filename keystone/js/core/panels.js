@@ -142,8 +142,9 @@
   P.settings = function () {
     const st = S.state.settings;
     const row = function (label, sub, control) { return h('div.set-row', h('div.set-text', h('div.set-label', label), sub ? h('div.muted.small', sub) : null), h('div.set-ctl', control)); };
-    const sw = function (key, after) { const i = h('input', { type: 'checkbox', 'aria-label': key }); i.checked = !!st[key]; i.addEventListener('change', function () { st[key] = i.checked; S.save(); if (after) after(); }); return h('label.switch', i, h('span.switch-track', h('span.switch-knob'))); };
-    const seg = function (key, opts, after, cast) { const el = h('div.seg'); opts.forEach(function (o) { const b = h('button' + (String(st[key]) === String(o[0]) ? '.on' : ''), { type: 'button', onclick: function () { st[key] = cast ? cast(o[0]) : o[0]; S.save(); KS.$$('button', el).forEach(function (x) { x.classList.toggle('on', x === b); }); if (after) after(); } }, o[1]); el.appendChild(b); }); return el; };
+    const SW_LABEL = { sound: 'Sound effects', haptics: 'Vibration', motion: 'Animations', autolink: 'Tap-to-define' };
+    const sw = function (key, after) { const i = h('input', { type: 'checkbox', 'aria-label': SW_LABEL[key] || key }); i.checked = !!st[key]; i.addEventListener('change', function () { st[key] = i.checked; S.save(); if (after) after(); }); return h('label.switch', i, h('span.switch-track', h('span.switch-knob'))); };
+    const seg = function (key, opts, after, cast) { const el = h('div.seg', { role: 'group' }); opts.forEach(function (o) { const on = String(st[key]) === String(o[0]); const b = h('button' + (on ? '.on' : ''), { type: 'button', 'aria-pressed': String(on), onclick: function () { st[key] = cast ? cast(o[0]) : o[0]; S.save(); KS.$$('button', el).forEach(function (x) { x.classList.toggle('on', x === b); x.setAttribute('aria-pressed', String(x === b)); }); if (after) after(); } }, o[1]); el.appendChild(b); }); return el; };
     const name = h('input', { type: 'text', value: S.state.profile.name || '', placeholder: 'Your name', maxlength: '30', 'aria-label': 'Your name' });
     name.addEventListener('input', KS.debounce(function () { S.state.profile = { name: name.value.trim(), u: Date.now() }; S.save(); }, 300));
     return h('div.settings',
@@ -175,7 +176,7 @@
       } else {
         const tok = h('input', { type: 'password', placeholder: 'Paste a GitHub token with the “gist” permission', autocomplete: 'off', 'aria-label': 'GitHub token' });
         cloud.appendChild(h('details.cloud-setup', h('summary', '☁️ Set up automatic sync between devices (optional)'),
-          KS.mdEl('Keystone has no server, so automatic sync uses a **private GitHub Gist in your own account** as the save file.\n\n1. On GitHub go to **Settings → Developer settings → Personal access tokens → Fine-grained tokens** and create a token with only the **Gists: read and write** account permission.\n2. Paste it below on each device you use.\n\nThe token is stored only in this browser and is sent only to `api.github.com`. Prefer not to? Use the export / sync-code buttons above instead.'),
+          KS.mdEl('Keystone has no server, so automatic sync uses a **secret (unlisted) GitHub Gist in your own account** as the save file. Secret gists are not listed or searchable, but anyone who has the exact link can read them.\n\n1. On GitHub go to **Settings → Developer settings → Personal access tokens → Fine-grained tokens** and create a token with only the **Gists: read and write** account permission.\n2. Paste it below on each device you use.\n\nThe token is stored only in this browser and is sent only to `api.github.com`. Prefer not to? Use the export / sync-code buttons above instead.'),
           h('div.cloud-row', tok, h('button.btn.primary', { type: 'button', onclick: function (e) {
             const v = tok.value.trim(); if (!v) return; const b = e.currentTarget; b.disabled = true; b.textContent = 'Connecting…';
             g.connect(v).then(function () { U.toast('☁️ Connected. Your progress now syncs.', 'good'); drawCloud(); }).catch(function (er) { b.disabled = false; b.textContent = 'Connect'; U.toast('Could not connect: ' + er.message, 'bad', 6000); });
@@ -190,8 +191,8 @@
         h('div.data-btns', h('button.btn.sm', { type: 'button', onclick: function () { KS.sync.code().then(function (c) { return navigator.clipboard.writeText(c).then(function () { U.toast('📋 Sync code copied (' + Math.round(c.length / 1024) + ' KB).', 'good'); }); }).catch(function () { codeModal(); }); } }, 'Copy code'),
           h('button.btn.sm', { type: 'button', onclick: pasteModal }, 'Paste code'))),
       cloud,
-      h('div.data-row.danger-row', h('div', h('b', 'Reset everything'), h('div.muted.small', 'Wipes all progress on this device. Export first if you might want it back.')),
-        h('div.data-btns', h('button.btn.sm.danger', { type: 'button', onclick: function () { U.confirm('Reset all progress?', 'This deletes your XP, streak, completed lessons, flashcards and notes **on this device**. It cannot be undone.', 'Yes, reset', true).then(function (ok) { if (ok) { S.reset(); U.toast('Progress reset.'); } }); } }, 'Reset progress'))));
+      h('div.data-row.danger-row', h('div', h('b', 'Reset everything'), h('div.muted.small', 'Wipes all progress on this device, and on any device synced with it. Export first if you might want it back.')),
+        h('div.data-btns', h('button.btn.sm.danger', { type: 'button', onclick: function () { U.confirm('Reset all progress?', 'This deletes your XP, streak, completed lessons, flashcards and notes **on this device and on any device synced with it**. It cannot be undone.', 'Yes, reset', true).then(function (ok) { if (ok) { S.reset(); U.toast('Progress reset.'); } }); } }, 'Reset progress'))));
   };
   function codeModal() {
     KS.sync.code().then(function (c) {
@@ -218,6 +219,7 @@
   // ---------- search palette ----------
   const TYPE_ICON = { term: '📖', lesson: '📘', module: '🧭', sheet: '📄', lab: '🧪' };
   let palette = null;
+  P.searchOpen = function () { return !!palette; };
   P.closeSearch = function () { if (palette) { palette.remove(); palette = null; document.removeEventListener('keydown', palKey, true); } };
   let palKey = function () {};
   P.openSearch = function (initial) {

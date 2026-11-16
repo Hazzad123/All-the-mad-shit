@@ -149,7 +149,7 @@ KS.lesson('oop-encapsulation', {
   ],
 
   activities: [
-    { type: 'tf', after: 1, statement: 'Encapsulation simply means marking every field private.', answer: false,
+    { type: 'tf', after: 1, statement: 'A private field with a public setter that accepts any value gives little real encapsulation.', answer: true,
       explain: 'Privacy is the mechanism, not the point. The point is that the **data and the rules guarding it live together**, so the object can never be put into a state it does not allow. A private field with a public setter that accepts anything protects nothing.' },
 
     { type: 'mcq', after: 3, q: 'With the `BankAccount` above, what happens when other code runs `acc.#balance = 5`?',
@@ -411,7 +411,7 @@ KS.lesson('oop-abstraction', {
       explain: 'The "what" is the promise to callers; the "how" is free to change. Joel Spolsky’s law says all non-trivial abstractions leak to some degree.' },
 
     { type: 'mcq', q: 'A shop has one email sender and no plans for anything else. A teammate proposes a `NotificationChannel` interface, a factory and a registry "so we can add SMS later". What is the best response?',
-      options: ['Keep the simple direct call for now and introduce the abstraction when a second channel really appears', 'Build it now: abstractions are always cheaper at the start', 'Add the interface but skip the factory and registry', 'Reject all abstractions: always call the email library directly'],
+      options: ['Keep the direct call; abstract when a second channel appears', 'Build it now: abstractions are always cheaper at the start', 'Add the interface now but skip the factory and registry', 'Reject all abstractions: always call the email library directly'],
       answer: 0,
       why: [null, 'Guessing the shape before there are two cases usually gets the shape wrong, and the layers stay forever.', 'Smaller, but it is still a guess about something that may never happen.', 'Over-correcting. When a second case does arrive, an abstraction is exactly right.'],
       explain: 'Abstraction has a cost: indirection to read through. Pay it when you can see what varies, usually from the second or third real case.' },
@@ -607,7 +607,7 @@ KS.lesson('oop-inheritance', {
 
   activities: [
     { type: 'mcq', after: 2, q: 'In `SavingsAccount`, what does the call `super()` in the constructor do?',
-      options: ['Runs the base class constructor so the parent part of the object is set up first', 'Creates a second, separate BankAccount object alongside', 'Copies every method of the base class into SavingsAccount', 'Marks the class as unable to be extended further'],
+      options: ['Runs the base constructor so the parent part is set up first', 'Creates a second, separate BankAccount object alongside', 'Copies every method of the base class into SavingsAccount', 'Marks the class as unable to be extended further'],
       answer: 0,
       why: [null, 'There is only one object. `super()` initialises its parent part.', 'Methods are not copied. They are found by looking up the chain of parents.', 'That is a different feature entirely.'],
       explain: 'A derived object is one object built in layers. The base constructor must run first so the parent part exists before the child adds to it.' },
@@ -879,7 +879,7 @@ KS.lesson('oop-polymorphism', {
         }
         // each class implements charge()` },
       answer: 'b',
-      explain: 'The second version never changes when a method is added: a new class with `charge` is enough. The first needs another branch (and the same branch in every other place it appears).' },
+      explain: 'The tell-the-object version never changes when a payment method is added: a new class with `charge` is enough. The switch needs another branch (and the same branch in every other place it appears).' },
 
     { type: 'cloze', code: true, text: 'class Circle {\n  area() { return Math.PI * this.r ** 2; }\n}\nclass Square {\n  {{area}}() { return this.side ** 2; }\n}\n\nfor (const s {{of}} shapes) {\n  total += s.area();\n}',
       distractors: ['in', 'size', 'instanceof'],
@@ -1086,7 +1086,7 @@ KS.lesson('oop-abstract-concrete', {
       explain: 'The recipe has a gap ("add the flavour"), so there is nothing finished to bake. In code, an abstract class cannot be instantiated for the same reason. You need a concrete subclass that fills the blank.' },
 
     { type: 'mcq', after: 3, q: 'In TypeScript, a developer writes `class PrepaidAccount extends Account` and forgets to write `monthEnd()`. What happens?',
-      options: ['The compiler reports an error: the class does not implement the abstract method', 'It compiles; `monthEnd` is silently an empty method', 'It compiles, but `deposit` stops working', 'It compiles and `monthEnd` runs the base version'],
+      options: ['A compile error: the abstract method is not implemented', 'It compiles; `monthEnd` is silently an empty method', 'It compiles, but `deposit` stops working', 'It compiles and `monthEnd` runs the base version'],
       answer: 0,
       why: [null, 'Abstract methods have no body to inherit, and the compiler will not invent one.', 'Nothing about `deposit` depends on `monthEnd`.', 'There is no base version. An abstract method has no body.'],
       explain: 'This is the point of an abstract method: a contract the compiler enforces. Forgetting the method is caught before the program runs.' },
@@ -1485,7 +1485,7 @@ KS.lesson('oop-visibility', {
           10: 'A protected **method**: a helper offered to subclasses, still hidden from the outside world.',
           17: 'Allowed: `balance` is protected, and `Savings` is a subclass.',
           19: 'Compile error: `log` is private to `Account`, so the subclass cannot touch it.',
-          22: 'Compile error: outside code cannot see a protected field.'
+          23: 'Compile error: outside code cannot see a protected field.'
         } } },
 
     { kind: 'code', title: 'Keep the public surface small',
@@ -1523,9 +1523,9 @@ KS.lesson('oop-visibility', {
         }`,
         notes: {
           1: 'Module-level. Visible to every function in this file and alive as long as the program runs. Wide scope, long life: handle with care.',
-          5: 'Function-level. Created on each call and gone when the function returns.',
-          7: '`const` and `let` are **block-scoped**: `bonus` exists only between the braces.',
-          10: '`ReferenceError`: `bonus` is out of scope here. Narrow scope is a feature: nothing else can interfere with it.'
+          4: 'Function-level. Created on each call and gone when the function returns.',
+          6: '`const` and `let` are **block-scoped**: `bonus` exists only between the braces.',
+          9: '`ReferenceError`: `bonus` is out of scope here. Narrow scope is a feature: nothing else can interfere with it.'
         } },
       note: 'The same instinct as private fields: make things visible as narrowly as possible, and live as briefly as needed.' },
 
@@ -1598,8 +1598,8 @@ KS.lesson('oop-visibility', {
       items: [['The next invoice number to hand out', 0], ['The amount on a particular invoice', 1], ['A helper that builds an invoice from pence', 0], ['A customer’s name on their account', 1], ['A constant VAT rate shared by everything', 0], ['The balance of one account', 1]],
       explain: 'Ask: "is there one of these for the whole class, or one for each object?" Counters, constants and factory helpers are class-wide; data about a particular thing belongs to the instance.' },
 
-    { type: 'tf', statement: 'If a test cannot reach a private method, the best fix is to make it public.', answer: false,
-      explain: 'Making it public turns a detail into a promise every caller can depend on. Test through the public method, or, if the hidden code is complicated enough to deserve its own tests, extract it into its own small class.' },
+    { type: 'tf', statement: 'If private code is complicated enough to need its own tests, extracting it into a small class of its own is a good fix.', answer: true,
+      explain: 'Making the method public instead would turn a detail into a promise every caller can depend on. Test through the public method, or, if the hidden code is complicated enough to deserve its own tests, extract it into its own small class.' },
 
     { type: 'ab', q: 'Which class is easier to change in future?',
       a: { lang: 'ts', label: 'Everything public', src: `
@@ -1803,7 +1803,7 @@ KS.lesson('oop-domain-models', {
       explain: 'Nouns that have their own rules and identity become classes. Verbs become methods on the class that owns the rule. Simple facts about a thing, like a quantity, are fields.' },
 
     { type: 'mcq', after: 5, q: 'Which of these is best modelled as an **entity**, with a lasting identity?',
-      options: ['A customer’s order: it stays the same order as its lines and status change', 'A £5 amount: any £5 is as good as another', 'The colour "red"', 'The number 42'],
+      options: ['A customer’s order, which changes status over time', 'A £5 amount, where any £5 is as good as another', 'The colour "red" used on a sale badge', 'The number 42 printed on a receipt'],
       answer: 0,
       why: [null, 'Money is defined by its value: swapping one £5 for another changes nothing. That fits a value object.', 'A colour is just a value.', 'A number is a value.'],
       explain: 'An entity is tracked by identity: order 42 remains order 42 however its details change. Amounts and colours are values, compared by content.' },
@@ -2228,7 +2228,7 @@ KS.lesson('oop-domain-language', {
 
   activities: [
     { type: 'mcq', after: 1, q: 'The warehouse says "dispatched", the code says `shipped`, the database says `fulfilled`, and the website says "sent". What is the real risk?',
-      options: ['People may treat them as different things, so reports and rules quietly disagree', 'The code will run slower because of the extra words', 'The database will refuse to store the values', 'Nothing: names do not matter as long as the code works'],
+      options: ['People treat them as different things, so reports disagree', 'The code will run slower because of the extra words', 'The database will refuse to store the values', 'Nothing: names do not matter as long as the code works'],
       answer: 0,
       why: [null, 'Names have no effect on speed.', 'The database does not care what the words mean.', 'Code that works today can still produce wrong numbers when words and meanings drift apart.'],
       explain: 'Multiple words for one idea invite misunderstanding. Finance and the warehouse produced different "counts" without either making an arithmetic error.' },
@@ -2799,7 +2799,7 @@ KS.boss('oop', {
       why: [null, 'The field is private, but the getter hands out the object it points to, which is a different matter.', 'The getter can return a copy, which stops this.', 'A setter would not help: the push never goes through it.'],
       explain: 'Privacy protects the field, not the thing it refers to. Returning a copy or a read-only view keeps changes flowing through methods that check the rules.' },
 
-    { type: 'short', q: 'What is the name for a rule about an object that must be true after construction and after every public method?', accept: ['invariant', 'invariants', 'class invariant'], hint: 'It never varies.',
+    { type: 'short', q: 'What is the name for a rule about an object that must be true after construction and after every public method?', accept: ['invariant', 'invariants', 'class invariant', 'class invariants'], hint: 'It never varies.',
       explain: 'A class invariant, such as "the balance is never below the overdraft limit", is what encapsulation exists to protect.' },
 
     { type: 'ab', q: 'A teammate wants cart methods like `reverse` and `filter` for free. Which design is safer?',
@@ -2817,7 +2817,7 @@ KS.boss('oop', {
       explain: 'A cart is not a kind of array (it fails the is-a test). Extending it hands out `splice`, `length = 0` and every other back door. Holding an array privately keeps the rules in one place.' },
 
     { type: 'mcq', q: 'A base class has `depositAll(amounts)` that loops calling `this.deposit`. A subclass overrides both `deposit` and `depositAll` to count deposits. Why is the count too high?',
-      options: ['The base `depositAll` calls the overridden `deposit`, so each amount is counted twice', 'Overriding a method always runs it twice', '`super` calls are executed in a random order', 'The subclass cannot see the base class’s methods'],
+      options: ['The base `depositAll` calls the overridden `deposit`', 'Overriding a method makes it run twice per call', '`super` calls are executed in a random order', 'The subclass cannot see the base class’s methods'],
       answer: 0,
       why: [null, 'Overriding replaces the method. The doubling comes from what the base class does internally.', 'Order is perfectly predictable.', 'Subclasses can call inherited public methods; that is how this works at all.'],
       explain: 'The subclass depended on an internal detail of the base class: that `depositAll` calls `deposit`. This is the fragile base class problem.' },

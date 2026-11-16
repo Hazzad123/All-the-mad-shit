@@ -120,7 +120,7 @@ KS.lesson('apx-mvc', {
       why: [null, 'MVP says nothing about where data is stored.', 'The opposite: the view is kept as dumb as possible.', 'MVP keeps the model. It only changes who talks to it.'],
       explain: 'In MVP the view is a passive screen. The presenter asks the model and then tells the view exactly what to display, which also makes the presenter easy to test with a fake view.' },
 
-    { type: 'tf', after: 5, statement: 'In MVVM the view-model holds a reference to the specific buttons and labels it must update.', answer: false,
+    { type: 'tf', after: 5, statement: 'In MVVM the view-model knows nothing about the specific buttons and labels on screen.', answer: true,
       explain: 'The view-model exposes plain state and the view binds to it. Not knowing about the screen is exactly what makes a view-model easy to test and reuse.' },
 
     { type: 'bucket', prompt: 'Which piece should own each piece of logic?', buckets: ['Model', 'View', 'Controller / Presenter / ViewModel'],
@@ -310,7 +310,7 @@ KS.lesson('apx-hexagonal', {
 
   activities: [
     { type: 'mcq', after: 0, q: 'Why do these architectures put the business rules in the middle?',
-      options: ['Tools such as databases and frameworks change more often than the rules do', 'Business rules always run faster in the middle', 'The database must never be used with business rules', 'It reduces the number of files in the project'],
+      options: ['Databases and frameworks change more often than the rules', 'Business rules always run faster in the middle', 'The database must never be used with business rules', 'It reduces the number of files in the project'],
       answer: 0,
       why: [null, 'Position has nothing to do with speed.', 'The database is still used. It is just kept at the edge.', 'It usually adds files, which is the cost of the design.'],
       explain: 'The rules are the valuable, long-lived part. By keeping tools at the edge, you can replace a database or framework without rewriting what the business actually cares about.' },
@@ -532,8 +532,8 @@ KS.lesson('apx-microkernel', {
       lines: [2],
       explain: 'The core carries a fixed list of file types, so adding one means editing the core and its list. A registry that plug-ins add themselves to lets new types arrive without changing this function.' },
 
-    { type: 'tf', statement: 'In a good plug-in system, the core must be edited each time a new plug-in is added.', answer: false,
-      explain: 'The whole point is the opposite: the core publishes extension points once, and new plug-ins fit them without any change to the core.' },
+    { type: 'tf', statement: 'In a good plug-in system, a new plug-in can be added without editing the core.', answer: true,
+      explain: 'That is the whole point: the core publishes extension points once, and new plug-ins fit them without any change to the core.' },
 
     { type: 'multi', q: 'Which are genuine downsides of a plug-in architecture?',
       options: ['The plug-in contract becomes a promise that is hard to change', 'A badly written plug-in can slow or crash the app', 'Designing the right extension points needs foresight', 'The core can no longer be tested', 'Users can never remove features'],
@@ -664,7 +664,7 @@ KS.lesson('apx-blackboard', {
       pairs: [['Blackboard', 'Shared workspace holding the current partial solution'], ['Knowledge source', 'A specialist that contributes one kind of insight'], ['Controller', 'Chooses which specialist acts next'], ['Raw input', 'The unsolved problem that starts on the board']],
       explain: 'The board holds data, specialists contribute, and the controller steers. None of the specialists call each other.' },
 
-    { type: 'tf', after: 3, statement: 'In the blackboard pattern, specialists pass messages directly to each other.', answer: false,
+    { type: 'tf', after: 3, statement: 'In the blackboard pattern, specialists cooperate through the shared board rather than messaging each other.', answer: true,
       explain: 'They cooperate only through the shared board. That keeps them independent, so you can add or remove one without changing the others.' },
 
     { type: 'mcq', after: 6, q: 'When is a blackboard a better choice than a pipeline?',
@@ -1170,9 +1170,9 @@ KS.lesson('apx-microservices-hard', {
 
   activities: [
     { type: 'mcq', after: 0, q: 'In the story, why did a slow Reviews service take down the whole shop?',
-      options: ['Waiting callers piled up and used up the threads of the services above them', 'Reviews deleted data from the other services', 'The network cable to the shop was cut', 'The gateway ran out of disk space'],
+      options: ['Waiting callers piled up and used up the threads above them', 'Reviews sent bad data that corrupted the other services', 'The network cable to the shop was cut', 'The gateway ran out of disk space'],
       answer: 0,
-      why: [null, 'Nothing was deleted. The problem was waiting.', 'The network was fine, just slow in one place.', 'Disk space was not the issue.'],
+      why: [null, 'Nothing was corrupted. The problem was waiting.', 'The network was fine, just slow in one place.', 'Disk space was not the issue.'],
       explain: 'A slow dependency is often worse than a dead one: callers keep waiting, resources run out, and the failure spreads up the chain.' },
 
     { type: 'match', after: 3, prompt: 'Match each tool to the problem it solves.',
@@ -1335,8 +1335,7 @@ KS.lesson('apx-serverless', {
         notes: {
           2: 'You export a **handler**. The platform calls it for each event and decides when to start and stop it.',
           3: 'The **event** describes what triggered the function: here, the HTTP request.',
-          5: 'You return a response. There is no server, port or listening loop in your code.',
-          8: 'When this returns, you stop paying. Nothing is left running.'
+          5: 'You return a response. There is no server, port or listening loop in your code. When this returns, you stop paying: nothing is left running.'
         } } },
 
     { kind: 'concept', title: 'Backend as a service: even less to write',
@@ -1550,8 +1549,8 @@ KS.lesson('apx-service-mesh', {
       pairs: [['Sidecar proxy', 'A helper that runs beside each service and handles its traffic'], ['Data plane', 'The proxies carrying the real requests'], ['Control plane', 'The brain that configures the proxies'], ['Envoy', 'A widely used proxy that meshes build on'], ['mTLS', 'Both sides prove their identity and encrypt traffic']],
       explain: 'The control plane decides, the data plane does. Sidecars are how the data plane gets next to each service.' },
 
-    { type: 'tf', after: 5, statement: 'In mutual TLS, only the server shows a certificate; the client stays anonymous.', answer: false,
-      explain: 'That is ordinary one-way TLS. In *mutual* TLS both sides present certificates, so each can verify who the other is.' },
+    { type: 'tf', after: 5, statement: 'In mutual TLS, the client presents a certificate as well as the server.', answer: true,
+      explain: 'Ordinary one-way TLS only proves who the server is. In *mutual* TLS both sides present certificates, so each can verify who the other is.' },
 
     { type: 'bucket', prompt: 'Which plane does each job belong to?', buckets: ['Data plane', 'Control plane'],
       items: [['Forward a request to a Payments instance', 0], ['Hand out and rotate certificates', 1], ['Retry a failed call', 0], ['Decide that 5% of traffic goes to version 2', 1], ['Record how long a call took', 0], ['Publish routing rules to all proxies', 1]],
@@ -1756,7 +1755,7 @@ KS.lesson('apx-twelve-factor', {
       explain: 'The next request may reach a different copy, and any copy can disappear at any time. Keep state in a backing service, such as a database or cache.' },
 
     { type: 'mcq', q: 'Your app writes its logs to a file on its own disk. Which factor does this go against, and why does it matter?',
-      options: ['Logs: treat them as a stream, because a replaced process takes its disk with it', 'Codebase: because each copy needs its own repository', 'Concurrency: because logs slow down scaling out', 'Dependencies: because the log library is undeclared'],
+      options: ['Logs: stream them, as a replaced process loses its disk', 'Codebase: because each copy needs its own repository', 'Concurrency: because logs slow down scaling out', 'Dependencies: because the log library is undeclared'],
       answer: 0,
       why: [null, 'Logs say nothing about repositories.', 'Concurrency is about scaling out with more processes, not log files.', 'Dependencies are libraries you list, not where logs go.'],
       explain: 'Under Factor XI the app prints events to standard output and the platform collects them. A log file on a disposable process is lost when that process is replaced.' },
@@ -1851,7 +1850,7 @@ KS.boss('arch-patterns-systems', {
       explain: 'The core is whatever every user needs and nothing can run without. Optional features belong in plug-ins.' },
 
     { type: 'mcq', q: 'In the blackboard pattern, how do the knowledge sources cooperate?',
-      options: ['Only by reading and writing the shared blackboard, with a controller choosing who acts', 'By calling each other directly in a fixed order', 'By each running on a separate database', 'By voting at the end of the run'],
+      options: ['Only through the shared board, with a controller choosing who acts', 'By calling each other directly, in a fixed order of steps', 'By each running on a separate database', 'By voting at the end of the run'],
       answer: 0,
       why: [null, 'A fixed chain of calls is a pipeline, not a blackboard.', 'The shared board is the point; they do not have separate stores.', 'There is no vote. Partial results build up on the board.'],
       explain: 'Specialists stay independent and communicate through the shared workspace. The controller picks the next one that can make progress.' },
@@ -1876,7 +1875,7 @@ KS.boss('arch-patterns-systems', {
       items: ['One service becomes slow, but nothing crashes', 'Callers wait and requests pile up', 'The callers run out of threads and become slow too', 'The slowness walks up the chain of dependencies', 'Users see the whole product fail'],
       explain: 'Slowness plus waiting is what spreads. Timeouts, circuit breakers and bulkheads cut the chain early.' },
 
-    { type: 'short', q: 'What is the name for microservices that must be deployed together or share a database, so you get the costs of distribution with none of the benefits? (two words)', accept: ['distributed monolith', 'a distributed monolith'], hint: 'Spread out, but still one big lump.',
+    { type: 'short', q: 'What is the name for microservices that must be deployed together or share a database, so you get the costs of distribution with none of the benefits? (two words)', accept: ['distributed monolith', 'a distributed monolith', 'distributed monoliths'], hint: 'Spread out, but still one big lump.',
       explain: 'A **distributed monolith** has the coupling of a single program plus the failures of a network.' },
 
     { type: 'estimate', q: 'A serverless function runs 10 million times a month, billed for about 100 milliseconds each time. Roughly how many seconds are billed in total?', answer: 1000000, unit: 'seconds', tolerance: 2,

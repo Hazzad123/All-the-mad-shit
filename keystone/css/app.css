@@ -149,6 +149,20 @@ kbd { font-family: var(--mono); font-size: .7rem; padding: 2px 6px; border-radiu
   .gloss-list, .sheet-cols, .meta-list { columns: 1; }
 }
 @media print {
+  /* Print from either theme with the light palette: in dark theme, bold text and code printed near-white. */
+  :root, :root[data-theme] {
+  --bg: #f4f5fb; --bg-2: #ebedf8; --panel: #ffffff; --panel-2: #f2f3fc; --panel-3: #e6e9f9; --line: #dcdff2; --line-2: #bfc5e6;
+  --text: #191c38; --muted: #535981; --faint: #686e95;
+  --accent: #6a48f5; --accent-ink: #5a3fd6; --accent-deep: #4f31cf; --accent-2: #0e7490; --accent-soft: rgba(106, 72, 245, .11);
+  --good: #047857; --good-deep: #065f46; --good-soft: rgba(5, 150, 105, .11);
+  --bad: #e11d48; --bad-deep: #be123c; --bad-soft: rgba(225, 29, 72, .09);
+  --warn: #b45309; --warn-soft: rgba(217, 119, 6, .13);
+  --info: #2563eb; --info-soft: rgba(37, 99, 235, .09);
+  --code-bg: #f7f8fe; --code-line: #e7e9f7;
+  --tk-c: #8a90b0; --tk-s: #0b7a43; --tk-n: #b45309; --tk-k: #7c3aed; --tk-f: #0b63c7; --tk-t: #a16207; --tk-m: #be185d; --tk-p: #0e7490;
+  --shadow: 0 12px 30px rgba(40, 45, 100, .13); --shadow-sm: 0 2px 8px rgba(40, 45, 100, .10);
+    color-scheme: light;
+  }
   .no-print, .side, .topbar, .crumbs, .tabbar, .toasts { display: none !important; }
   body { background: #fff; color: #000; } .sheet-sec { border-color: #bbb; background: #fff; } .shell { display: block !important; } .view { padding: 0 !important; }
 }

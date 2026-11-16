@@ -353,7 +353,7 @@ KS.lesson('sdm-estimation', {
       explain: '4M × 25 = 100 million a day = 10⁸. Divide by 10⁵ seconds: **about 1,000 a second** (1,157 with the exact 86,400). At peak, plan for two or three times that.' },
 
     { type: 'mcq', after: 6, q: 'Your servers send out 1.5 GB of data every second. A colleague says your network link is "10 gig". Is it enough?',
-      options: ['No: 1.5 GB/s is 12 gigabits a second, more than a 10 Gbps link', 'Yes: 1.5 is far less than 10', 'Yes, but only at night when traffic is low', 'It cannot be answered without exact numbers'],
+      options: ['No: 1.5 GB/s is 12 Gbps, over the 10 Gbps link', 'Yes: 1.5 is far less than 10', 'Yes, but only at night when traffic is low', 'It cannot be answered without exact numbers'],
       answer: 0,
       why: [null, 'That compares bytes with bits. Network links are measured in bits, and a byte is 8 bits.', 'The average already exceeds the link, so the peak certainly does.', 'Rough numbers are enough here: 1.5 × 8 = 12, which is above 10.'],
       explain: 'Multiply bytes by 8 to get bits: 1.5 GB/s × 8 = 12 Gbps. A 10 Gbps link is already too small on average, before any peak.' },
@@ -582,7 +582,7 @@ KS.lesson('sdm-building-blocks', {
       explain: 'A cache holds **copies**. The source of truth is still in the database, so the cache refills as requests come in. It will be slower for a while (and the database busier), but nothing is lost.' },
 
     { type: 'mcq', after: 5, q: 'In the photo upload, why does the app server put "make thumbnails" on a queue instead of doing it straight away?',
-      options: ['Resizing is slow, so deferring it keeps the user’s request quick and absorbs bursts', 'Queues resize images faster than app servers can', 'The database cannot store thumbnails', 'It makes the thumbnails available instantly'],
+      options: ['Resizing is slow, so deferring it keeps the request quick', 'Queues resize images faster than app servers can', 'The database cannot store thumbnails', 'It makes the thumbnails available instantly'],
       answer: 0,
       why: [null, 'A queue only holds jobs. The worker still has to do the same resizing.', 'Thumbnails go to object storage either way; the database only stores a pointer.', 'The opposite: queued work finishes a little later.'],
       explain: 'A queue moves slow work out of the request. The user gets an answer at once, and a burst of uploads simply lengthens the queue instead of overloading the app servers.' },
@@ -979,11 +979,11 @@ KS.boss('system-design', {
     { type: 'tf', statement: 'When a database is overloaded by the same reads over and over, sharding is usually the first fix to reach for.', answer: false,
       explain: 'Repeated reads call for **copies**: a cache and read replicas. Sharding is for when writes or total data outgrow one machine, and it is far harder to undo.' },
 
-    { type: 'short', q: 'For quick estimates, roughly how many seconds are in a day? (Give the round number.)', accept: ['100000', '100,000', '10^5', '1e5', '10⁵', '100k'], hint: 'A one followed by some zeros.',
+    { type: 'short', q: 'For quick estimates, roughly how many seconds are in a day? (Give the round number.)', accept: ['100000', '100,000', '1e5', '100k', '100 thousand', 'a hundred thousand', '86400', '86,400'], hint: 'A one followed by some zeros.',
       explain: 'A day is 86,400 seconds, which rounds to **100,000 (10⁵)**. Dividing daily totals by 10⁵ gives a per-second figure in your head.' },
 
     { type: 'mcq', q: 'Estimates show 50 writes a second and 2 TB of data in total. A teammate proposes sharding across 16 databases "for the future". What is the best response?',
-      options: ['One leader with a replica copes easily; shard only if writes or data outgrow one machine', 'Agree: sharding early is cheaper than sharding later', 'Shard across 64 databases to be even safer', 'Drop the database and keep everything in a cache'],
+      options: ['One leader plus a replica copes; shard only once it is outgrown', 'Agree: sharding early is cheaper than sharding later', 'Shard across 64 databases to be even safer', 'Drop the database and keep everything in a cache'],
       answer: 0,
       why: [null, 'Sharding early means paying its complexity for years before any benefit, if one ever comes.', 'More shards means more cost and more cross-shard pain for no measured need.', 'A cache is a copy, not a durable source of truth.'],
       explain: 'The numbers are modest for one database. State the trade-off: simpler now, with a clear signal (writes or data beyond one machine) that would make you revisit it.' }

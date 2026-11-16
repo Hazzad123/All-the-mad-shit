@@ -407,7 +407,7 @@ KS.lesson('cc-naming', {
       ],
       outro: 'Good naming feedback is **specific, kind and offers an alternative.** And a name that is hard to choose is often a design warning.' },
 
-    { type: 'tf', statement: 'Self-documenting code means you should never write any comments at all.', answer: false,
+    { type: 'tf', statement: 'Even in self-documenting code, a comment explaining *why* something was done can still earn its place.', answer: true,
       explain: 'The aim is to let the code say *what* it does. Comments are still the right place for **why**: surprising constraints, warnings and context the code cannot express.' }
   ],
 
@@ -493,7 +493,7 @@ KS.lesson('cc-consistency-style', {
           return order;
         }`,
         notes: {
-          4: 'A **blank line** works like a paragraph break: the lines above are "gather the inputs".',
+          3: 'The **blank line** below works like a paragraph break: these first lines are "gather the inputs".',
           5: 'The **indent** shows what belongs inside the `if`. Misleading indentation makes bugs look like they are not there.',
           9: 'Another paragraph: "do the work". Related lines stay together, unrelated ones are separated.'
         } },
@@ -588,7 +588,7 @@ KS.lesson('cc-consistency-style', {
         2. fix: handle empty carts
            - 3 lines changed in 1 file` },
       answer: 'b',
-      explain: 'Separating the mechanical reformat from the real change lets the reviewer skip the first and read the second properly. Mixed commits hide bugs in a haystack of whitespace.' },
+      explain: 'Separating the mechanical reformat from the real change lets the reviewer skip the reformat commit and read the real change properly. Mixed commits hide bugs among hundreds of whitespace edits.' },
 
     { type: 'order', prompt: 'Put the steps for adopting a team style in a sensible order.',
       items: ['Pick a well-known style guide as a base', 'Add a formatter and linter with settings in the repository', 'Reformat the whole codebase in one commit', 'Run the tools on save and on commit', 'Make the CI server fail on violations'],
@@ -769,7 +769,7 @@ KS.lesson('cc-small', {
 
   activities: [
     { type: 'mcq', after: 1, q: 'What does "one level of abstraction per function" mean?',
-      options: ['A function either describes what happens at a high level, or handles the detail, not both', 'A function may only ever call one other function', 'Every function must be under five lines long', 'A function should never contain a loop'],
+      options: ['It either tells the big story or handles detail, not both', 'A function may only ever call one other function', 'Every function must be under five lines long', 'A function should never contain a loop of its own'],
       answer: 0,
       why: [null, 'It can call as many as it needs, as long as they sit at the same level.', 'Length is a symptom. The rule is about the mix of big steps and tiny details.', 'Loops are fine. They just belong in a function whose job is the loop.'],
       explain: 'Mixing "send the receipt" with "sprinkle exactly 4g of salt" makes a function impossible to skim. Keep each function at one level and let it call the detail by name.' },
@@ -1033,7 +1033,7 @@ KS.lesson('cc-pure-functions', {
       answer: 'b',
       explain: 'With the date as an argument, a test can pass any day it likes, in any order, at any time. The other version gives different answers depending on when the test runs.' },
 
-    { type: 'tf', statement: 'Declaring an object with `const` means its contents can no longer be changed.', answer: false,
+    { type: 'tf', statement: 'You can still change the fields of an object declared with `const`.', answer: true,
       explain: '`const` only stops the variable being pointed at something else. You can still push to a `const` array or edit a `const` object’s fields. Immutability needs copying instead of editing.' },
 
     { type: 'cloze', code: true, text: 'function addItem(basket, item) {\n  return { ...basket, items: [...basket.items, {{item}}] };\n}\n// the original basket is {{unchanged}}',
@@ -1134,7 +1134,7 @@ KS.lesson('cc-complexity', {
       note: 'Most tools also count `else if`, `case`, `&&`, `||` and `catch` as decisions. Exact rules vary a little between tools, but the idea is the same.' },
 
     { kind: 'concept', title: 'Complexity and the number of tests',
-      body: `Complexity gives you a rough **lower bound on the tests you need**: a function with a score of 5 has at least five independent routes through it, so you need at least five tests to walk each one.
+      body: `Complexity tells you roughly **how many tests it takes to walk every route**: a function with a score of 5 has five independent routes through it, so walking each one takes five tests. (Just making every branch run once can take fewer.)
 
         That is why high scores hurt twice:
 
@@ -1253,7 +1253,7 @@ KS.lesson('cc-complexity', {
       options: ['3', '2', '4', '1'],
       answer: 0,
       why: [null, 'You have counted the decisions but forgotten the starting 1.', 'There are only two `if`s, so 1 + 2 = 3.', 'That would be a function with no decisions at all.'],
-      explain: 'Start at 1 for the straight line, then add 1 for each of the two `if`s: 1 + 2 = 3. So you need at least three tests to walk each route.' },
+      explain: 'Start at 1 for the straight line, then add 1 for each of the two `if`s: 1 + 2 = 3. So walking each independent route takes three tests.' },
 
     { type: 'spot', after: 4, prompt: 'This is the arrow anti-pattern. Tap the line where the real work is buried deepest.',
       code: { lang: 'js', src: `
@@ -1297,7 +1297,7 @@ KS.lesson('cc-complexity', {
       explain: 'Returning early on the problem cases means the happy path below sits at the left margin, uncluttered. That pattern is a guard clause.' },
 
     { type: 'tf', statement: 'A function with a cyclomatic complexity of 8 needs at least eight tests to cover every independent path.', answer: true,
-      explain: 'The score counts the independent routes through the function, so you need at least that many tests to walk each one. High scores quietly demand a lot of testing.' },
+      explain: 'The score counts the independent routes through the function, so walking each one takes that many tests. (Merely making every branch run once can need fewer.) High scores quietly demand a lot of testing.' },
 
     { type: 'multi', q: 'Which of these usually add to a function’s cyclomatic complexity?',
       options: ['An `if` statement', 'A `for` loop', 'A `case` in a `switch`', 'A comment', 'A variable declaration'],
@@ -1329,7 +1329,7 @@ KS.lesson('cc-complexity', {
 
   flashcards: [
     { q: 'How do you quickly count cyclomatic complexity?', a: 'Start at 1 and add 1 for each decision point: `if`, loop, `case`, and in most tools `&&`, `||` and `catch`.' },
-    { q: 'What does complexity tell you about testing?', a: 'It is roughly the minimum number of tests needed to walk every independent path through the function.' },
+    { q: 'What does complexity tell you about testing?', a: 'It is roughly the number of tests needed to walk every independent path. Just running every branch once can take fewer.' },
     { q: 'What is the arrow anti-pattern?', a: 'Deeply nested ifs that push the real work to the far right, in the shape of an arrowhead.' },
     { q: 'What is a guard clause?', a: 'An early return that handles an unusual or invalid case first, so the main path is not nested.' },
     { q: 'When can you replace a conditional with a lookup table?', a: 'When the branches just pick a value, such as a price per plan. The rule becomes data instead of code.' }
@@ -1946,17 +1946,17 @@ KS.lesson('cc-cqs', {
 
   activities: [
     { type: 'mcq', after: 1, q: 'A function called `getTotal()` quietly applies a discount and saves the order each time it is called. What is the problem?',
-      options: ['A query is changing state, so repeat calls can differ', 'It is too short to be useful', 'It should take more parameters', 'It should return nothing at all'],
+      options: ['A query is changing state, so repeat calls can differ', 'It is too short to be a useful function', 'It should take the discount as a parameter', 'It should return nothing, like a command'],
       answer: 0,
-      why: [null, 'Length has nothing to do with it.', 'The parameters are not the issue. The hidden change is.', 'It is a query, so returning the answer is correct. It is the *saving* that does not belong.'],
+      why: [null, 'Length has nothing to do with it.', 'Where the discount comes from is not the issue. The hidden change is.', 'It is a query, so returning the answer is correct. It is the *saving* that does not belong.'],
       explain: 'A name like `getTotal` promises a read. Changing state inside it means callers cannot safely ask, and the result depends on how often and when it was called.' },
 
     { type: 'bucket', after: 4, prompt: 'Is each method a command or a query?', buckets: ['Command', 'Query'],
       items: [['`cancelOrder(id)`', 0], ['`isPaid(order)`', 1], ['`sendReceipt(order)`', 0], ['`findCustomer(email)`', 1], ['`deleteAccount(id)`', 0], ['`totalWithTax(order)`', 1]],
       explain: 'Commands do something and are named like instructions. Queries return data and are named like questions or facts. A method that is both is where the surprises start.' },
 
-    { type: 'tf', after: 6, statement: 'Command Query Separation means a method must never both change state and return a value, with no exceptions at all.', answer: false,
-      explain: 'It is a guideline. Well-known idioms such as `stack.pop()` or an ID generator’s `next()` both change and return, and splitting them would be worse. The aim is to avoid surprising callers.' },
+    { type: 'tf', after: 6, statement: 'Under Command Query Separation, an idiom like `stack.pop()`, which changes state and returns a value, is an accepted exception.', answer: true,
+      explain: 'CQS is a guideline. Well-known idioms such as `stack.pop()` or an ID generator’s `next()` both change and return, and splitting them would be worse. The aim is to avoid surprising callers.' },
 
     { type: 'spot', prompt: 'One line in this `Cart` class breaks Command Query Separation. Tap it.',
       code: { lang: 'js', src: `
@@ -2223,7 +2223,7 @@ KS.lesson('cc-actors', {
       items: ['List the groups of people who ask for changes', 'Name a folder for each feature or actor', 'Move each file into the folder it belongs to', 'Move truly shared code into a small shared folder', 'Run the tests and fix the imports'],
       explain: 'Start with who and what, so the folders reflect real needs. Shared code comes last, once you can see what really is shared. Moving files changes imports, so tests confirm nothing broke.' },
 
-    { type: 'tf', statement: 'Package by feature is always better than package by layer, whatever the size of the project.', answer: false,
+    { type: 'tf', statement: 'On a small project, packaging by layer can work perfectly well.', answer: true,
       explain: 'Small projects do fine by layer, and it is the default in several frameworks. Grouping by feature starts to pay off as features, and the teams working on them, multiply.' },
 
     { type: 'cloze', text: 'Folders named after what the code is {{for}} (like `invoicing`) are organised by {{feature}}, while folders named after the kind of file (like `controllers`) are organised by {{layer}}.',
@@ -2636,12 +2636,12 @@ KS.lesson('cc-kiss-refactor', {
 
   activities: [
     { type: 'mcq', after: 0, q: 'A teammate wants to build a flexible plug-in system "in case" you need more email greetings in future. You have two greetings. What does KISS suggest?',
-      options: ['Write the simple version now, and add flexibility when a real need appears', 'Build the plug-in system now to save time later', 'Write nothing until the requirements are final', 'Copy the greeting code into every file that needs it'],
+      options: ['Write the simple version; add flexibility when it’s needed', 'Build the plug-in system now to save time later on', 'Write nothing until the requirements are final', 'Copy the greeting code into every file that needs it'],
       answer: 0,
       why: [null, 'You pay for the complexity every day, for a future that may never come.', 'Waiting for final requirements means never starting. Build the simple thing.', 'Copying everywhere is a different mess, not simplicity.'],
       explain: 'Solve today’s problem plainly. If a third greeting arrives, you will know what the real variation is, and refactoring then will be cheaper and better aimed.' },
 
-    { type: 'tf', after: 3, statement: 'A refactoring should change what the program does, in order to make it better.', answer: false,
+    { type: 'tf', after: 3, statement: 'A refactoring changes the structure of code without changing what the program does.', answer: true,
       explain: 'Refactoring changes only the **structure** (names, layout, how it is split up). Behaviour stays the same. If behaviour changes, that is a feature or a bug fix, which should be done separately.' },
 
     { type: 'bucket', prompt: 'Is each of these a refactoring, or a different kind of change?', buckets: ['Refactoring', 'Something else'],
@@ -2790,13 +2790,13 @@ KS.boss('clean-code', {
       pairs: [['Cyclomatic complexity', 'A count of independent paths: 1 plus the decisions'], ['Package by feature', 'Folders named for what the code is for'], ['Magic number', 'A bare value with no explanation of its meaning'], ['Flaky test', 'Sometimes passes, sometimes fails, with no code change'], ['YAGNI', 'Do not build for needs that have not appeared']] },
 
     { type: 'estimate', q: 'A function has four separate `if` statements, none nested, and each can be true or false independently. At most how many different combinations of outcomes could an order trigger?', answer: 16, unit: 'combinations', tolerance: 1.5,
-      explain: 'Each independent yes/no doubles the possibilities: 2 × 2 × 2 × 2 = 16. That is why testing every combination quickly becomes impractical, and why fewer branches help. (The complexity score, 5, is only the *minimum* number of tests.)' },
+      explain: 'Each independent yes/no doubles the possibilities: 2 × 2 × 2 × 2 = 16. That is why testing every combination quickly becomes impractical, and why fewer branches help. (The complexity score, 5, is how many tests it takes to walk each independent path. Running every branch once could take just 2: all true, then all false.)' },
 
     { type: 'short', q: 'What name is given to an early `return` that handles an unusual case first, so the main path is not nested?', accept: ['guard clause', 'guard', 'guard clauses'], hint: 'It stands at the door and turns problems away.',
       explain: 'A guard clause deals with the problem case and exits, so the happy path below has no extra indentation.' },
 
     { type: 'mcq', q: 'Marketing and Finance teams keep colliding in `services/orderService.js`, and a Finance bug appeared after a Marketing change. What structural change best fits this module?',
-      options: ['Group code by who asks for changes, so promotions and invoicing live in separate folders', 'Make the file longer so every rule is in one place', 'Rename the file to `utils.js`', 'Ask the teams to avoid editing on the same day'],
+      options: ['Split promotions and invoicing into separate folders', 'Merge more rules into the file so all logic is in one place', 'Rename the file to `utils.js` so anyone can add to it', 'Ask the two teams to avoid editing on the same day'],
       answer: 0,
       why: [null, 'Putting more rules in one file increases the number of people who collide in it.', 'A vaguer name makes it a junk drawer and does nothing for the collisions.', 'A process workaround for a structural problem. It fails the day someone forgets.'],
       explain: 'Different actors need different corners of the code. Package by feature or actor means a change from one group lands in one folder, so there are fewer collisions and accidental breakages.' }

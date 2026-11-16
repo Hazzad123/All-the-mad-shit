@@ -68,6 +68,9 @@ KS.labs.register({
     }
     function record(what) {
       recent.push(what); if (recent.length > 30) recent.shift();
+      draw();
+    }
+    function draw() {
       servers.forEach(s => { const n = recent.filter(r => r === s.name).length; s.meter.set(recent.length ? n / recent.length : 0, n + ' of ' + recent.length); s.node.setSub(s.active + ' active · ' + s.served + ' served'); });
       statTotal.set(total); statErr.set(errors, errors ? 'bad' : 'good'); statOk.set(okStreak);
       checkGoals();
@@ -105,8 +108,7 @@ KS.labs.register({
       if (!health) return;
       servers.forEach(s => { if (s.seenUp !== s.up) { setSeen(s, s.up); log.add('Health check: Server ' + s.name + (s.up ? ' is healthy again, **back in rotation**' : ' failed, **taken out of rotation**'), s.up ? 'good' : 'warn'); } });
     });
-    record('');
-    recent.pop();
+    draw();   // initial state: no requests yet
     return () => stage.destroy();
   }
 });

@@ -179,7 +179,7 @@ Aim for at least one `scenario` every lesson or two: they are the closest thing 
 KS.boss('module-id', {
   title: 'The Protocol Dragon',                    // a fun name
   intro: 'Two sentences of flavour and what will be tested.',
-  questions: [ /* 10–12 activities, no `after`, harder and mixing lessons. Types allowed:
+  questions: [ /* 10–13 activities, no `after`, harder and mixing lessons. Types allowed (not `scenario` or `explain`):
                   mcq multi tf ab match order bucket cloze spot short estimate. Use 4+ types. */ ]
 });
 
@@ -254,5 +254,5 @@ Some lessons have an interactive lab attached automatically (your spec says so).
 - [ ] Every lesson uses 5+ activity types and has at least one applied activity (scenario / spot / ab / order / bucket / estimate)
 - [ ] No term is used before it is explained; nothing from later modules is assumed
 - [ ] Facts are right. Numbers are real. No invented URLs
-- [ ] The boss has 10–12 questions across all lessons; the cheat sheet has 4–7 dense sections
+- [ ] The boss has 10–13 questions across all lessons; the cheat sheet has 4–7 dense sections
 - [ ] Read three random cards aloud: do they sound like a person, and would a beginner follow them?

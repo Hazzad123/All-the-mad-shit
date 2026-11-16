@@ -54,6 +54,7 @@ The clock is simulated: one tick per second, and you can skip ahead.`,
 
     mount(root, api) {
       const ui = api.ui, h = api.h;
+      if (ui.needsWebCrypto(root)) return;
       const KEY = 'keystone-demo-signing-key', LIFE = 90;
       const NAMES = ['A', 'B'];
       const st = {

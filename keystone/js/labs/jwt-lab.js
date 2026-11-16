@@ -98,6 +98,7 @@ The HMAC maths is computed for real in your browser.`,
       const secIn = ui.input('Secret key (the server\'s, used by Sign and by both servers)', secret, v => { secret = v; refresh(); }, { maxlength: '60' });
       const pasteIn = ui.textarea('Paste any token here to decode it', '', () => {}, 3);
 
+      let raw = null;   // the original base64 parts of a decoded token
       function parseEditors() {
         let hd, pl;
         try { hd = JSON.parse(hdrText); } catch (e) { return { err: 'The header is not valid JSON yet (' + e.message + ').' }; }
@@ -111,7 +112,11 @@ The HMAC maths is computed for real in your browser.`,
         if (p.err) { problem.style.display = ''; problem.textContent = p.err + ' The token below is the last good one.'; return; }
         problem.style.display = 'none';
         try {
-          const tok = strToB64u(JSON.stringify(p.hd)) + '.' + strToB64u(JSON.stringify(p.pl)) + '.' + sig;
+          // A pasted token keeps its original header/payload bytes until you edit them; re-encoding the JSON
+          // (spacing, escapes) would change the bytes and wrongly break a valid signature.
+          const hPart = raw && hdrText === raw.hdr ? raw.h : strToB64u(JSON.stringify(p.hd));
+          const pPart = raw && payText === raw.pay ? raw.p : strToB64u(JSON.stringify(p.pl));
+          const tok = hPart + '.' + pPart + '.' + sig;
           const now = nowSec();
           const rs = await Promise.all([verifyToken(tok, secret, true, now), verifyToken(tok, secret, false, now)]);
           if (!api.alive() || t !== seq) return;
@@ -142,7 +147,7 @@ The HMAC maths is computed for real in your browser.`,
         if (p.hd.alg !== 'HS256') { p.hd.alg = 'HS256'; hdrText = pretty(p.hd); hdrIn.set(hdrText); log.add('This lab signs with HMAC-SHA256, so **alg** was set back to HS256.', 'dim'); }
         try {
           const tok = await signToken(p.hd, p.pl, secret); if (!api.alive()) return;
-          sig = tok.split('.')[2]; lastEdit = 'sign';
+          sig = tok.split('.')[2]; lastEdit = 'sign'; raw = null;
           log.add('Signed with the secret: the server computed a fresh HMAC over header + payload. The token is valid again, but **only someone who knows the secret could do this**.', 'good');
           await refresh();
         } catch (e) { log.add('Could not sign: ' + KS.esc(e && e.message || 'error'), 'bad'); }
@@ -154,14 +159,14 @@ The HMAC maths is computed for real in your browser.`,
       }
       function forge() {
         const p = parseEditors(); const pl = p.err ? { sub: 'bob', role: 'user' } : p.pl; pl.role = 'admin';
-        hdrText = pretty({ alg: 'none', typ: 'JWT' }); payText = pretty(pl); sig = ''; lastEdit = 'edit'; hdrIn.set(hdrText); payIn.set(payText);
+        hdrText = pretty({ alg: 'none', typ: 'JWT' }); payText = pretty(pl); sig = ''; lastEdit = 'edit'; raw = null; hdrIn.set(hdrText); payIn.set(payText);
         log.add('Forged a token: **alg: none**, role admin, and an **empty signature**. Compare the two servers: the naive one believes the token\'s own claim that it needs no signature.', 'warn'); refresh();
       }
       async function freshExample() {
         const n = nowSec(); const hd = { alg: 'HS256', typ: 'JWT' }, pl = { sub: 'bob', name: 'Bob', role: 'user', iat: n, exp: n + 3600 };
         try {
           const tok = await signToken(hd, pl, 'keystone-secret'); if (!api.alive()) return;
-          secret = 'keystone-secret'; secIn.set(secret); hdrText = pretty(hd); payText = pretty(pl); sig = tok.split('.')[2]; lastEdit = 'example';
+          secret = 'keystone-secret'; secIn.set(secret); hdrText = pretty(hd); payText = pretty(pl); sig = tok.split('.')[2]; lastEdit = 'example'; raw = null;
           hdrIn.set(hdrText); payIn.set(payText); pasteIn.set(tok); await refresh();
         } catch (e) { log.add('Could not build the example: ' + KS.esc(e && e.message || 'error'), 'bad'); }
       }
@@ -172,6 +177,7 @@ The HMAC maths is computed for real in your browser.`,
         try {
           const hd = decodePart(parts[0], 'header'), pl = decodePart(parts[1], 'payload'); b64uDecode(parts[2]);
           hdrText = pretty(hd); payText = pretty(pl); sig = parts[2]; lastEdit = 'decode'; hdrIn.set(hdrText); payIn.set(payText);
+          raw = { hdr: hdrText, pay: payText, h: parts[0], p: parts[1] };
           log.add('Decoded without any secret. The **header** and **payload** are just base64: anyone holding the token can read the claims, so never put passwords in one.', 'good');
           api.goal('read'); refresh();
         } catch (e) { log.add('Could not decode that token: ' + KS.esc(e.message) + '.', 'bad'); }

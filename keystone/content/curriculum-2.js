@@ -43,7 +43,7 @@
   // ───────────────────────────── WORLD 6 ─────────────────────────────
   KS.world({
     id: 'security', title: 'Security & Identity', emoji: '🔐', color: '#fb7185',
-    blurb: 'Who are you? What are you allowed to do? And how do we keep everyone else out? Authentication, authorization and web security from first principles.',
+    blurb: 'Who are you? What are you allowed to do? And how do we keep everyone else out? Authentication, authorisation and web security from first principles.',
     modules: [
       { id: 'crypto', title: 'Cryptography Basics', emoji: '🔑', tagline: 'Hashes, keys, signatures and certificates.', lessons: [
         L('cr-hashing', 'Hashing: Digital Fingerprints', 9, 'Turn anything into a short fingerprint you cannot reverse.', 'one-way functions; fixed-size output and the avalanche effect; collisions; MD5 and SHA-1 are broken, SHA-2 and SHA-3 are not; uses: integrity, deduplication and signatures', ['be:md5', 'be:sha', 'sa:hashing-algorithms'], 'hash-lab'),
@@ -54,26 +54,26 @@
         L('cr-tls', 'The TLS Handshake, Step by Step', 9, 'The few milliseconds where two strangers agree on a secret.', 'hello and cipher negotiation; checking the certificate; agreeing a session key; switching to fast symmetric encryption; TLS 1.2 vs 1.3 and forward secrecy', ['be:ssltls', 'be:https'])
       ] },
       { id: 'authn', title: 'Authentication', emoji: '🪪', tagline: 'Proving who you are: sessions, tokens, JWT, OAuth, OIDC, SAML.', lessons: [
-        L('au-basics', 'Authentication vs Authorization', 7, 'Who you are, versus what you are allowed to do.', 'who you are vs what you may do; identity, credentials and factors; the life of a login; sessions vs tokens preview; vocabulary: principal, claim, identity provider', ['be:authentication', 'sa:auth-strategies', 'sa:security']),
+        L('au-basics', 'Authentication vs Authorisation', 7, 'Who you are, versus what you are allowed to do.', 'who you are vs what you may do; identity, credentials and factors; the life of a login; sessions vs tokens preview; vocabulary: principal, claim, identity provider', ['be:authentication', 'sa:auth-strategies', 'sa:security']),
         L('au-basic', 'Basic Authentication', 6, 'Username and password on every single request.', 'username:password in a header; Base64 is not encryption; why it needs HTTPS; where it is still fine; a footnote on Digest auth', ['be:basic-authentication']),
         L('au-sessions', 'Sessions & Cookie-Based Auth', 9, 'The cloakroom ticket of the web.', 'the server remembers you with a session; session IDs in cookies; HttpOnly, Secure and SameSite; session stores and scaling; logout, expiry and session fixation', ['be:cookie-based-auth'], 'session-vs-token'),
         L('au-tokens', 'Token Authentication', 8, 'Carry proof with you instead of being remembered.', 'bearer tokens; opaque tokens vs self-contained tokens; API keys; access tokens and refresh tokens; where to keep tokens in a browser or app', ['be:token-authentication'], 'session-vs-token'),
         L('au-jwt', 'JWT: Anatomy of a Token', 10, 'A signed note that says who you are — readable by anyone.', 'header, payload and signature; claims (iss, sub, aud, exp); signed is not encrypted; verifying and expiring; the revocation problem and classic mistakes', ['be:jwt'], 'jwt-lab'),
         L('au-oauth', 'OAuth 2.0: Delegated Access', 11, 'Giving an app a valet key instead of your house keys.', 'access without handing over your password; the four roles; the authorization code flow with PKCE; scopes and consent; client credentials, and why the implicit and password flows died', ['be:oauth'], 'oauth-flow'),
-        L('au-oidc', 'OpenID Connect', 8, 'The layer that makes “Sign in with…” buttons work.', 'OAuth is authorization, OIDC adds identity; the ID token; “Sign in with…” buttons; userinfo and discovery; OIDC vs OAuth vs SAML', ['be:openid']),
+        L('au-oidc', 'OpenID Connect', 8, 'The layer that makes “Sign in with…” buttons work.', 'OAuth is authorisation, OIDC adds identity; the ID token; “Sign in with…” buttons; userinfo and discovery; OIDC vs OAuth vs SAML', ['be:openid']),
         L('au-saml-sso', 'SAML & Enterprise SSO', 8, 'One company login to rule them all.', 'single sign-on; identity provider and service provider; XML assertions; SP-initiated vs IdP-initiated login; when you will meet SAML', ['be:saml']),
         L('au-mfa', 'MFA, TOTP & Passkeys', 9, 'A second lock, and the end of passwords.', 'something you know, have and are; how TOTP codes work; the risks of SMS codes; WebAuthn and passkeys; recovery flows as the weak link', [], 'totp-lab'),
         L('au-choosing', 'Choosing an Auth Strategy', 9, 'Sessions or JWTs? Build or buy? Decide with a clear head.', 'sessions vs JWTs for a web app; mobile apps and single-page apps; machine-to-machine; build vs buy (Auth0, Cognito, Keycloak); a decision checklist', ['sa:auth-strategies'])
       ] },
-      { id: 'authz', title: 'Authorization', emoji: '🛂', tagline: 'Deciding what each user may do: ACL, RBAC, ABAC, ReBAC.', lessons: [
-        L('az-basics', 'Authorization 101', 8, 'Every request asks: may this person do this, to that?', 'subject, action and resource; default deny; least privilege; policies and decisions; authentication is not authorization', ['sa:auth-strategies']),
+      { id: 'authz', title: 'Authorisation', emoji: '🛂', tagline: 'Deciding what each user may do: ACL, RBAC, ABAC, ReBAC.', lessons: [
+        L('az-basics', 'Authorisation 101', 8, 'Every request asks: may this person do this, to that?', 'subject, action and resource; default deny; least privilege; policies and decisions; authentication is not authorisation', ['sa:auth-strategies']),
         L('az-acl', 'ACLs & Ownership', 7, 'A guest list on every door.', 'per-resource permission lists; owners and sharing; file permissions as an ACL; where ACLs become unmanageable', []),
         L('az-rbac', 'RBAC: Roles & Permissions', 9, 'Give permissions to job titles, not to people.', 'users → roles → permissions; role hierarchies; role explosion; check permissions, not role names; RBAC in databases, clouds and apps', [], 'rbac-lab'),
         L('az-abac', 'ABAC & Policy Engines', 9, 'Decide using facts about the user, the thing and the moment.', 'decisions from attributes of user, resource and context; policies as code (OPA, Cedar); RBAC vs ABAC; testing policies', [], 'rbac-lab'),
         L('az-rebac', 'ReBAC: Relationship-Based Access', 8, '“You can see it because you are in the folder’s team.”', 'permissions from relationships (owner, member, parent folder); the Google Zanzibar model; when ReBAC beats RBAC; modelling shares and groups', []),
         L('az-scopes-claims', 'Scopes, Claims & Tokens', 8, 'What a token is allowed to do, and what it says about you.', 'OAuth scopes vs user permissions; claims carried in tokens; audience checks; stale tokens and revocation; the confused deputy', []),
-        L('az-enforcement', 'Where to Enforce Authorization', 9, 'At the gate, in the room, and on the filing cabinet.', 'gateway vs service vs database; decision points vs enforcement points; multi-tenancy and row-level security; service-to-service auth and zero trust; defence in depth', []),
-        L('az-failures', 'Broken Access Control', 9, 'The number-one web vulnerability, and how it happens.', 'IDOR: changing an ID in the URL; missing function-level checks; privilege escalation; trusting the client; how to test authorization', [])
+        L('az-enforcement', 'Where to Enforce Authorisation', 9, 'At the gate, in the room, and on the filing cabinet.', 'gateway vs service vs database; decision points vs enforcement points; multi-tenancy and row-level security; service-to-service auth and zero trust; defence in depth', []),
+        L('az-failures', 'Broken Access Control', 9, 'The number-one web vulnerability, and how it happens.', 'IDOR: changing an ID in the URL; missing function-level checks; privilege escalation; trusting the client; how to test authorisation', [])
       ] },
       { id: 'websec', title: 'Web Security', emoji: '🛡️', tagline: 'OWASP, injection, XSS, CSRF, CORS and hardening.', lessons: [
         L('ws-mindset', 'Thinking Like an Attacker', 8, 'You cannot defend a system until you have imagined breaking it.', 'assets, threats and attack surface; threat modelling with STRIDE; defence in depth; security as a trade-off', ['be:web-security', 'sa:security']),
@@ -185,7 +185,7 @@
         L('ep-identity-map', 'Identity Maps', 7, 'Never load the same row twice.', 'one object per database row per session; avoiding duplicate loads and conflicting copies; the ORM session as a first-level cache', ['sd:identity-maps']),
         L('ep-dtos', 'DTOs', 8, 'Plain parcels for carrying data across a boundary.', 'plain objects that carry data across boundaries; why not expose your entities; mapping and its tedium; DTO vs value object vs entity', ['sd:dtos']),
         L('ep-use-cases', 'Use Cases', 8, 'One class per thing a user wants to get done.', 'one class per thing the user wants to do; application services and interactors; orchestration without business rules; input and output boundaries', ['sd:usecases']),
-        L('ep-commands-queries', 'Commands & Queries', 8, 'Requests as objects you can validate, log and route.', 'requests as objects: commands change, queries read; handlers and buses; hooks for validation and authorization; the bridge to CQRS', ['sd:commands--queries'])
+        L('ep-commands-queries', 'Commands & Queries', 8, 'Requests as objects you can validate, log and route.', 'requests as objects: commands change, queries read; handlers and buses; hooks for validation and authorisation; the bridge to CQRS', ['sd:commands--queries'])
       ] }
     ]
   });

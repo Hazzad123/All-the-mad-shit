@@ -149,8 +149,8 @@ KS.lesson('mq-why', {
       answer: 15, unit: 'minutes', tolerance: 2,
       explain: 'The backlog shrinks by (100 − 20) = **80 per minute**. 1,200 ÷ 80 = **15 minutes**. If arrivals ever matched processing speed, the backlog would never shrink: add consumers.' },
 
-    { type: 'tf', statement: 'A queue makes a system faster at processing each individual job.', answer: false,
-      explain: 'Each job takes just as long. What changes is that the producer does not wait, spikes are spread out, and failures do not lose work. The workers are not any quicker.' },
+    { type: 'tf', statement: 'Adding a queue does not make any single job quicker to process.', answer: true,
+      explain: 'True: each job takes just as long. What changes is that the producer does not wait, spikes are spread out, and failures do not lose work. The workers are not any quicker.' },
 
     { type: 'order', prompt: 'Put the life of one message in order.',
       items: ['The producer publishes the message to the broker', 'The broker stores it and confirms', 'A consumer receives the message', 'The consumer does the work', 'The consumer acknowledges and the broker deletes the message'],
@@ -364,8 +364,8 @@ KS.lesson('mq-patterns', {
     { type: 'match', after: 4, prompt: 'Match each pattern to its description.',
       pairs: [['Competing consumers', 'Several workers share one queue; each message goes to one'], ['Fan-out', 'Every subscriber gets its own copy'], ['Routing key', 'A label such as orders.placed that picks who receives it'], ['Event stream', 'An ordered log that keeps events after they are read'], ['Consumer group', 'Instances of one service sharing the stream between them']] },
 
-    { type: 'tf', after: 6, statement: 'In an event stream (a log), reading an event removes it so no other reader can see it.', answer: false,
-      explain: 'The log keeps events for its retention period, whoever has read them. Each reader tracks its own position, so many readers can read the same events, and any of them can rewind.' },
+    { type: 'tf', after: 6, statement: 'In an event stream (a log), many readers can read the same event, because reading it does not remove it.', answer: true,
+      explain: 'True: the log keeps events for its retention period, whoever has read them. Each reader tracks its own position, so many readers can read the same events, and any of them can rewind.' },
 
     { type: 'bucket', prompt: 'Which model fits each need?', buckets: ['Queue (one worker)', 'Pub/sub (everyone)', 'Stream (keep and replay)'],
       items: [['Generate one invoice PDF per order', 0], ['Resize each uploaded photo once', 0], ['Tell email, warehouse and fraud checks about a new order', 1], ['Push a “price changed” event to every subscribed service', 1], ['Rebuild a report from the last month of events after fixing a bug', 2], ['Let a brand-new service read all past orders', 2]],
@@ -384,7 +384,7 @@ KS.lesson('mq-patterns', {
       distractors: ['index', 'all', 'shard'],
       explain: 'Queues share work; pub/sub shares news. The difference is whether a message is divided among consumers or copied to each.' },
 
-    { type: 'short', q: 'What is the name for a reader’s bookmark: the position of the next event it will read in a log?', accept: ['offset'], hint: 'It is a number counting along the log.',
+    { type: 'short', q: 'What is the name for a reader’s bookmark: the position of the next event it will read in a log?', accept: ['offset', 'offsets', 'consumer offset'], hint: 'It is a number counting along the log.',
       explain: 'The **offset** says how far a reader has got. Because each reader keeps its own, they can all read the same log independently, and any can rewind.' },
 
     { type: 'scenario', title: 'Who needs to hear about an order?', intro: 'You are designing the messaging for a growing shop. When an order is placed, the warehouse, email, analytics and fraud services all care. You get to choose how the news travels.',
@@ -565,7 +565,7 @@ KS.lesson('mq-guarantees', {
 
   activities: [
     { type: 'mcq', after: 1, q: 'A consumer receives a message, does half the work, then crashes before acknowledging. What does the broker do?',
-      options: ['Offers the message again, to this or another consumer', 'Deletes it, because it was delivered', 'Holds it forever and blocks the queue', 'Sends an error back to the producer'],
+      options: ['Offers the message again, to this or another consumer', 'Deletes it, because it was already delivered once', 'Holds it forever and blocks the queue', 'Sends an error back to the producer to resend it'],
       answer: 0,
       why: [null, 'Delivery is not completion. The broker deletes a message only when it is acknowledged.', 'It does not block. It simply makes the message available again.', 'The producer finished its job long ago and is not involved in redelivery.'],
       explain: 'No acknowledgement means the broker cannot know if the job finished, so it redelivers. That is how work survives crashes, and why duplicates are possible.' },
@@ -625,7 +625,7 @@ KS.lesson('mq-guarantees', {
       ],
       outro: 'The pattern: **retry sensibly, cap it, set failures aside, and make someone look at them.**' },
 
-    { type: 'short', q: 'What word describes a consumer that can safely process the same message twice, with the same result as once?', accept: ['idempotent'], hint: 'You met this word in the HTTP lesson, with PUT and DELETE.',
+    { type: 'short', q: 'What word describes a consumer that can safely process the same message twice, with the same result as once?', accept: ['idempotent', 'idempotence', 'idempotency'], hint: 'You met this word in the HTTP lesson, with PUT and DELETE.',
       explain: '**Idempotent** handlers make at-least-once delivery safe: a duplicate is harmless, so effectively-once is achievable.' },
 
     { type: 'explain', prompt: 'A colleague asks for “exactly-once delivery” for payment messages. Explain why that is hard, and what you would build instead.',
@@ -788,8 +788,8 @@ KS.lesson('mq-rabbitmq', {
       items: [['Send each “invoice” job to the invoice queue by exact name', 0], ['Send “error” logs to one queue and “info” logs to another', 0], ['Route sensor.kitchen.temp and sensor.garage.temp by location and kind', 1], ['One consumer wants every message about orders.*', 1], ['Tell every app server to clear its cache', 2], ['Show a new price on every screen in every shop', 2]],
       explain: 'Exact names mean direct. Patterns over structured keys mean topic. “Everyone, no matter the key” means fanout.' },
 
-    { type: 'tf', after: 8, statement: 'If a message is published with a routing key that matches no binding, RabbitMQ stores it until a matching queue appears.', answer: false,
-      explain: 'By default an unroutable message is silently dropped. Bind your queues before publishing, and enable the options that catch or report unroutable messages if you cannot afford the loss.' },
+    { type: 'tf', after: 8, statement: 'By default, RabbitMQ silently drops a message whose routing key matches no binding.', answer: true,
+      explain: 'True: by default an unroutable message is silently dropped. Bind your queues before publishing, and enable the options that catch or report unroutable messages if you cannot afford the loss.' },
 
     { type: 'spot', prompt: 'The audit queue must receive every order event, including three-word keys such as `orders.shipped.eu`. Tap the binding that falls short.',
       code: { lang: 'text', src: `
@@ -813,7 +813,7 @@ KS.lesson('mq-rabbitmq', {
       answer: 'a',
       explain: 'A prefetch limit stops one worker hoarding jobs while others sit idle, and acking after the work means a crash redelivers the job. Without acks the broker forgets each message the moment it is sent, so a crash loses it.' },
 
-    { type: 'short', q: 'Which exchange type copies every message to all bound queues, ignoring the routing key?', accept: ['fanout'], hint: 'The message fans out.',
+    { type: 'short', q: 'Which exchange type copies every message to all bound queues, ignoring the routing key?', accept: ['fanout', 'fanout exchange'], hint: 'The message fans out.',
       explain: '**Fanout** is the broadcast exchange: every bound queue gets a copy, whatever the routing key says.' },
 
     { type: 'scenario', title: 'Wiring the log pipeline', intro: 'Your company’s services all emit log events. You have been asked to set up RabbitMQ so the on-call team is paged for errors, while an archive service stores everything.',
@@ -996,7 +996,7 @@ KS.lesson('mq-kafka', {
     { kind: 'pitfall', title: 'Easy ways to get Kafka wrong',
       body: `- **Too few partitions.** A group can use no more consumers than there are partitions. Partitions can be added later, but the key-to-partition mapping then changes, which can disturb per-key order.
         - **A hot key.** If one customer produces half your traffic, that key's partition does half the work however many partitions you have.
-        - **Using it as a job queue.** Kafka has no per-message acknowledgement, priorities or "retry this one in ten minutes". If you only need background jobs, a classic queue is simpler.
+        - **Using it as a job queue.** With classic consumer groups, Kafka has no per-message acknowledgement, priorities or "retry this one in ten minutes". If you only need background jobs, a classic queue is simpler.
         - **Ignoring lag.** A consumer falling steadily behind will, in the end, find its bookmark has been **deleted by retention**. Monitor lag.
         - **Using it because it is famous.** A small system rarely needs a log.` }
   ],
@@ -1165,7 +1165,7 @@ KS.boss('messaging', {
       distractors: ['exchange', 'binding', 'prefetch'],
       explain: 'Partitions, offsets and keys are Kafka’s core vocabulary. Exchanges, bindings and prefetch belong to RabbitMQ.' },
 
-    { type: 'short', q: 'What do we call a message that fails every time it is retried?', accept: ['poison message', 'poison', 'a poison message'], hint: 'Think of what it does to the queue.',
+    { type: 'short', q: 'What do we call a message that fails every time it is retried?', accept: ['poison message', 'poison', 'a poison message', 'poison messages', 'poison pill'], hint: 'Think of what it does to the queue.',
       explain: 'A **poison message** can never succeed, such as malformed data. Cap the retries and move it to a dead-letter queue.' }
   ]
 });

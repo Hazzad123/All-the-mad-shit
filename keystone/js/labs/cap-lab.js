@@ -90,6 +90,7 @@
 Then the cable between them is **cut**. Both nodes are still running, but neither can tell whether the other is dead or just unreachable. The **CAP theorem** says you must now pick one:
 
 - **CP** (consistent): one side (London, the leader) carries on. The other refuses requests, with an error. No disagreement, but some people get errors.
+  Real CP systems pick the side that carries on by **majority vote**. With only two copies neither side would have a majority, so real setups add a third, tie-breaking **witness** node. This lab assumes the witness sits on London's side of the cut.
 - **AP** (available): both sides keep accepting writes. Everyone gets an answer, but the copies **diverge**. When the cable returns, one write must win. **Last write wins** keeps the newest and silently discards the other.
 
 \`#5\` means "the 5th write overall": its timestamp.`,

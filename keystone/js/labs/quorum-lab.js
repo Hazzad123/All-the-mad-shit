@@ -11,7 +11,9 @@
   const names = idx => idx.map(i => 'R' + (i + 1)).join(', ') || 'none';
   const alive = S => S.vers.map((_, i) => i).filter(i => S.up[i]);
   const deadCount = S => S.n - alive(S).length;
-  const overlaps = S => S.R + S.W > S.n;
+  // The guarantee depends on the W the newest write was actually made with, not the slider's current value.
+  const effW = S => (S.latest ? S.wUsed : S.W);
+  const overlaps = S => S.R + effW(S) > S.n;
   function sample(arr, k, rnd) { const a = arr.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(rnd() * (i + 1)); const t = a[i]; a[i] = a[j]; a[j] = t; } return a.slice(0, k).sort((x, y) => x - y); }
   const lagging = S => S.vers.filter(v => v < S.latest).length;
 
@@ -24,7 +26,7 @@
       return false;
     }
     const chosen = sample(al, S.W, rnd), v = ++S.latest;
-    chosen.forEach(i => { S.vers[i] = v; }); S.lastW = chosen;
+    chosen.forEach(i => { S.vers[i] = v; }); S.lastW = chosen; S.wUsed = S.W;
     const behind = S.vers.map((x, i) => i).filter(i => S.vers[i] < v);
     if (deadCount(S) > 0) S.flags.wDead = true;
     ev(S, '**Write v' + v + '** → stored on ' + names(chosen) + ' (W = ' + S.W + ') and the client is told "done" ✓. ' + (behind.length ? names(behind) + ' still believe' + (behind.length === 1 ? 's' : '') + ' an older version until repaired.' : 'Every replica has it.'), 'info');
@@ -55,10 +57,10 @@
     for (let i = 0; i < k; i++) { const r = readOnce(S, rnd); if (!r.ok) fail++; else { ok++; if (r.stale) stale++; } }
     S.runInfo = { ok, stale, fail, k };
     if (fail) { ev(S, 'Ran ' + k + ' reads: all ' + fail + ' were refused (not enough replicas alive for R = ' + S.R + ').', 'bad'); return S.runInfo; }
-    if (stale) { S.flags.stale = true; ev(S, 'Ran ' + k + ' reads: **' + stale + ' of ' + k + ' were stale** (' + Math.round(stale / k * 100) + '%). R + W = ' + (S.R + S.W) + (overlaps(S) ? '' : ' does not exceed N = ' + S.n + ', so a read can miss the newest write.'), 'bad'); }
+    if (stale) { S.flags.stale = true; ev(S, 'Ran ' + k + ' reads: **' + stale + ' of ' + k + ' were stale** (' + Math.round(stale / k * 100) + '%). R + W = ' + (S.R + effW(S)) + (overlaps(S) ? '' : ' does not exceed N = ' + S.n + ', so a read can miss the newest write.'), 'bad'); }
     else {
       const trivial = lagging(S) === 0;
-      ev(S, 'Ran ' + k + ' reads: **0 stale** ✓.' + (overlaps(S) ? ' R + W = ' + (S.R + S.W) + ' > N = ' + S.n + ', so every read set must share at least one replica with the newest write.' : ' (Lucky: R + W does not exceed N, so it could have gone wrong.)') + (trivial ? ' (Every replica already holds the newest write, so this proves little. Try W below N.)' : ''), 'good');
+      ev(S, 'Ran ' + k + ' reads: **0 stale** ✓.' + (overlaps(S) ? ' R + W = ' + (S.R + effW(S)) + ' > N = ' + S.n + ', so every read set must share at least one replica with the newest write.' : ' (Lucky: R + W does not exceed N, so it could have gone wrong.)') + (trivial ? ' (Every replica already holds the newest write, so this proves little. Try W below N.)' : ''), 'good');
       if (overlaps(S) && !trivial) S.flags.strong = true;
     }
     return S.runInfo;
@@ -134,9 +136,10 @@ Tap a replica to crash or revive it.`,
           el.setSub(S.up[i] ? 'v' + S.vers[i] + (S.vers[i] < S.latest ? ' (behind)' : S.latest ? ' (newest)' : '') : 'down · v' + S.vers[i]);
           el.badge(inW && inR ? '⭐' : inW ? 'W' : inR ? 'R' : '');
         });
-        const sum = S.R + S.W;
+        const sum = S.R + effW(S);
+        const changed = S.latest && S.wUsed !== S.W ? ' The newest write (v' + S.latest + ') was made with **W = ' + S.wUsed + '**, so that is the W that counts for reading it; the slider only affects the next write.' : '';
         overlapEl.className = 'lab-note ' + (overlaps(S) ? 'tn-good' : 'tn-warn');
-        overlapEl.innerHTML = KS.md.inline('**R + W = ' + sum + '**, N = ' + S.n + ' → ' + (overlaps(S) ? '**' + sum + ' > ' + S.n + ' ✓** every read meets the newest write.' : '**' + sum + ' ≤ ' + S.n + ' ✗** a read can miss the newest write.'));
+        overlapEl.innerHTML = KS.md.inline('**R + W = ' + sum + '**, N = ' + S.n + ' → ' + (overlaps(S) ? '**' + sum + ' > ' + S.n + ' ✓** every read meets the newest write.' : '**' + sum + ' ≤ ' + S.n + ' ✗** a read can miss the newest write.') + changed);
         stLatest.set('v' + S.latest);
         stLast.set(S.last ? 'v' + S.last.best : '–', S.last ? (S.last.stale ? 'bad' : 'good') : '');
         stRun.set(S.runInfo ? S.runInfo.stale + ' / ' + S.runInfo.k : '–', S.runInfo ? (S.runInfo.stale ? 'bad' : 'good') : '');

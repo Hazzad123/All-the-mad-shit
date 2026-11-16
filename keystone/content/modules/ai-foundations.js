@@ -64,8 +64,7 @@ KS.lesson('ai-how-llms-work', {
           ]
         }`,
         notes: {
-          3: '**Low** (near 0): nearly always the top-scoring token. Focused, repeatable, a bit dull. Good for code, extraction and facts.',
-          6: 'Raise it (towards 1 or above, depending on the provider) and less likely tokens get a chance: more varied and creative, also more likely to wander.'
+          3: '**Low** (near 0): nearly always the top-scoring token. Focused, repeatable, a bit dull. Good for code, extraction and facts. Raise it (towards 1 or above, depending on the provider) and less likely tokens get a chance: more varied and creative, also more likely to wander.'
         } },
       note: 'Even at 0, answers are mostly but not always identical. Do not treat an LLM as a function that is guaranteed to give the same output.' },
 
@@ -105,7 +104,7 @@ KS.lesson('ai-how-llms-work', {
       explain: 'The model repeats "score, pick, append" for every token. There is no overall draft hiding behind the scenes.' },
 
     { type: 'mcq', after: 3, q: 'You start a brand-new chat and ask "What did we decide yesterday about the database?" Why can’t the model answer?',
-      options: ['It has no memory of previous chats; only what is in its current context', 'Its context window is always empty', 'It refuses to discuss databases', 'It deletes every conversation after one hour'],
+      options: ['It only sees its current context, not earlier chats', 'Its context window is always empty', 'It refuses to discuss databases it cannot see', 'It deletes every conversation after one hour'],
       answer: 0,
       why: [null, 'The context window holds your current prompt and conversation, but not other chats.', 'Nothing in the model stops it discussing databases.', 'Retention policies are the provider’s business, not how the model works.'],
       explain: 'The model only sees what is in its context window. Apps that seem to "remember" are quietly re-sending earlier text or notes.' },
@@ -158,7 +157,7 @@ KS.lesson('ai-how-llms-work', {
       ],
       outro: 'Give it facts, then **verify**.' },
 
-    { type: 'short', q: 'Which setting controls how random the model’s token choices are? (one word)', accept: ['temperature'], hint: 'Low is calm and repeatable; high is hot and wild.',
+    { type: 'short', q: 'Which setting controls how random the model’s token choices are? (one word)', accept: ['temperature', 'temp'], hint: 'Low is calm and repeatable; high is hot and wild.',
       explain: '**Temperature** shapes how often the model picks lower-scoring tokens. Low suits factual or code tasks; higher suits brainstorming.' },
 
     { type: 'explain', prompt: 'A friend says "ChatGPT-style tools look things up and then tell you the truth". Correct them gently, using what you know about how LLMs work.',
@@ -302,8 +301,8 @@ KS.lesson('ai-vs-traditional', {
   ],
 
   activities: [
-    { type: 'tf', after: 1, statement: 'If you send exactly the same prompt to an LLM twice, you are guaranteed an identical reply.', answer: false,
-      explain: 'The model picks among likely tokens, so replies often differ, even at low temperature. A traditional function, given the same input, always returns the same output.' },
+    { type: 'tf', after: 1, statement: 'Sending exactly the same prompt to an LLM twice can give you two different replies.', answer: true,
+      explain: 'True: the model picks among likely tokens, so replies often differ, even at low temperature. A traditional function, given the same input, always returns the same output.' },
 
     { type: 'bucket', after: 4, prompt: 'Which tool suits each job best?', buckets: ['Plain code', 'An LLM'],
       items: [['Calculating exact VAT on an invoice', 0], ['Summarising 200 customer comments into themes', 1], ['Checking a password meets length rules', 0], ['Drafting a friendly apology email', 1], ['Rounding money to the nearest penny', 0], ['Explaining what an unfamiliar function does', 1]],
@@ -568,7 +567,7 @@ KS.lesson('ai-prompting', {
       ],
       outro: 'Show examples, state checkable rules, change one thing at a time and **test on varied inputs**.' },
 
-    { type: 'short', q: 'Giving a model no examples at all in the prompt is called ___-shot prompting. Fill in the blank.', accept: ['zero', '0'], hint: 'It is the number of examples.',
+    { type: 'short', q: 'Giving a model no examples at all in the prompt is called ___-shot prompting. Fill in the blank.', accept: ['zero', '0', 'zero-shot'], hint: 'It is the number of examples.',
       explain: '**Zero-shot** means no examples. One or more examples makes it one-shot or few-shot.' },
 
     { type: 'explain', prompt: 'A colleague complains "the AI keeps giving me useless answers". Tell them what you would change about how they ask.',
@@ -725,8 +724,8 @@ KS.lesson('ai-coding-tools', {
       lines: [3],
       explain: '`rm -rf ~/projects` recursively deletes a whole folder of projects, far beyond the task. The others only read or run the tests. Never approve a command you do not understand.' },
 
-    { type: 'tf', statement: 'If an agent’s summary says "all tests pass", you can skip running them yourself.', answer: false,
-      explain: 'The summary is the agent’s claim. Run the tests yourself and read the diff. Agents sometimes loosen a test to make it pass.' },
+    { type: 'tf', statement: 'An agent’s summary saying "all tests pass" is a claim to check, not proof that they pass.', answer: true,
+      explain: 'True: the summary is the agent’s claim. Run the tests yourself and read the diff. Agents sometimes loosen a test to make it pass.' },
 
     { type: 'mcq', q: 'You ask an agent to "improve the project". It changes thirty files. What was the mistake?',
       options: ['The task was too vague and large to review', 'Agents should never edit files', 'You should have used autocomplete instead', 'Thirty files is always fine'],
@@ -918,8 +917,8 @@ KS.lesson('ai-providers', {
       items: [['Tagging 100,000 support emails as billing, bug or other', 0], ['Planning a multi-file refactor of an unfamiliar codebase', 1], ['Extracting a postcode from a short sentence', 0], ['Reasoning through a subtle concurrency bug', 1], ['Auto-completing a search box', 0], ['Reviewing a complicated architecture proposal', 1]],
       explain: 'High-volume, simple, latency-sensitive jobs suit a small model. Rare, difficult jobs where a mistake costs a lot justify a bigger one.' },
 
-    { type: 'tf', statement: '"Open-weight" always means the same as "open source", with no limits on how you can use the model.', answer: false,
-      explain: 'Open-weight means the weights can be downloaded. The licence still decides what you may do, and the training data is often not shared.' },
+    { type: 'tf', statement: 'An open-weight model can be downloaded, but its licence may still limit how you are allowed to use it.', answer: true,
+      explain: 'True: open-weight means the weights can be downloaded. The licence still decides what you may do, and the training data is often not shared.' },
 
     { type: 'multi', q: 'Which factors belong in choosing a model for a feature?',
       options: ['Capability on your own test examples', 'Latency: how fast users get a reply', 'Cost per input and output token', 'Context window size', 'Which provider has the most colourful logo'],
@@ -963,7 +962,7 @@ KS.lesson('ai-providers', {
       ],
       outro: 'Match the model to the **task**, test on **your data**, and respect **data rules**.' },
 
-    { type: 'short', q: 'What is the secret string that identifies and bills your requests to a model provider? (two words: three letters, then "key")', accept: ['api key', 'apikey', 'the api key'], hint: 'It starts with the abbreviation for application programming interface.',
+    { type: 'short', q: 'What is the secret string that identifies and bills your requests to a model provider? (two words: three letters, then "key")', accept: ['api key', 'apikey', 'the api key', 'api keys'], hint: 'It starts with the abbreviation for application programming interface.',
       explain: 'The **API key** proves who you are and who to charge. Treat it like a password: server-side only, never in Git.' },
 
     { type: 'explain', prompt: 'Your manager asks "why don’t we just run our own model instead of paying a provider?" Give a balanced answer.',
@@ -1155,7 +1154,7 @@ KS.lesson('ai-applications', {
       ],
       outro: 'Use AI for speed, but for security **verify against known good practice**, use proven libraries and keep real data out of tools.' },
 
-    { type: 'short', q: 'Before asking AI to refactor code, what should you have in place to prove behaviour is unchanged? (one word)', accept: ['tests', 'test', 'a test suite'], hint: 'They go green or red.',
+    { type: 'short', q: 'Before asking AI to refactor code, what should you have in place to prove behaviour is unchanged? (one word)', accept: ['tests', 'test', 'a test suite', 'test suite', 'unit tests', 'automated tests'], hint: 'They go green or red.',
       explain: '**Tests** are the safety net. Without them, you cannot tell whether a refactor changed behaviour.' },
 
     { type: 'explain', prompt: 'Describe your own process for using AI to write a function and its tests, and say where you would not trust it.',
@@ -1243,7 +1242,7 @@ KS.boss('ai-foundations', {
       explain: 'Destructive commands, test-weakening and running unfamiliar code are the risky ones. Reading files and running tests are normal, low-risk steps.' },
 
     { type: 'mcq', q: 'A team wants to put a model API key in their web app’s JavaScript so the browser can call the provider directly. What is wrong?',
-      options: ['Anyone can copy the key from the page source', 'Browsers cannot call APIs', 'Keys only work on mobile phones', 'The provider forbids JSON'],
+      options: ['Anyone can copy the key from the page source', 'Browsers cannot send requests to APIs at all', 'API keys only work from mobile apps, not browsers', 'The provider will not accept JSON from a browser'],
       answer: 0,
       why: [null, 'Browsers call APIs all the time.', 'Keys work from anywhere; that is the problem.', 'JSON is the normal format.'],
       explain: 'Anything in client-side code is public. Keep the key on your server and have the browser call your backend.' },
@@ -1256,7 +1255,7 @@ KS.boss('ai-foundations', {
     { type: 'estimate', q: 'Roughly how many tokens are in a 3,000-word document written in English?', answer: 4000, unit: 'tokens', min: 100, max: 100000, tolerance: 1.6,
       explain: 'About 1.3 tokens per word gives roughly 4,000 tokens. It is only a rule of thumb: code and other languages usually use more.' },
 
-    { type: 'short', q: 'Before letting AI refactor code, you should have a suite of what? (one word)', accept: ['tests', 'test'], hint: 'They tell you if behaviour changed.',
+    { type: 'short', q: 'Before letting AI refactor code, you should have a suite of what? (one word)', accept: ['tests', 'test', 'unit tests', 'automated tests'], hint: 'They tell you if behaviour changed.',
       explain: 'Tests are the safety net that proves the behaviour did not change.' }
   ]
 });

@@ -102,7 +102,7 @@ KS.lesson('cr-hashing', {
   ],
 
   activities: [
-    { type: 'tf', after: 3, statement: 'If you change one letter of the input, only a small part of the hash changes.', answer: false,
+    { type: 'tf', after: 3, statement: 'If you change one letter of the input, roughly half the bits of the hash change.', answer: true,
       explain: 'The avalanche effect means a tiny change flips roughly half the output bits, so the new hash looks completely unrelated. That stops anyone from creeping towards a target hash step by step.' },
 
     { type: 'mcq', after: 4, q: 'Why must collisions exist at all, even in a very good hash function?',
@@ -139,7 +139,7 @@ KS.lesson('cr-hashing', {
       answer: 'a',
       explain: 'SHA-256 is still collision-resistant, so nobody can craft a malicious file with the same fingerprint. MD5 can be fooled that way, so it should not vouch for anything security-related.' },
 
-    { type: 'short', q: 'How many hexadecimal characters long is a SHA-256 hash?', accept: ['64'], hint: '256 bits, and each hex character is 4 bits.',
+    { type: 'short', q: 'How many hexadecimal characters long is a SHA-256 hash?', accept: ['64', '64 characters', 'sixty-four'], hint: '256 bits, and each hex character is 4 bits.',
       explain: '256 ÷ 4 = 64 characters. The length never changes, whether you hash one letter or a film.' },
 
     { type: 'explain', prompt: 'A colleague says: "We hash the uploaded files, so they are encrypted and safe." Explain what is wrong with that.',
@@ -228,7 +228,7 @@ KS.lesson('cr-passwords', {
       body: `Salt stops pre-computation, but not fast guessing. So passwords use hashes built to be **deliberately slow**. Some are also **memory-hard**: each guess needs plenty of RAM, so thousands of parallel graphics-card guesses become expensive.`,
       cols: ['What to know', 'Verdict'],
       rows: [
-        ['Argon2id', 'Memory-hard; won an open competition for password hashing in 2015', 'First choice for new systems'],
+        ['Argon2id', 'Memory-hard; a variant of Argon2, which won the Password Hashing Competition in 2015', 'First choice for new systems'],
         ['bcrypt', 'Old (1999), battle-tested, tunable cost; only reads the first 72 bytes of a password', 'Good, very widely supported'],
         ['scrypt', 'Memory-hard, in many libraries', 'Good'],
         ['PBKDF2', 'Repeats a hash many times; not memory-hard', 'Acceptable, often where compliance requires it'],
@@ -286,7 +286,7 @@ KS.lesson('cr-passwords', {
       explain: 'Security against reversing is not the issue; the problem is guessing speed. Password hashes are deliberately slow and memory-hungry so each guess is expensive.',
       why: [null, 'Hashes have no key. They cannot be reversed, only guessed.', 'Output size is not the weakness; SHA-256 output is long enough.', 'SHA-256 is not broken. It is simply the wrong tool for this job.'] },
 
-    { type: 'tf', after: 4, statement: 'A salt must be kept secret, just like a password.', answer: false,
+    { type: 'tf', after: 4, statement: 'A salt can be stored openly, right next to the hash it was used for.', answer: true,
       explain: 'A salt is stored right next to the hash. It only has to be random and unique per user, so identical passwords hash differently and pre-computed tables are useless.' },
 
     { type: 'multi', q: 'What does a unique random salt per user achieve?',
@@ -495,7 +495,7 @@ KS.lesson('cr-encryption', {
       distractors: ['hashing', 'Base64', 'salt'],
       explain: 'One key both ways is symmetric. A matched pair, where the public half locks and the private half unlocks, is asymmetric.' },
 
-    { type: 'short', q: 'What three-letter name is given to the standard fast symmetric cipher used almost everywhere?', accept: ['AES'], hint: 'Advanced Encryption Standard.',
+    { type: 'short', q: 'What three-letter name is given to the standard fast symmetric cipher used almost everywhere?', accept: ['AES', 'AES-256', 'AES-128'], hint: 'Advanced Encryption Standard.',
       explain: 'AES is the workhorse of symmetric encryption, used for disks, databases, and the data inside HTTPS.' },
 
     { type: 'scenario', title: 'Securing the notes app',
@@ -633,8 +633,8 @@ KS.lesson('cr-signatures', {
         }`,
         notes: {
           5: 'Recompute the tag over the **raw bytes** you received. If you parse the JSON and re-write it, the bytes can differ and the tag will not match.',
-          8: 'The tag from the request header, converted from hex.',
-          10: 'A **constant-time** comparison. A normal `===` can leak, through tiny timing differences, how many leading characters were right.'
+          7: 'The tag from the request header, converted from hex.',
+          9: 'A **constant-time** comparison. A normal `===` can leak, through tiny timing differences, how many leading characters were right.'
         } } },
 
     { kind: 'realworld', title: 'Where you will meet them',
@@ -692,7 +692,7 @@ KS.lesson('cr-signatures', {
       lines: [2],
       explain: 'The order is marked paid before the signature is checked, so a forged request has already done its damage when it is rejected. Verify first, act second.' },
 
-    { type: 'short', q: 'Which key does a signer keep secret: public or private?', accept: ['private'], hint: 'Think of the signet ring.',
+    { type: 'short', q: 'Which key does a signer keep secret: public or private?', accept: ['private', 'private key', 'the private key'], hint: 'Think of the signet ring.',
       explain: 'The private key creates signatures and must never be shared. The public key is handed out so anyone can verify.' },
 
     { type: 'scenario', title: 'The forged payment alert',
@@ -849,7 +849,7 @@ KS.lesson('cr-pki', {
       explain: 'Trust flows from the issuer, like a passport. The device ships with a trust store of root CAs, and the chain of signatures must lead back to one of them.',
       why: [null, 'A site vouching for itself proves nothing. Anyone can do that.', 'Certificates never contain the private key; that stays secret on the server.', 'The padlock is the result of the checks, not the reason.'] },
 
-    { type: 'tf', after: 3, statement: 'A website’s certificate contains the site’s private key.', answer: false,
+    { type: 'tf', after: 3, statement: 'A website’s certificate contains the site’s public key, not its private key.', answer: true,
       explain: 'The certificate is public and holds the public key. The private key stays on the server; sharing it would let anyone impersonate the site.' },
 
     { type: 'order', after: 4, prompt: 'Put the browser’s checks in a sensible order.',
@@ -1040,7 +1040,7 @@ KS.lesson('cr-tls', {
       answer: 'b',
       explain: 'The older versions are obsolete and should be off. Offering only TLS 1.2 and 1.3 stays compatible with modern clients while removing the weak options.' },
 
-    { type: 'short', q: 'How many round trips does a full TLS 1.3 handshake need?', accept: ['1', 'one'], hint: 'Fewer than TLS 1.2, which needed two.',
+    { type: 'short', q: 'How many round trips does a full TLS 1.3 handshake need?', accept: ['1', 'one', '1 round trip', 'one round trip', '1-RTT'], hint: 'Fewer than TLS 1.2, which needed two.',
       explain: 'TLS 1.3 completes in a single round trip, so connections feel faster, as well as being more secure.' },
 
     { type: 'scenario', title: 'Hardening the payments API',
@@ -1147,7 +1147,7 @@ KS.boss('crypto', {
       lines: [4],
       explain: 'A normal comparison can leak timing information about how much of the tag was right. Use a constant-time comparison from your crypto library.' },
 
-    { type: 'short', q: 'What name is given to a secret value kept outside the database and mixed into password hashes?', accept: ['pepper'], hint: 'A seasoning that sits next to salt.',
+    { type: 'short', q: 'What name is given to a secret value kept outside the database and mixed into password hashes?', accept: ['pepper', 'a pepper'], hint: 'A seasoning that sits next to salt.',
       explain: 'A pepper is kept away from the data (for example in a secrets manager), so a database-only leak is much harder to crack.' },
 
     { type: 'estimate', q: 'How many hexadecimal characters long is a SHA-256 hash of a 4 GB file?', answer: 64, unit: 'characters', tolerance: 1.2,

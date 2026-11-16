@@ -741,7 +741,7 @@ KS.lesson('ct-k8s-basics', {
 
   activities: [
     { type: 'mcq', after: 1, q: 'What does "desired state" mean in Kubernetes?',
-      options: ['What you declare should be running; Kubernetes works to make reality match it', 'The state a container was in when it last crashed', 'The settings of the physical machine', 'A log of everything that has happened in the cluster'],
+      options: ['The state you declare, which Kubernetes keeps reality matching', 'The state a container was in when it last crashed', 'The settings of the physical machine', 'A log of everything that has happened in the cluster'],
       answer: 0,
       why: [null, 'That is history, not a wish. Desired state is about the future you ask for.', 'Machine settings are separate. Desired state describes workloads.', 'A log records the past. Desired state is a declaration of what you want now.'],
       explain: 'You declare the outcome ("three copies of this app") and the control loop keeps comparing actual with desired, fixing any difference, like a thermostat.' },
@@ -969,7 +969,7 @@ KS.lesson('ct-k8s-more', {
 
   activities: [
     { type: 'mcq', after: 2, q: 'What is an ingress for?',
-      options: ['Routing outside traffic into the right Services by host and path', 'Storing passwords for the pods', 'Deciding which node a pod runs on', 'Limiting how much memory a container may use'],
+      options: ['Routing outside traffic to Services by host and path', 'Storing passwords for the pods', 'Deciding which node a pod runs on', 'Limiting how much memory a container may use'],
       answer: 0,
       why: [null, 'That is a Secret.', 'That is the scheduler.', 'That is a resource limit.'],
       explain: 'An ingress is a set of routing rules (handled by an ingress controller) that sends requests arriving at one public address to the right internal Service, and it is a common place to terminate HTTPS.' },
@@ -1006,7 +1006,7 @@ KS.lesson('ct-k8s-more', {
       lines: [6],
       explain: 'ConfigMaps are for ordinary, non-sensitive settings and are easy to read. A password belongs in a Secret (and ideally an externally managed one).' },
 
-    { type: 'short', q: 'Which `kubectl rollout` subcommand reverts a Deployment to its previous version? (one word)', accept: ['undo'], hint: 'The opposite of "do".',
+    { type: 'short', q: 'Which `kubectl rollout` subcommand reverts a Deployment to its previous version? (one word)', accept: ['undo', 'rollout undo', 'kubectl rollout undo'], hint: 'The opposite of "do".',
       explain: '`kubectl rollout undo deployment/shop-api` rolls back to the previous revision, using the same gradual swap as an update.' },
 
     { type: 'scenario', title: 'Release night', intro: 'You are shipping version 1.1 of the shop API on a Friday afternoon (a choice you may regret). The cluster has three pods of 1.0 running. Marketing has an email going out in an hour.',
@@ -1069,7 +1069,7 @@ KS.boss('containers', {
   intro: 'A many-armed kraken coils around your cluster, and each tentacle holds a question about boxes, images and orchestration. Cut through them by knowing what is shared, what is sealed and what is only a wish.',
   questions: [
     { type: 'mcq', q: 'Two teammates both run the same container image, yet one finds the app behaves differently from the other. What is the most likely cause?',
-      options: ['A different environment variable or mounted volume was supplied at run time', 'The image changed itself between their runs', 'Each machine rebuilt the image differently', 'Containers randomly change their libraries'],
+      options: ['A different environment variable or volume at run time', 'The image changed itself between their runs', 'Each machine rebuilt the image differently', 'Containers randomly change their libraries'],
       answer: 0,
       why: [null, 'Images are read-only and never change.', 'They pulled the same image, not rebuilt it.', 'The libraries are baked into the image and stay put.'],
       explain: 'The image is identical, so differences come from outside it: settings (environment variables), mounted data (volumes) or the network around it.' },
@@ -1122,7 +1122,7 @@ KS.boss('containers', {
       answers: [0, 1, 2],
       explain: 'Pinned versions, non-root users and no baked-in secrets make images repeatable and safer. A secret in an ENV line stays in the layers forever, and one container per concern keeps things independent.' },
 
-    { type: 'short', q: 'Rolling out a bad release: which `kubectl rollout` word takes you back to the previous version? (one word)', accept: ['undo'], hint: 'It is the opposite of do.',
+    { type: 'short', q: 'Rolling out a bad release: which `kubectl rollout` word takes you back to the previous version? (one word)', accept: ['undo', 'rollout undo', 'kubectl rollout undo'], hint: 'It is the opposite of do.',
       explain: '`kubectl rollout undo` reverts a Deployment to its previous revision.' },
 
     { type: 'cloze', text: 'Kubernetes continually compares {{desired}} state with {{actual}} state, a cycle called a {{control loop}}, and a {{Deployment}} keeps the right number of pods running.',
@@ -1130,7 +1130,7 @@ KS.boss('containers', {
       explain: 'Desired versus actual, repeated forever, is the control loop. A Deployment is the object that maintains the number of pods.' },
 
     { type: 'mcq', q: 'A small team runs three services with steady traffic and no dedicated operations person. Which is the sensible starting point?',
-      options: ['Containers on one server with Compose, or a platform that runs them for you', 'A large self-managed Kubernetes cluster from day one', 'Abandon containers entirely', 'One container holding all three services'],
+      options: ['Compose on one server, or a platform that runs them for you', 'A large self-managed Kubernetes cluster from day one', 'Abandon containers entirely', 'One container holding all three services'],
       answer: 0,
       why: [null, 'That brings a lot of complexity the team does not yet need.', 'Containers still solve "works on my machine". It is orchestration that can wait.', 'That gives up independent restarts and scaling.'],
       explain: 'Match the tool to the problem. Kubernetes shines with many services, several teams and many machines, and it is expensive in learning and upkeep until then.' }

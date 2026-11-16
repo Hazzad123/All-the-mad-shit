@@ -163,7 +163,7 @@ WHERE city = 'Bristol';`,
       ],
       outro: 'Remember the pattern: files are fine until **many users, lots of data or valuable data** show up. Then you want a DBMS.' },
 
-    { type: 'short', q: 'What is the word for the blueprint of a database: its tables, columns and types?', accept: ['schema', 'the schema'], hint: 'Starts with an S, and a table has to be declared in one.',
+    { type: 'short', q: 'What is the word for the blueprint of a database: its tables, columns and types?', accept: ['schema', 'the schema', 'database schema', 'schemas'], hint: 'Starts with an S, and a table has to be declared in one.',
       explain: 'The **schema** describes the shape of the data. The data itself is the rows that fill that shape.' },
 
     { type: 'explain', prompt: 'A friend says: "Why use a database? I can just save my app’s data in a file." Give two or three reasons it stops working.',
@@ -391,7 +391,7 @@ KS.lesson('db-keys-relationships', {
       ],
       outro: 'Relationship first, then keys, then constraints. That is the order of thought for nearly every table you will design.' },
 
-    { type: 'short', q: 'What do you call the extra table that connects two tables in a many-to-many relationship, such as `order_items`? (one word, before "table")', accept: ['join', 'junction', 'link', 'linking', 'bridge', 'associative'], hint: 'It "joins" the two sides together.',
+    { type: 'short', q: 'What do you call the extra table that connects two tables in a many-to-many relationship, such as `order_items`? (one word, before "table")', accept: ['join', 'junction', 'link', 'linking', 'bridge', 'associative', 'join table', 'junction table', 'link table', 'linking table', 'bridge table', 'associative table'], hint: 'It "joins" the two sides together.',
       explain: 'A **join table** (or junction/link table) holds one row per pairing, with a foreign key to each side.' },
 
     { type: 'explain', prompt: 'Explain to a friend what a foreign key is and why we store the customer’s id in orders rather than their name.',
@@ -1500,8 +1500,8 @@ KS.lesson('db-engines', {
       why: [null, 'Price is not a measure of fit. It is a licence cost.', 'SQLite allows only one writer at a time, so it is a poor shared server database.', 'A joke answer, but the instinct to "just pick" is what a default is for.'],
       explain: 'With no constraints, the common, well-supported, feature-rich option is the low-regret pick. That is PostgreSQL.' },
 
-    { type: 'tf', after: 6, statement: 'SQLite needs a separate database server process running before your app can use it.', answer: false,
-      explain: 'SQLite is a library that reads and writes a single file directly. There is no server, no network connection and no setup, which is why it appears inside phones and browsers.' },
+    { type: 'tf', after: 6, statement: 'SQLite runs inside your app’s own process, with no separate database server to start.', answer: true,
+      explain: 'True: SQLite is a library that reads and writes a single file directly. There is no server, no network connection and no setup, which is why it appears inside phones and browsers.' },
 
     { type: 'match', after: 7, prompt: 'Match each database to the line that fits it best.',
       pairs: [['PostgreSQL', 'Free, feature-rich, a safe default'], ['MySQL', 'Long-time web workhorse, owned by Oracle'], ['MariaDB', 'A fork of MySQL by its original creators'], ['SQL Server', 'Microsoft’s commercial engine'], ['SQLite', 'A whole database in a single file']] },
@@ -1719,8 +1719,8 @@ KS.lesson('db-migrations', {
       why: [null, 'Production has already recorded 0003 as done. It will never run it again, so databases drift apart.', 'Fresh databases would now be built differently from production.', 'A hand-made change is exactly what migrations exist to prevent. Nobody else will have it.'],
       explain: 'Applied migrations are history. Fix forward with a new file, so every database ends up in the same state by replaying the same list.' },
 
-    { type: 'tf', after: 3, statement: 'A down migration can always fully restore a database to how it was before the up migration ran.', answer: false,
-      explain: 'Down migrations can undo structure, but not destroyed data. If the up migration dropped a column, rolling back recreates an empty column; the old values are gone unless you restored a backup.' },
+    { type: 'tf', after: 3, statement: 'A down migration can recreate a dropped column, but it cannot bring back the values that were in it.', answer: true,
+      explain: 'True. Down migrations can undo structure, but not destroyed data. If the up migration dropped a column, rolling back recreates an empty column; the old values are gone unless you restored a backup.' },
 
     { type: 'order', after: 7, prompt: 'Put the expand/contract steps for renaming `city` to `town` in a safe order.',
       items: ['Add the new `town` column', 'Deploy code that writes to both columns', 'Backfill `town` for existing rows', 'Deploy code that reads from `town`', 'Drop the old `city` column'],
@@ -1871,7 +1871,7 @@ FROM products
       pairs: [['PostgreSQL', 'Free, standards-friendly default for new projects'], ['SQLite', 'A whole database in one file, no server'], ['MariaDB', 'A fork of MySQL'], ['Oracle Database', 'Commercial engine common in large enterprises'], ['Migration', 'A versioned file describing one schema change']] },
 
     { type: 'mcq', q: 'A login form builds `"... WHERE email = \'" + email + "\'"` by gluing strings. What is the correct fix?',
-      options: ['Use a parameterised query so the value is sent separately from the SQL', 'Reject any email containing a quote mark', 'Switch to a different database engine', 'Hide the login form’s error messages'],
+      options: ['Use a parameterised query, sending the value separately', 'Reject any email address that contains a quote mark', 'Switch to a different database engine', 'Hide the login form’s error messages'],
       answer: 0,
       why: [null, 'Blocklists miss cases, and apostrophes are legal in real names and emails. Placeholders fix the cause.', 'Every SQL engine is vulnerable to string-built queries.', 'Hiding errors does not stop the injection itself.'],
       explain: 'Placeholders keep the command and the data apart, so user input can never be interpreted as SQL.' },

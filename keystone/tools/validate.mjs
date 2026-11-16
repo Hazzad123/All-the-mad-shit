@@ -4,6 +4,7 @@
  *   node tools/validate.mjs http oop        → validate only those modules
  *   node tools/validate.mjs --spec http     → print the spec (lesson ids, titles, topics) for a module
  *   node tools/validate.mjs --stats         → per-module size table
+ *   node tools/validate.mjs --glossary      → list glossary terms whose definitions differ a lot (only the first is shown in the app)
  * Exit code 1 if there are errors. Warnings do not fail the run. */
 import vm from 'node:vm';
 import fs from 'node:fs';
@@ -27,10 +28,10 @@ const KS = {
 };
 const problems = [];
 const ctx = vm.createContext({ KS, window: { KS }, console });
-function run(file) {
+function run(file, quiet) {
   currentFile = path.basename(file, '.js');
   try { vm.runInContext(fs.readFileSync(file, 'utf8'), ctx, { filename: file }); return true; }
-  catch (e) { problems.push(['error', currentFile, '-', 'JavaScript error: ' + (e && e.message) + (e && e.stack ? ' @ ' + String(e.stack).split('\n').slice(0, 2).join(' ') : '')]); return false; }
+  catch (e) { if (!quiet) problems.push(['error', currentFile, '-', 'JavaScript error: ' + (e && e.message) + (e && e.stack ? ' @ ' + String(e.stack).split('\n').slice(0, 2).join(' ') : '')]); return false; }
 }
 for (const f of ['curriculum-1.js', 'curriculum-2.js', 'curriculum-3.js', 'roadmaps.js']) run(path.join(root, 'content', f));
 
@@ -67,6 +68,8 @@ for (const id of targets) {
   if (!fs.existsSync(file)) { missingFiles.push(id); continue; }
   run(file);
 }
+// The other modules are loaded quietly so glossary links and term clashes can be checked across the course.
+for (const m of modules) { if (targets.includes(m.id)) continue; const f = path.join(root, 'content', 'modules', m.id + '.js'); if (fs.existsSync(f)) run(f, true); }
 
 // ---------- helpers ----------
 const err = (mod, where, msg) => problems.push(['error', mod, where, msg]);
@@ -77,11 +80,15 @@ const VISUAL_KINDS = ['sequence', 'diagram', 'layers', 'compare', 'steps'];
 const ACT_TYPES = ['mcq', 'multi', 'tf', 'ab', 'match', 'order', 'bucket', 'cloze', 'spot', 'short', 'estimate', 'scenario', 'explain'];
 const BOSS_TYPES = ['mcq', 'multi', 'tf', 'ab', 'match', 'order', 'bucket', 'cloze', 'spot', 'short', 'estimate'];
 const TONES = ['accent', 'good', 'warn', 'bad', 'info', 'muted'];
+const links = []; // [module, where, target] for every [[glossary link]]
+const slug = s => String(s || '').toLowerCase().replace(/&/g, ' and ').replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
+const trivialLine = l => l === undefined || /^[\s\]\)\}\;,]*$/.test(l);
 const plainLen = s => String(s || '').replace(/```[\s\S]*?```/g, '').replace(/\s+/g, ' ').trim().length;
 
 function checkText(mod, where, s, label) {
   if (typeof s !== 'string') return;
-  if (/\b(TODO|TBD|lorem ipsum|FIXME)\b/i.test(s)) err(mod, where, `${label}: contains placeholder text`);
+  if (/\b(TODO|TBD|FIXME|XXX):|\bFIXME\b|\bTBD\b|@@END|lorem ipsum/.test(s)) err(mod, where, `${label}: contains placeholder text`);
+  for (const m of s.matchAll(/\[\[([^\]|]+)(?:\|([^\]]+))?\]\]/g)) links.push([mod, where, m[2] || m[1]]);
   const noFence = s.replace(/```[\s\S]*?```/g, '');
   if ((noFence.match(/`/g) || []).length % 2 === 1) warn(mod, where, `${label}: odd number of backticks (unclosed inline code?)`);
   if ((s.match(/```/g) || []).length % 2 === 1) err(mod, where, `${label}: unclosed code fence`);
@@ -100,7 +107,12 @@ function checkCode(mod, where, code, label, opts = {}) {
   const ind = Math.min(...lines.filter(l => l.trim()).map(l => l.match(/^ */)[0].length));
   const longest = Math.max(...lines.map(l => l.length - (isFinite(ind) ? ind : 0)));
   if (longest > 96) warn(mod, where, `${label}: a code line is ${longest} chars wide — wrap at ~80 so it fits on a phone`);
-  if (code.notes) for (const k of Object.keys(code.notes)) { if (!(+k >= 1 && +k <= lines.length)) err(mod, where, `${label}: code.notes key ${k} is outside the code (1..${lines.length})`); }
+  if (code.notes) for (const k of Object.keys(code.notes)) {
+    if (!(+k >= 1 && +k <= lines.length)) err(mod, where, `${label}: code.notes key ${k} is outside the code (1..${lines.length})`);
+    else if (trivialLine(lines[k - 1])) warn(mod, where, `${label}: note ${k} sits on a blank or bracket-only line ("${lines[k - 1].trim()}") — is it one line off?`);
+    checkText(mod, where, code.notes[k], 'note');
+  }
+  opts.lines && opts.lines.push(...lines);
   return lines.length;
 }
 
@@ -173,7 +185,7 @@ function checkAct(mod, where, a, nCards, typeList) {
       if (!Number.isInteger(a.answer) || a.answer < 0 || a.answer >= a.options.length) err(mod, where, 'mcq answer must be an option index');
       if (a.why && (!Array.isArray(a.why) || a.why.length !== a.options.length)) err(mod, where, 'mcq why must have one entry per option');
       if (!a.fixed && a.options.some(o => /^(all|none|both) of (the|these)|^(a|b) and (b|c)$/i.test(o.trim()))) err(mod, where, 'options are shuffled — avoid "all/none of the above" (or set fixed: true)');
-      { const lens = a.options.map(o => o.length); const right = lens[a.answer]; const others = lens.filter((_, i) => i !== a.answer); if (right > 1.9 * Math.max(...others) && right > 60) warn(mod, where, 'the correct option is much longer than the others — a giveaway'); }
+      { const lens = a.options.map(o => o.length); const right = lens[a.answer]; const others = lens.filter((_, i) => i !== a.answer); if (right > 1.4 * Math.max(...others) && right > 40) warn(mod, where, `the correct option is ${(right / Math.max(...others)).toFixed(1)}× longer than any wrong one — a giveaway (aim for similar lengths)`); }
       needExplain(); break;
     case 'multi':
       if (!isStr(a.q)) err(mod, where, 'multi needs q');
@@ -186,7 +198,9 @@ function checkAct(mod, where, a, nCards, typeList) {
     case 'ab':
       if (!isStr(a.q)) err(mod, where, 'ab needs q');
       for (const k of ['a', 'b']) { const v = typeof a[k] === 'string' ? { lang: a.lang || 'js', src: a[k] } : a[k]; checkCode(mod, where, v, 'ab.' + k, { maxLines: 22 }); }
-      if (a.answer !== 'a' && a.answer !== 'b') err(mod, where, 'ab answer must be "a" or "b"'); needExplain(); break;
+      if (a.answer !== 'a' && a.answer !== 'b') err(mod, where, 'ab answer must be "a" or "b"');
+      if (/\b(In|Version|Option|Snippet|Code) [AB]\b|\b[AB] (is|does|has|uses|keeps|puts|wins|loses)\b|\b(first|second|top|bottom|left-hand|right-hand) (version|one|snippet|option)\b/i.test(a.explain || '')) warn(mod, where, 'ab explain refers to "A" or "B" — the two sides can swap on screen; name them by their label or content');
+      needExplain(); break;
     case 'match':
       if (!isStr(a.prompt)) err(mod, where, 'match needs prompt');
       if (!Array.isArray(a.pairs) || a.pairs.length < 3 || a.pairs.length > 6 || !a.pairs.every(p => Array.isArray(p) && p.length === 2 && isStr(p[0]) && isStr(p[1]))) return err(mod, where, 'match needs 3–6 [left, right] pairs');
@@ -214,7 +228,10 @@ function checkAct(mod, where, a, nCards, typeList) {
       needExplain(); break; }
     case 'spot': {
       if (!isStr(a.prompt)) err(mod, where, 'spot needs prompt');
-      const n = checkCode(mod, where, typeof a.code === 'string' ? { lang: a.lang, src: a.code } : a.code, 'spot', { maxLines: 26 });
+      const codeLines = [];
+      const n = checkCode(mod, where, typeof a.code === 'string' ? { lang: a.lang, src: a.code } : a.code, 'spot', { maxLines: 26, lines: codeLines });
+      if (n === 1) err(mod, where, 'spot: the code has only one line, so any tap is right — split it into lines');
+      if (Array.isArray(a.lines)) a.lines.forEach(x => { if (Number.isInteger(x) && trivialLine(codeLines[x - 1])) warn(mod, where, `spot: answer line ${x} is blank or bracket-only — is it one line off?`); });
       if (!Array.isArray(a.lines) || !a.lines.length || !a.lines.every(x => Number.isInteger(x) && x >= 1 && (!n || x <= n))) err(mod, where, `spot lines must be 1-based line numbers inside the code (1..${n})`);
       else if (n && a.lines.length > Math.max(2, n / 3)) warn(mod, where, 'spot accepts too many lines — make the problem line specific');
       needExplain(); break; }
@@ -222,6 +239,8 @@ function checkAct(mod, where, a, nCards, typeList) {
       if (!isStr(a.q)) err(mod, where, 'short needs q');
       if (!Array.isArray(a.accept) || !a.accept.length || !a.accept.every(isStr)) err(mod, where, 'short needs accept: [strings]');
       else if (a.accept.some(x => x.length > 28)) warn(mod, where, 'short answers should be a word or two — long answers are frustrating to type');
+      { const W = { two: 2, three: 3, four: 4, five: 5, six: 6 }; const m = /\b(two|three|four|five|six)-letter\b/i.exec(a.q || '');
+        if (m && Array.isArray(a.accept) && !a.accept.some(x => x.replace(/[^a-z0-9]/gi, '').length === W[m[1].toLowerCase()])) err(mod, where, `short: the question says "${m[0]}" but no accepted answer has ${W[m[1].toLowerCase()]} letters`); }
       needExplain(); break;
     case 'estimate':
       if (!isStr(a.q)) err(mod, where, 'estimate needs q');
@@ -229,6 +248,11 @@ function checkAct(mod, where, a, nCards, typeList) {
       if (!isStr(a.unit)) err(mod, where, 'estimate needs unit');
       if (a.scale !== 'linear' && (a.min != null) !== (a.max != null)) err(mod, where, 'estimate: give both min and max, or neither');
       if (a.min != null && a.max != null && !(a.min < a.answer && a.answer < a.max)) err(mod, where, 'estimate answer must lie between min and max');
+      if (a.scale !== 'linear' && a.min != null && !(a.min > 0)) err(mod, where, 'estimate: a log-scale slider needs min > 0 (use scale: "linear" to start at 0)');
+      if (a.min != null && a.max != null && a.min < a.answer && a.answer < a.max && (a.scale === 'linear' || a.min > 0)) {
+        const pos = a.scale === 'linear' ? (a.answer - a.min) / (a.max - a.min) : (Math.log10(a.answer) - Math.log10(a.min)) / (Math.log10(a.max) - Math.log10(a.min));
+        if (pos < 0.04 || pos > 0.96) err(mod, where, `estimate: the answer sits at the very end of the slider (${Math.round(pos * 100)}%) — widen min/max or use scale: "linear"`);
+      }
       needExplain(); break;
     case 'scenario':
       if (!isStr(a.title)) err(mod, where, 'scenario needs title');
@@ -257,7 +281,7 @@ function checkLesson(mod, id, L) {
   if (!L || typeof L !== 'object') return err(mod, w, 'lesson data missing');
   if (!isStr(L.eli5)) err(mod, w, 'eli5 missing'); else if (L.eli5.length < 30 || L.eli5.length > 240) warn(mod, w, `eli5 should be one plain sentence (30–240 chars); got ${L.eli5.length}`);
   const cards = L.cards;
-  if (!Array.isArray(cards) || cards.length < 5) err(mod, w, `needs at least 6 cards (has ${Array.isArray(cards) ? cards.length : 0})`);
+  if (!Array.isArray(cards) || cards.length < 5) err(mod, w, `needs at least 5 cards, ideally 7–10 (has ${Array.isArray(cards) ? cards.length : 0})`);
   else {
     if (cards.length < 6) warn(mod, w, `only ${cards.length} cards — aim for 6–10`); if (cards.length > 12) warn(mod, w, `${cards.length} cards is a lot — aim for 6–10`);
     cards.forEach((c, i) => checkCard(mod, `${w} card ${i}`, c));
@@ -301,17 +325,51 @@ for (const id of targets) {
   if (!b) err(id, 'boss', 'missing KS.boss(moduleId, {...})');
   else {
     if (!isStr(b.title) || !isStr(b.intro)) err(id, 'boss', 'boss needs title and intro');
-    if (!Array.isArray(b.questions) || b.questions.length < 8 || b.questions.length > 14) err(id, 'boss', 'boss needs 8–14 questions');
-    else { b.questions.forEach((q, i) => { if (q && q.after != null) warn(id, `boss q${i}`, 'boss questions do not use `after`'); checkAct(id, `boss q${i} (${q && q.type})`, q, null, BOSS_TYPES); }); if (new Set(b.questions.map(q => q.type)).size < 3) warn(id, 'boss', 'use at least 3 question types in the boss battle'); }
+    if (!Array.isArray(b.questions) || b.questions.length < 8 || b.questions.length > 14) err(id, 'boss', 'boss needs 8–14 questions (aim for 10–13)');
+    else {
+      if (b.questions.length < 10 || b.questions.length > 13) warn(id, 'boss', `boss has ${b.questions.length} questions — the guide asks for 10–13`);
+      b.questions.forEach((q, i) => { if (q && q.after != null) warn(id, `boss q${i}`, 'boss questions do not use `after`'); checkAct(id, `boss q${i} (${q && q.type})`, q, null, BOSS_TYPES); });
+      if (new Set(b.questions.map(q => q.type)).size < 4) warn(id, 'boss', 'use at least 4 question types in the boss battle');
+    }
   }
   const s = sheets[id];
   if (!s) err(id, 'sheet', 'missing KS.sheet(moduleId, {...})');
   else {
     if (!isStr(s.title)) err(id, 'sheet', 'sheet needs a title');
-    if (!Array.isArray(s.sections) || s.sections.length < 3 || s.sections.length > 10) err(id, 'sheet', 'sheet needs 3–10 sections');
-    else s.sections.forEach((x, i) => { if (!isStr(x.title) || !isStr(x.md)) err(id, `sheet section ${i}`, 'needs title and md'); checkText(id, `sheet section ${i}`, x.md, 'md'); });
+    if (!Array.isArray(s.sections) || s.sections.length < 3 || s.sections.length > 10) err(id, 'sheet', 'sheet needs 3–10 sections (aim for 4–7)');
+    else {
+      if (s.sections.length < 4 || s.sections.length > 7) warn(id, 'sheet', `sheet has ${s.sections.length} sections — the guide asks for 4–7`);
+      s.sections.forEach((x, i) => { if (!isStr(x.title) || !isStr(x.md)) err(id, `sheet section ${i}`, 'needs title and md'); checkText(id, `sheet section ${i}`, x.md, 'md'); const words = String(x.md || '').split(/\s+/).filter(t => /[a-z0-9]/i.test(t) && !/^[-|:]+$/.test(t)).length; if (words > 125) warn(id, `sheet section ${i}`, `${words} words — the guide asks for 40–110 per section`); });
+    }
   }
+  { const tfs = []; for (const l of m.lessons) for (const a of (lessons[l.id] && lessons[l.id].activities) || []) if (a && a.type === 'tf') tfs.push(a.answer);
+    for (const q of (b && b.questions) || []) if (q && q.type === 'tf') tfs.push(q.answer);
+    const t = tfs.filter(Boolean).length;
+    if (tfs.length >= 5 && (t / tfs.length < 0.3 || t / tfs.length > 0.7)) warn(id, 'tf', `${t} of ${tfs.length} true/false statements are true — aim for a mix (30–70%) so "always say false" doesn't work`); }
   stats.push([id, m.lessons.length, nCards, nActs, Math.round(chars / 1024)]);
+}
+
+// ---------- glossary: links that point nowhere, and one term defined with two different meanings ----------
+{
+  const gloss = {}, alias = {};
+  for (const m of modules) for (const l of m.lessons) for (const g of (lessons[l.id] && lessons[l.id].glossary) || []) {
+    if (!g || !isStr(g.term)) continue; const s = slug(g.term);
+    (gloss[s] = gloss[s] || []).push({ lesson: l.id, mod: m.id, def: g.def || '' });
+    for (const a of g.aka || []) alias[slug(a)] = s;
+  }
+  for (const [mod, where, target] of links) if (targets.includes(mod) && !gloss[slug(target)] && !gloss[alias[slug(target)]]) err(mod, where, `glossary link [[…${target === undefined ? '' : '|' + target}]] matches no glossary term or aka`);
+  const STOP = new Set('that this with from into your what when which their they them have will than then more most some such only also each other about where while just like used uses using does make makes made over many very same often every between without because'.split(' '));
+  const words = d => new Set(String(d).toLowerCase().replace(/[^a-z ]/g, ' ').split(/\s+/).filter(w => w.length > 3 && !STOP.has(w)).map(w => w.replace(/(ing|ed|es|s)$/, '')));
+  // Wording differs a lot between writers, so this is a report for a human to read (--glossary), not a warning.
+  if (flags.has('--glossary')) for (const [s, defs] of Object.entries(gloss)) {
+    if (defs.length < 2) continue;
+    const first = defs[0];
+    for (const d of defs.slice(1)) {
+      if (!targets.includes(d.mod) && !targets.includes(first.mod)) continue;
+      const A = words(first.def), B = words(d.def); const inter = [...A].filter(x => B.has(x)).length; const jac = inter / (A.size + B.size - inter || 1);
+      if (jac < 0.08) console.log(`glossary "${s}": ${first.lesson} → ${first.def.slice(0, 70)}…\n${' '.repeat(12 + s.length)}${d.lesson} → ${d.def.slice(0, 70)}…`);
+    }
+  }
 }
 
 // ---------- global checks ----------

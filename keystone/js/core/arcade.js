@@ -37,7 +37,7 @@
       destroy: function () { if (closed) return; closed = true; fr.timers.forEach(function (f) { f(); }); document.removeEventListener('keydown', onKey); root.remove(); }
     };
     function onKey(e) {
-      if (!root.isConnected) return; if (document.querySelector('.modal-back') || document.querySelector('.palette-back')) return;
+      if (!root.isConnected || e.defaultPrevented) return; if (document.querySelector('.modal-back') || document.querySelector('.palette-back') || document.querySelector('.popover')) return;
       const tag = (e.target && e.target.tagName) || ''; if (tag === 'INPUT' || tag === 'TEXTAREA') { if (e.key === 'Escape') e.target.blur(); return; }
       if (e.key === 'Escape') { fr.exit(); return; }
       if (fr.keys && fr.keys(e)) e.preventDefault();
@@ -327,7 +327,7 @@
       else if (id === 'rush') current = A.playlist(host, Object.assign(base, { hearts: 3, xpPer: 3, items: actItems(KS.sampleN(C.poolSmart({ types: QUICK }, 8), 12)), bonus: function (r, g) { return g >= 12 && r >= 10 ? 10 : 0; } }));
       else if (id === 'daily') {
         const rnd = KS.rng('daily-' + KS.today()); let pool = C.pool({ types: QUICK.concat(['match', 'bucket']), scope: 'learned' }); if (pool.length < 15) pool = C.pool({ types: QUICK.concat(['match', 'bucket']), scope: 'all' });
-        const first = !S.day().d;
+        const first = !S.dayTotals().d;
         current = A.playlist(host, Object.assign(base, { items: actItems(KS.sampleN(pool, 5, rnd)), xpPer: 4, onAgain: null, endTitle: 'Daily challenge done!', lines: [first ? '📅 First run today: **+15 bonus XP**' : 'Already claimed today’s bonus — this one was for practice.'], bonus: function () { if (first) { S.day().d = 1; S.save(); return 15; } return 0; } }));
       }
       else if (id === 'sorter') current = A.playlist(host, Object.assign(base, { items: actItems(KS.sampleN(C.poolSmart({ types: ['bucket'] }, 3), 4)), xpPer: 5 }));

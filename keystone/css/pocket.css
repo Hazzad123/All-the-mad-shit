@@ -38,3 +38,9 @@ a.pcard:hover { text-decoration: none; }
 .pview .set-row, .pview .data-row { padding: 12px 0; } .pview .set-ctl input[type="text"] { width: 150px; } .pview .seg { flex-wrap: wrap; }
 .pview .btn, .pfocus .btn { min-height: 44px; }
 .pview .rm-nodes { gap: 6px; } .pview .heat-cell { width: 11px; height: 11px; } .pview .heat { grid-template-rows: repeat(7, 11px); grid-auto-columns: 11px; }
+
+/* Touch targets in labs: at least 44px tall, so mode pickers and switches are easy to hit with a thumb. */
+.pfocus .lab-seg button { min-height: 44px; padding-left: 14px; padding-right: 14px; }
+.pfocus .lab-toggle { min-height: 44px; }
+.pfocus .lab-slider input[type="range"] { min-height: 44px; }
+.pfocus .lab-select select, .pfocus .lab-input input { min-height: 44px; }

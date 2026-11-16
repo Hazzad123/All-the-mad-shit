@@ -242,8 +242,8 @@ KS.lesson('ep-domain-model', {
           }
         }`,
         notes: {
-          6: 'The object **protects itself**: you simply cannot add lines to a closed order, from any script.',
-          13: 'The discount rule lives in **one place**. Checkout, quotes and reorders all call \`total()\`.',
+          5: 'The object **protects itself**: you simply cannot add lines to a closed order, from any script.',
+          12: 'The discount rule lives in **one place**. Checkout, quotes and reorders all call \`total()\`.',
           16: '\`ship()\` enforces its own rule too. Callers cannot put the order into a nonsense state.'
         } } },
 
@@ -322,7 +322,7 @@ KS.lesson('ep-domain-model', {
           }
         }` },
       answer: 'b',
-      explain: 'When the check lives in the object, there is one front door and it always checks. With the rule in a separate function, any other code can still reach in and break it. (Making the list private goes further still.)' },
+      explain: 'When the check lives in the object, there is one front door and it always checks. With the rule kept outside the object, any other code can still reach in and break it. (Making the list private goes further still.)' },
 
     { type: 'spot', prompt: 'This is meant to be a domain model, but it is missing the point. Tap the line that is the giveaway.',
       code: { lang: 'js', src: `
@@ -455,7 +455,7 @@ KS.lesson('ep-entities-value-objects', {
         notes: {
           3: 'Two \`Customer\` objects are the same customer if the **ids** match, even when the names differ (say, one copy loaded before her name change).',
           10: 'Two \`Money\` objects are equal when **every attribute** matches. There is no id.',
-          14: 'In JavaScript \`===\` on objects asks "same object in memory?", which is not what we mean. That is why value objects need an \`equals\` method.'
+          15: 'In JavaScript \`===\` on objects asks "same object in memory?", which is not what we mean. That is why value objects need an \`equals\` method.'
         } } },
 
     { kind: 'compare', title: 'Entity versus value object',
@@ -953,8 +953,8 @@ KS.lesson('ep-mappers-orms', {
       why: [null, 'Speed is a separate matter. This is about structure.', 'Capacity is not the issue; shape is.', 'SQL is a perfectly good language for its purpose. It simply works on tables of rows.'],
       explain: 'Objects point at one another and can be nested or inherit. Tables are flat rows linked by keys. Translating between those shapes is the mismatch that mappers and ORMs deal with.' },
 
-    { type: 'tf', after: 4, statement: 'With the data mapper pattern, the domain object itself contains the SQL that saves it.', answer: false,
-      explain: 'That is the active record pattern. In data mapper the object stays plain and a separate mapper holds the SQL, which keeps the object testable and free of storage concerns.' },
+    { type: 'tf', after: 4, statement: 'With the data mapper pattern, the domain object knows nothing about the SQL that saves it.', answer: true,
+      explain: 'Putting the SQL on the object is the active record pattern. In data mapper the object stays plain and a separate mapper holds the SQL, which keeps the object testable and free of storage concerns.' },
 
     { type: 'bucket', prompt: 'Which pattern does each description fit?', buckets: ['Active Record', 'Data Mapper'],
       items: [['`user.save()`', 0], ['`mapper.save(user)`', 1], ['The object extends a base class that knows the database', 0], ['The domain object is plain, with no database imports', 1], ['Quick to start for simple CRUD', 0], ['A good fit for a rich domain model', 1]],
@@ -1133,7 +1133,7 @@ KS.lesson('ep-identity-map', {
 
   activities: [
     { type: 'mcq', after: 0, q: 'What problem does an identity map solve?',
-      options: ['Loading the same row twice gives two separate objects that can disagree', 'Rows take too long to be found without an index', 'Two users logging in with the same password', 'Tables that have no primary key'],
+      options: ['One row loaded twice becomes two objects that can disagree', 'Lookups by id are slow because the table has no index', 'Two users logging in with the same password', 'Tables that have no primary key'],
       answer: 0,
       why: [null, 'That is what a database index is for, not an identity map.', 'That is an authentication matter. Identity maps are about in-memory objects.', 'Identity maps rely on primary keys. They do not replace them.'],
       explain: 'Without it, one row can exist as several in-memory objects. Changes to one are invisible to the others, and the last save wins. An identity map guarantees one object per row per session.' },
@@ -1352,7 +1352,7 @@ KS.lesson('ep-dtos', {
       why: [null, 'That is an entity (or a domain object). DTOs deliberately have no rules.', 'A DTO is just data in transit. It does not store or replace anything.', 'Backups are unrelated.'],
       explain: 'A DTO is a plain, behaviour-free parcel of data, shaped for whoever receives it, so internal objects never have to leave the building.' },
 
-    { type: 'tf', after: 4, statement: 'A DTO should contain the business rules for the thing it describes.', answer: false,
+    { type: 'tf', after: 4, statement: 'A DTO is deliberately just fields: the business rules for the thing it describes live elsewhere.', answer: true,
       explain: 'DTOs are dumb on purpose: just fields. Rules belong in entities and value objects. A DTO that grows behaviour has quietly become a second domain object.' },
 
     { type: 'spot', prompt: 'This update endpoint has a security hole. Tap the line that causes it.',
@@ -1540,7 +1540,7 @@ KS.lesson('ep-use-cases', {
 
   activities: [
     { type: 'mcq', after: 0, q: 'What is a use case in this sense?',
-      options: ['One class for one thing a user wants to get done, coordinating the work', 'A document listing a system’s requirements', 'A test that checks one feature works', 'A database table for storing orders'],
+      options: ['One class per user goal, coordinating the steps', 'A document listing what a system must do for users', 'A test that checks one feature works', 'A database table for storing orders'],
       answer: 0,
       why: [null, 'In requirements work "use case" means that. Here it is a unit of code.', 'Tests verify; a use case implements.', 'Tables belong to infrastructure.'],
       explain: 'An application-layer use case is a class that performs one user goal by orchestrating objects and repositories, while the business rules stay in the domain.' },
@@ -1581,7 +1581,7 @@ KS.lesson('ep-use-cases', {
           res.status(201).json(result);
         });` },
       answer: 'b',
-      explain: 'The thin controller only translates web to plain data and back. The real work is in a use case that can be reused from a job or a CLI and tested without a web server.' },
+      explain: 'The thin controller only translates web to plain data and back. The real work lives inside a use case that can be reused from a job or a CLI and tested without a web server.' },
 
     { type: 'cloze', text: 'A use case should {{orchestrate}} the work, leaving the business {{rules}} to the {{domain}} objects; its collaborators are passed in so tests can use in-memory {{fakes}}.',
       distractors: ['render', 'cache', 'routes'],
@@ -1920,7 +1920,7 @@ KS.boss('enterprise-patterns', {
       items: ['Take plain input from the controller', 'Load entities via repositories', 'Ask domain objects to do the work', 'Save the result and trigger side effects', 'Return a simple output'],
       explain: 'Orchestration runs from input to output: get the objects, let them decide, then save and report.' },
 
-    { type: 'short', q: 'In the Clean Architecture vocabulary, a class that performs one user goal is called a use case or an... what? (one word)', accept: ['interactor'], hint: 'It interacts with repositories and the domain.',
+    { type: 'short', q: 'In the Clean Architecture vocabulary, a class that performs one user goal is called a use case or an... what? (one word)', accept: ['interactor', 'interactors', 'use case interactor'], hint: 'It interacts with repositories and the domain.',
       explain: 'Interactor is Clean Architecture’s word for a use case. Domain-driven design calls the same layer application services.' },
 
     { type: 'cloze', text: 'A {{command}} changes state and may be refused, a {{query}} only reads, and a {{handler}} does the work for one message.',

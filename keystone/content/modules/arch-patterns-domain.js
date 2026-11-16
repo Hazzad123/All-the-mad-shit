@@ -102,7 +102,7 @@ KS.lesson('ddd-strategic', {
 
   activities: [
     { type: 'mcq', after: 0, q: 'In the three-meeting story, what is the real cause of the trouble?',
-      options: ['One word means different things in different areas, but the code forces a single meaning', 'The developers chose the wrong programming language', 'The database is too slow for three departments', 'The Customer class has too few fields'],
+      options: ['One word has different meanings per team, but the code forces one', 'The developers chose the wrong programming language', 'The database cannot cope with three departments’ traffic', 'The Customer class has too few fields'],
       answer: 0,
       why: [null, 'The language is irrelevant to the problem.', 'Performance never came into it.', 'More fields would make the shared class worse, not better.'],
       explain: 'Sales, shipping and billing mean different things by “customer”. One shared class couples them, so every change by one team can hurt the others.' },
@@ -133,7 +133,7 @@ KS.lesson('ddd-strategic', {
           item.setStatus(3);
         }` },
       answer: 'a',
-      explain: 'An underwriter could read the first version and say whether it is right. The second needs a translation table, and mistakes hide in the gap.' },
+      explain: 'An underwriter could read the domain-words version and say whether it is right. The technical-words version needs a translation table, and mistakes hide in the gap.' },
 
     { type: 'scenario', title: 'Where do the borders go?', intro: 'You join a company that sells and delivers fresh food. Everyone shares one giant model with a Customer, Product and Order used by all teams. Releases are slow because every change touches everyone.',
       meters: { 'team autonomy': 25, 'model clarity': 30 },
@@ -334,7 +334,7 @@ KS.lesson('ddd-tactical', {
       explain: 'Value objects are equal when all attributes match. Which instance you hold does not matter, which is exactly what makes them easy to reason about.' },
 
     { type: 'mcq', q: 'An Order needs to refer to the Customer who placed it. What does good aggregate design suggest?',
-      options: ['Store the customer’s ID in the Order and load the Customer separately when needed', 'Embed the full Customer object inside the Order', 'Make the Customer aggregate contain all of its Orders', 'Let the Order edit the Customer’s fields directly'],
+      options: ['Store only the customer’s ID and load the Customer when needed', 'Embed a full copy of the Customer object inside the Order', 'Make the Customer aggregate contain all of its Orders', 'Let the Order edit the Customer’s fields directly'],
       answer: 0,
       why: [null, 'Embedding makes the aggregates tangled and they must be loaded and locked together.', 'That produces a giant aggregate with locking and loading problems.', 'One aggregate should never change another’s insides.'],
       explain: 'Referencing by ID keeps each aggregate small, with its own consistency boundary and its own transaction.' },
@@ -920,7 +920,7 @@ KS.lesson('apx-queues-streams', {
       explain: 'Queues share out work and discard it when done. Streams keep the record so many readers can use it independently.' },
 
     { type: 'mcq', after: 4, q: 'What is the main advantage of event-carried state transfer over a thin event notification?',
-      options: ['Consumers keep their own copy and do not need to call back the sender', 'Messages are always smaller', 'The data can never be out of date', 'Only one consumer can read each event'],
+      options: ['Consumers need not call back the sender to get the data', 'The messages are smaller and cheaper to send', 'Every consumer’s copy is always perfectly up to date', 'Only one consumer can read each event'],
       answer: 0,
       why: [null, 'Fat messages are larger, not smaller.', 'Copies can be slightly stale, which is the trade-off.', 'Streams let many consumers read each event.'],
       explain: 'The event carries what the listener needs, so it keeps working even if the sender is down. The price is duplicated data that can lag.' },
@@ -929,8 +929,8 @@ KS.lesson('apx-queues-streams', {
       items: [['OrderPlaced { id: 7 } and the listener calls back for details', 0], ['OrderPlaced with items and address inside the message', 1], ['Listener stores its own copy of the data it needs', 1], ['Sender stays the single source of truth for details', 0], ['Listener still works when the sender is down', 1], ['Messages are tiny but cause follow-up requests', 0]],
       explain: 'Thin messages keep ownership clear but cause run-time coupling. Fat messages decouple the services and pay with copies of the data.' },
 
-    { type: 'tf', statement: 'In a Kafka-style stream, a message is deleted as soon as one consumer has read it.', answer: false,
-      explain: 'Streams retain messages for a set time or size, and each consumer group keeps its own position. That is what lets new consumers replay history.' },
+    { type: 'tf', statement: 'In a Kafka-style stream, a message stays in the log after one consumer reads it, so others can read it later.', answer: true,
+      explain: 'Unlike a queue, which removes a message once a worker has it, streams retain messages for a set time or size, and each consumer group keeps its own position. That is what lets new consumers replay history.' },
 
     { type: 'order', prompt: 'Put the transactional outbox in order.',
       items: ['A service receives a request to place an order', 'In one transaction, it saves the order and an OrderPlaced row in an outbox table', 'The transaction commits, so both exist or neither does', 'A separate publisher reads the outbox and sends the event to the stream', 'Other services receive OrderPlaced'],
@@ -1099,7 +1099,7 @@ KS.lesson('apx-actors', {
 
   activities: [
     { type: 'mcq', after: 2, q: 'How does the actor model avoid race conditions on an actor’s data?',
-      options: ['Only the actor can touch its state, and it handles one message at a time', 'Every message locks the whole system first', 'The data is copied to every actor', 'Actors take turns running on a single thread'],
+      options: ['Only the actor touches its state, one message at a time', 'Every message takes a lock on the whole system first', 'The data is copied to every actor', 'Actors take turns running on a single thread'],
       answer: 0,
       why: [null, 'Global locks are what the model avoids.', 'Copying would create inconsistency, not remove it.', 'Actors can run in parallel; they just never share state.'],
       explain: 'Private state plus one-at-a-time message handling means no two things ever change the same data simultaneously, so locks are unnecessary.' },
@@ -1137,7 +1137,7 @@ KS.lesson('apx-actors', {
           catch (e) { /* guess and carry on with unknown state */ }
         }` },
       answer: 'a',
-      explain: 'Swallowing an unexpected error leaves the actor in a possibly corrupt state with nobody the wiser. Failing loudly and restarting clean is simpler and safer.' },
+      explain: 'Swallowing an unexpected error leaves the actor holding possibly corrupt state with nobody the wiser. Failing loudly and restarting clean is simpler and safer.' },
 
     { type: 'scenario', title: 'Design an online game lobby', intro: 'You are building the back end for an online card game. Thousands of players join tables at once. Each table has strict rules, and bugs in one table must not affect others.',
       meters: { 'isolation': 30, 'simplicity': 40 },
@@ -1406,7 +1406,7 @@ KS.boss('arch-patterns-domain', {
   intro: 'A sphinx sits at the crossroads of data and domain and asks riddles about boundaries, events and failures. Answer wisely: each pattern helps in one place and hurts in another.',
   questions: [
     { type: 'mcq', q: 'Sales, shipping and billing all use the word “customer” differently. In DDD terms, what is the right response?',
-      options: ['Give each bounded context its own customer model and define how they exchange data', 'Build one shared Customer class with every team’s fields', 'Ban the word “customer” and use technical IDs', 'Merge the three teams into one'],
+      options: ['Give each bounded context its own model, with agreed translations', 'Build one shared Customer class with every team’s fields', 'Ban the word “customer” and use technical IDs', 'Merge the three teams into one'],
       answer: 0,
       why: [null, 'A shared class couples all three teams to each other’s changes.', 'The ubiquitous language should use the business’s real words.', 'The problem is the model, not the headcount.'],
       explain: 'Bounded contexts let each area have a small, accurate model. Explicit contracts at the borders keep them cooperating without coupling.' },
@@ -1437,7 +1437,7 @@ KS.boss('arch-patterns-domain', {
       items: ['A command reaches the write model', 'The write model checks its rules and saves', 'An event announces the change', 'A projection updates the read store', 'A query reads the prepared data'],
       explain: 'Rules run first, the event carries the news, and the read side catches up a moment later. That gap is eventual consistency.' },
 
-    { type: 'short', q: 'What is the name for the lag between a write and the read model catching up in CQRS, in two words?', accept: ['eventual consistency'], hint: 'It will be consistent, eventually.',
+    { type: 'short', q: 'In CQRS the read model catches up with writes after a short delay. What is that consistency model called, in two words?', accept: ['eventual consistency', 'eventually consistent'], hint: 'It will be consistent, eventually.',
       explain: '**Eventual consistency**: the read model will reflect the change, but not instantly. Design the user experience for that short window.' },
 
     { type: 'estimate', q: 'An event-sourced account has 25,300 events. Snapshots are taken every 5,000 events, and the latest was after event 25,000. Roughly how many events must be replayed to rebuild the state?', answer: 300, unit: 'events', tolerance: 1.5,

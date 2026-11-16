@@ -341,8 +341,8 @@ KS.lesson('db-acid', {
       items: ['The app sends COMMIT', 'The changes are appended to the write-ahead log', 'The log is flushed to disk', 'The app is told the commit succeeded', 'The table files are updated later'],
       explain: 'The log goes first, and is on disk, **before** the app is told "done". That ordering is what makes the promise safe. Updating the main tables can lag behind because the log can rebuild them.' },
 
-    { type: 'tf', statement: 'If the server loses power one second after `COMMIT OK` was returned, the committed transfer may be lost.', answer: false,
-      explain: 'Once a commit has been acknowledged, the change is in the write-ahead log on disk, and the database will replay it on restart. That is exactly what durability promises.' },
+    { type: 'tf', statement: 'If the server loses power one second after `COMMIT OK` was returned, the committed transfer survives the restart.', answer: true,
+      explain: 'True: once a commit has been acknowledged, the change is in the write-ahead log on disk, and the database will replay it on restart. That is exactly what durability promises.' },
 
     { type: 'bucket', prompt: 'Something went wrong. Which ACID promise was broken?', buckets: ['Atomicity', 'Consistency', 'Isolation', 'Durability'],
       items: [['Half a transfer was saved: debited but never credited', 0], ['A balance ended up negative despite a rule saying it must not', 1], ['Two simultaneous updates overwrote one another', 2], ['A committed order vanished after a power cut', 3], ['A crash left an order row with no items', 0], ['A reader saw another user\'s unfinished changes', 2]],
@@ -353,7 +353,7 @@ KS.lesson('db-acid', {
       answers: [0, 1, 2],
       explain: 'ACID protects the mechanics of your data: all-or-nothing, rules, no trampling, survives a crash. Correct logic, backups and speed remain your responsibility.' },
 
-    { type: 'short', q: 'The file a database writes changes to before touching the tables is the write-ahead ___ (one word).', accept: ['log'], hint: 'The kitchen order tickets on the rail.',
+    { type: 'short', q: 'The file a database writes changes to before touching the tables is the write-ahead ___ (one word).', accept: ['log', 'write-ahead log', 'WAL'], hint: 'The kitchen order tickets on the rail.',
       explain: 'The write-ahead log (WAL) records every change first, so the database can replay it after a crash.' },
 
     { type: 'scenario', title: 'The 3 a.m. power cut',
@@ -879,9 +879,9 @@ KS.lesson('db-profiling', {
         Seq Scan on orders  (cost=0.00..18334.00 rows=52 width=40)
           Filter: (customer_id = 7)`,
         notes: {
+          1: 'To get a plan, put `EXPLAIN` before the query. Nothing is changed, and no results are returned.',
           3: '**Seq Scan** (sequential scan) means "reading the whole table". For twenty million rows, that is the red flag.',
-          4: 'The `Filter` is applied to each row **after** reading it. Rows are thrown away one by one.',
-          2: 'To get a plan, put `EXPLAIN` before the query. Nothing is changed, and no results are returned.'
+          4: 'The `Filter` is applied to each row **after** reading it. Rows are thrown away one by one.'
         } },
       note: '`cost` is the planner\'s own estimate in made-up units: only compare costs of plans for the **same** query. `rows` is how many rows it expects to match.' },
 
@@ -957,8 +957,8 @@ KS.lesson('db-profiling', {
       lines: [3],
       explain: '`Seq Scan` is the sequential scan: it reads every row of the table and filters afterwards. With an index in use, you would see an index scan instead.' },
 
-    { type: 'tf', after: 6, statement: '`EXPLAIN ANALYZE` on a `DELETE` statement is harmless because it only describes the plan.', answer: false,
-      explain: '`EXPLAIN ANALYZE` actually executes the statement to get real timings, so a `DELETE` really deletes. Use plain `EXPLAIN`, or wrap the experiment in a transaction and roll it back.' },
+    { type: 'tf', after: 6, statement: 'In PostgreSQL, running `EXPLAIN ANALYZE` on a `DELETE` statement really deletes the rows.', answer: true,
+      explain: 'True: `EXPLAIN ANALYZE` actually executes the statement to get real timings, so a `DELETE` really deletes. Use plain `EXPLAIN`, or wrap the experiment in a transaction and roll it back.' },
 
     { type: 'ab', q: 'Both queries find a customer by email, and there is an index on `email`. Which one will the planner be able to use the index for?',
       a: { lang: 'sql', label: 'Version 1', src: `
@@ -1144,7 +1144,7 @@ KS.lesson('db-orms', {
 
   activities: [
     { type: 'mcq', after: 1, q: 'What is the main job of an ORM?',
-      options: ['To translate between objects in your code and rows in database tables', 'To make the database faster by caching everything', 'To replace the need to understand SQL entirely', 'To store objects in a format that is not a table'],
+      options: ['To translate between objects in code and rows in tables', 'To make the database faster by caching everything', 'To replace the need to understand SQL entirely', 'To store objects in a format that is not a table'],
       answer: 0,
       why: [null, 'An ORM may add a little caching, but speed is not its purpose and it can make some things slower.', 'It writes the SQL for you, but you still need to understand it when things go wrong.', 'ORMs sit on top of relational databases and still use tables.'],
       explain: 'ORM stands for object–relational mapper. It maps classes to tables and fields to columns, and generates the SQL in between.' },
@@ -1575,8 +1575,8 @@ KS.lesson('db-failure-modes', {
       why: [null, 'Backups are for disasters like a lost disk, not for ordinary crashes.', 'The database is responsible for its own committed data.', 'It does not throw away committed work; that would break durability.'],
       explain: 'The write-ahead log is written to disk before commits are acknowledged, so crash recovery can replay it. Backups are the answer to different failures, like corruption or a destroyed disk.' },
 
-    { type: 'tf', after: 7, statement: 'If your backups run every night without errors, you know you can restore from them.', answer: false,
-      explain: 'A backup job succeeding only proves a file was written. Only a test restore proves the data is complete, usable and fast enough to restore within your RTO.' },
+    { type: 'tf', after: 7, statement: 'Backups that run every night without errors still do not prove you can restore from them.', answer: true,
+      explain: 'True: a backup job succeeding only proves a file was written. Only a test restore proves the data is complete, usable and fast enough to restore within your RTO.' },
 
     { type: 'estimate', after: 8, q: 'Backups run once a night. In the worst case, roughly how many hours of data could you lose (your RPO)?', answer: 24, unit: 'hours', min: 1, max: 1000, tolerance: 1.5,
       explain: 'If the failure strikes just before the next backup, everything since the last one is gone: close to a full day. A lower RPO needs more frequent backups or a continuously updated copy.' },
@@ -1720,7 +1720,7 @@ SELECT * FROM customers WHERE id {{IN}} (12, 7, 31);`,
       distractors: ['HAVING', 'BETWEEN', 'ANY'],
       explain: 'The loop issues one lookup per order (N). Batching the ids into one `IN (…)` query replaces N round trips with one.' },
 
-    { type: 'short', q: 'What is the name of the problem where one list query is followed by one extra query per item? (write it as N plus a number)', accept: ['N+1', 'Nplus1', 'N+1 problem'], hint: 'Eager loading fixes it.',
+    { type: 'short', q: 'What is the name of the problem where one list query is followed by one extra query per item? (write it as N plus a number)', accept: ['N+1', 'Nplus1', 'N+1 problem', 'N plus one', 'N+1 queries', 'N+1 query problem'], hint: 'Eager loading fixes it.',
       explain: 'The N+1 problem: one query for the list plus N queries for the details. Joins, `IN` batches or eager loading fix it.' },
 
     { type: 'estimate', q: 'A restore of your database takes about 6 hours. If you declared an RTO of 1 hour, roughly by what factor are you missing it?', answer: 6, unit: '× over the RTO', min: 1, max: 100, tolerance: 1.5,

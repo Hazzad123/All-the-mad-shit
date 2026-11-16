@@ -1306,7 +1306,7 @@ KS.boss('languages-git', {
       explain: 'Branches are cheap precisely because they are only pointers. Moving between them swaps which commit your files match.' },
 
     { type: 'mcq', q: 'You checked out an old commit, made two commits there and Git says "detached HEAD". How do you keep that work safely?',
-      options: ['Create a branch right there, for example with `git switch -c rescue`', 'Switch to main immediately and carry on', 'Run `git reset --hard` to tidy up', 'Delete the repository and clone again'],
+      options: ['Create a branch there: `git switch -c rescue`', 'Switch to main immediately and carry on', 'Run `git reset --hard` to tidy up the mess', 'Delete the repository and clone it again'],
       answer: 0,
       why: [null, 'Nothing would point at your commits, so they become hard to find.', 'That would move things and could discard the very commits you want.', 'A fresh clone would not contain commits that were never on a branch you pushed.'],
       explain: 'A branch is just a label. Putting one on your detached commits means they are reachable again.' }

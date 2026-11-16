@@ -169,20 +169,22 @@
   // =====================================================================
   TYPES.ab = function (api) {
     const a = api.a; const panels = {};
-    function panel(k) {
-      const v = typeof a[k] === 'string' ? { src: a[k], lang: a.lang } : a[k];
-      const btn = h('button.btn.ab-pick', { type: 'button', onclick: function () { choose(k); } }, 'Choose ' + k.toUpperCase());
-      const p = h('div.ab-panel', h('div.ab-head', h('span.ab-tag', k.toUpperCase()), v.label ? h('span.ab-label', v.label) : null), KS.codeBlock(v.src, v.lang || a.lang || 'js'), btn);
+    // Which side shows first is random, so "B is usually better" can't be learned. Tags follow screen position.
+    const order = !a.fixed && Math.random() < 0.5 ? ['b', 'a'] : ['a', 'b'];
+    function panel(k, pos) {
+      const v = typeof a[k] === 'string' ? { src: a[k], lang: a.lang } : a[k]; const tag = pos ? 'B' : 'A';
+      const btn = h('button.btn.ab-pick', { type: 'button', onclick: function () { choose(k); } }, 'Choose ' + tag); btn._k = k;
+      const p = h('div.ab-panel', h('div.ab-head', h('span.ab-tag', tag), v.label ? h('span.ab-label', v.label) : null), KS.codeBlock(v.src, v.lang || a.lang || 'js'), btn);
       panels[k] = { el: p, btn: btn }; return p;
     }
-    api.body.appendChild(h('div.ab-row', panel('a'), panel('b')));
+    api.body.appendChild(h('div.ab-row', panel(order[0], 0), panel(order[1], 1)));
     function choose(k) {
       if (api.inst.done) return;
       const right = k === a.answer;
       ['a', 'b'].forEach(function (x) { panels[x].btn.disabled = true; if (x === a.answer) panels[x].el.classList.add('right'); else if (x === k) panels[x].el.classList.add('wrong'); });
       api.finish({ score: right ? 1 : 0 });
     }
-    return { immediate: true, key: function (e) { const k = e.key.toLowerCase(); if (k === 'a' || k === '1') { choose('a'); return true; } if (k === 'b' || k === '2') { choose('b'); return true; } return false; } };
+    return { immediate: true, key: function (e) { const k = e.key.toLowerCase(); if (k === 'a' || k === '1') { choose(order[0]); return true; } if (k === 'b' || k === '2') { choose(order[1]); return true; } return false; } };
   };
 
   // =====================================================================
@@ -234,6 +236,8 @@
     api.body.appendChild(h('div.act-hint', 'Tap the items in the right order. Tap a placed item to take it back.'));
     api.body.appendChild(ansEl); api.body.appendChild(poolEl);
     function render() {
+      // Rebuilding the buttons would drop keyboard focus to the page; put it back on the next sensible item.
+      const hadFocus = api.body.contains(document.activeElement);
       KS.clear(ansEl); KS.clear(poolEl);
       if (!answer.length) ansEl.appendChild(h('li.order-empty', 'Your sequence will appear here…'));
       answer.forEach(function (i, pos) {
@@ -244,6 +248,7 @@
         const qb = h('button.order-item', { type: 'button', onclick: function () { if (api.inst.done) return; pool.splice(pool.indexOf(i), 1); answer.push(i); KS.ui.sfx('tap'); render(); } }, h('span', { html: KS.md.inline(a.items[i]) }));
         qb._i = i; poolEl.appendChild(qb);
       });
+      if (hadFocus) { const next = poolEl.querySelector('button') || ansEl.querySelector('li:last-child button'); if (next) next.focus({ preventScroll: true }); }
       api.ready(pool.length === 0);
     }
     render();
@@ -278,14 +283,15 @@
       const it = items[i]; const ok = bi === it.bucket;
       if (ok) { right++; btns[bi].classList.add('right'); KS.ui.sfx('pop'); } else { misses.push(it); btns[bi].classList.add('wrong'); btns[it.bucket].classList.add('right'); KS.ui.sfx('bad'); KS.ui.buzz([20, 30, 20]); }
       card.classList.add(ok ? 'ok' : 'no'); btns.forEach(function (b) { b.disabled = true; });
-      setTimeout(function () {
+      const advance = function () {
         busy = false; i++;
         if (i < items.length) show();
         else {
           card.className = 'bucket-card done'; card.textContent = right + ' / ' + items.length + ' sorted correctly'; row.style.display = 'none'; count.textContent = '';
           api.finish({ score: right / items.length, detail: misses.length ? h('div.fb-detail', h('div.fb-sub', 'The ones that slipped:'), h('ul', misses.map(function (m) { return h('li', h('span', { html: KS.md.inline(m.text) }), ' → ', h('b', { html: KS.md.inline(a.buckets[m.bucket]) })); }))) : null });
         }
-      }, KS.fast ? 0 : ok ? 420 : 1100);
+      };
+      if (KS.fast) advance(); else setTimeout(advance, ok ? 420 : 1100);
     }
     show();
     return { immediate: true, key: function (e) { const n = +e.key; if (n >= 1 && n <= btns.length) { choose(n - 1); return true; } return false; } };
@@ -436,16 +442,20 @@
       stage.appendChild(h('div.sc-progress', 'Decision ' + count));
       stage.appendChild(KS.mdEl(st.text, 'div.md.sc-text'));
       const opts = h('div.opts');
-      st.choices.forEach(function (c, ci) {
-        opts.appendChild(h('button.opt', { type: 'button', onclick: function () { choose(st, c, opts); } }, h('span.opt-key', String(ci + 1)), h('span.opt-txt', { html: KS.md.inline(c.label) })));
+      // Choices are shuffled so the best move isn't always listed first.
+      const idx = st.choices.map(function (_, i) { return i; }); const order = (a.fixed || st.fixed) ? idx : KS.shuffle(idx);
+      order.forEach(function (ci, pos) {
+        const c = st.choices[ci];
+        const b = h('button.opt', { type: 'button', onclick: function () { choose(st, c, opts); } }, h('span.opt-key', String(pos + 1)), h('span.opt-txt', { html: KS.md.inline(c.label) })); b._ci = ci;
+        opts.appendChild(b);
       });
       stage.appendChild(opts);
-      let bestI = 0; st.choices.forEach(function (c, ci) { if ((c.score || 0) > (st.choices[bestI].score || 0)) bestI = ci; }); stage._best = bestI;
+      let bestI = 0; st.choices.forEach(function (c, ci) { if ((c.score || 0) > (st.choices[bestI].score || 0)) bestI = ci; }); stage._best = order.indexOf(bestI);
       try { KS.content.linkTerms(stage); } catch (e) { /* ok */ }
     }
     function choose(st, c, opts) {
       const sc = c.score == null ? 0 : c.score; total += sc; max += Math.max.apply(null, st.choices.map(function (x) { return x.score || 0; }).concat([1]));
-      KS.$$('.opt', opts).forEach(function (b, i) { b.disabled = true; if (st.choices[i] === c) b.classList.add(sc >= 2 ? 'right' : sc === 1 ? 'meh' : 'wrong'); else b.classList.add('dim'); });
+      KS.$$('.opt', opts).forEach(function (b) { b.disabled = true; if (st.choices[b._ci] === c) b.classList.add(sc >= 2 ? 'right' : sc === 1 ? 'meh' : 'wrong'); else b.classList.add('dim'); });
       if (meters && c.effects) { for (const k in c.effects) if (meters[k] != null) meters[k] = KS.clamp(meters[k] + c.effects[k], 0, 100); drawMeters(c.effects); }
       KS.ui.sfx(sc >= 2 ? 'good' : sc === 1 ? 'meh' : 'bad');
       let nextIdx = c.to != null ? indexOfId(c.to) : cur + 1; if (c.to != null && nextIdx < 0) nextIdx = steps.length;

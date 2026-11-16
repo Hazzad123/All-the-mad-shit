@@ -330,7 +330,7 @@ KS.lesson('bd-warehouses', {
       answers: [0, 1, 2],
       explain: 'A lake accepts anything cheaply and defers structure. It does **not** guarantee quality on its own, which is how swamps happen, and it does not force a table shape up front.' },
 
-    { type: 'short', q: 'In a star schema, what is the name of the central table that holds one row per event? (one word)', accept: ['fact', 'facts', 'fact table'], hint: 'The opposite of a dimension.',
+    { type: 'short', q: 'In a star schema, what is the name of the central table that holds one row per event? (one word)', accept: ['fact', 'facts', 'fact table', 'fact tables'], hint: 'The opposite of a dimension.',
       explain: 'The **fact** table lists what happened (sales, clicks, deliveries), with keys pointing to the dimensions that describe each event.' },
 
     { type: 'scenario', title: 'Where does this data go?', intro: 'You are the first data engineer at a fast-growing subscription app. The founders want answers about customers, but data is scattered in the app database, a payments tool, support emails and raw web logs.',
@@ -515,7 +515,7 @@ KS.lesson('bd-etl', {
       explain: 'Line 4 appends the day’s rows every time it runs. After a re-run, that day appears twice. Replacing that day’s partition, or merging by order ID, would make it idempotent.' },
 
     { type: 'mcq', q: 'Why have many teams moved from ETL towards ELT?',
-      options: ['Cloud warehouses are powerful and storage is cheap, so keep raw data and transform inside', 'ELT never needs any transformation at all', 'ETL is no longer able to load data into databases', 'Transforming data has become illegal on separate servers'],
+      options: ['Warehouses are powerful and storage cheap, so load raw first', 'ELT never needs any transformation step at all', 'ETL can no longer load data into modern databases', 'Transforming data has become illegal on separate servers'],
       answer: 0,
       why: [null, 'ELT still transforms. It just does it after loading, inside the warehouse.', 'ETL still works. It is a trade-off, not a broken technique.', 'No such rule exists.'],
       explain: 'When storage is cheap and the warehouse can scale on demand, landing raw data first costs little and keeps your options open. You can redo transformations without going back to the source.' },
@@ -560,7 +560,7 @@ KS.lesson('bd-etl', {
       ],
       outro: 'A good pipeline is **idempotent, checked and observable**: it survives restarts, notices bad data and tells you when it fails.' },
 
-    { type: 'short', q: 'What is the word for a pipeline task that is safe to run twice, giving the same final state as running it once?', accept: ['idempotent'], hint: 'You met it in the HTTP lesson, too.',
+    { type: 'short', q: 'What is the word for a pipeline task that is safe to run twice, giving the same final state as running it once?', accept: ['idempotent', 'idempotence', 'idempotency'], hint: 'You met it in the HTTP lesson, too.',
       explain: '**Idempotent**: the same end state however many times it runs. It makes retries and re-runs harmless.' }
   ],
 
@@ -767,7 +767,7 @@ KS.lesson('bd-mapreduce-hadoop', {
       ],
       outro: 'Distributed processing is for data that **genuinely does not fit** on one machine. Size the problem first.' },
 
-    { type: 'short', q: 'Which stage sits between map and reduce, grouping pairs by key across the network? (one word)', accept: ['shuffle'], hint: 'Like a deck of cards.',
+    { type: 'short', q: 'Which stage sits between map and reduce, grouping pairs by key across the network? (one word)', accept: ['shuffle', 'shuffling', 'the shuffle', 'shuffle stage'], hint: 'Like a deck of cards.',
       explain: 'The **shuffle** moves each key’s pairs to the right reducer. It is the costliest stage, because it sends data over the network.' }
   ],
 
@@ -1201,7 +1201,7 @@ KS.boss('big-data', {
   intro: 'A giant built from a billion log lines blocks the road to the analytics city. Beat it by choosing the right store, the right pipeline and the right engine for each question.',
   questions: [
     { type: 'mcq', q: 'An analyst runs "total revenue by country for five years" on the live shop database and checkout slows. What is the underlying reason?',
-      options: ['A big scan competes with customer transactions on a row-oriented OLTP database', 'Revenue totals cannot be computed in SQL', 'The shop database has too few columns', 'Analysts are not allowed to read production data'],
+      options: ['A big scan competes with checkouts on a row-store database', 'SQL has no way to compute revenue totals by country', 'The shop database has too few columns for analysis', 'Analysts are not allowed to read production data'],
       answer: 0,
       why: [null, 'SQL handles this easily; the problem is where and how it runs.', 'More columns would make a row store scan worse, not better.', 'Permissions are a separate matter. The trouble is competition for the same machine.'],
       explain: 'OLTP databases are tuned for many small operations. A huge aggregate hogs CPU, memory and disk and pushes useful data out of the cache, so customers feel it.' },
@@ -1240,7 +1240,7 @@ KS.boss('big-data', {
       explain: 'Map and reduce are your functions; shuffle is the framework’s costliest step; data locality means moving the small program to the big data.' },
 
     { type: 'mcq', q: 'Which is a main reason Spark is usually faster than classic MapReduce for multi-step jobs?',
-      options: ['It keeps intermediate data in memory and plans the whole job before running', 'It avoids the network by running on one machine', 'It never needs to read the input data', 'It stores everything in a row store'],
+      options: ['It keeps intermediate data in memory and plans the whole job', 'It avoids the network by running on one big machine', 'It never needs to read the input data at all', 'It stores everything in a row store'],
       answer: 0,
       why: [null, 'Spark is distributed. It still uses many machines and shuffles data when needed.', 'It must read the data; it just reads only what the optimised plan requires.', 'Row versus column layout is not what makes Spark faster here.'],
       explain: 'Skipping the disk between stages, and optimising the whole DAG once an action is called, are Spark’s two big advantages.' },
@@ -1260,7 +1260,7 @@ KS.boss('big-data', {
       answers: [0, 1, 2],
       explain: 'Processing-time windows misplace delayed events, and a longer allowed lateness makes results come out later, not sooner.' },
 
-    { type: 'short', q: 'Which architecture keeps only a streaming pipeline and reprocesses history by replaying the event log? (one word)', accept: ['kappa'], hint: 'Not lambda.',
+    { type: 'short', q: 'Which architecture keeps only a streaming pipeline and reprocesses history by replaying the event log? (one word)', accept: ['kappa', 'kappa architecture'], hint: 'Not lambda.',
       explain: '**Kappa** uses one streaming path and replays the retained log to reprocess history, avoiding the duplicate logic that lambda needs.' }
   ]
 });

@@ -33,10 +33,12 @@
     let st = null;
     try { const raw = localStorage.getItem(KEY); if (raw) st = JSON.parse(raw); } catch (e) { console.warn('[store] could not read saved progress', e); }
     const base = fresh();
-    if (st && typeof st === 'object') {
-      for (const k in base) if (st[k] == null) st[k] = base[k];
-      for (const k in base.settings) if (st.settings[k] == null) st.settings[k] = base.settings[k];
-      S.state = st;
+    const clean = S.sanitize(st);
+    if (clean) {
+      for (const k in base) if (clean[k] == null) clean[k] = base[k];
+      clean.settings = Object.assign({}, base.settings, clean.settings);
+      if (!clean.device) clean.device = base.device;
+      S.state = clean;
     } else S.state = base;
     total = null;
     return S.state;
@@ -44,8 +46,12 @@
 
   function write() {
     try { S.state.updated = Date.now(); localStorage.setItem(KEY, JSON.stringify(S.state)); }
-    catch (e) { console.warn('[store] save failed', e); }
+    catch (e) {
+      console.warn('[store] save failed', e);
+      if (!saveWarned && KS.ui && KS.ui.toast) { saveWarned = true; KS.ui.toast('⚠️ Progress could not be saved in this browser (private mode or storage full). Export a copy from Profile → Your data.', 'bad', 9000); }
+    }
   }
+  let saveWarned = false;
   const lazy = KS.debounce(write, 350);
   S.save = function () { lazy(); KS.bus.emit('state'); };
   S.saveNow = function () { lazy.flush(); write(); };
@@ -60,8 +66,8 @@
     return days[d][S.state.device];
   };
   S.dayTotals = function (date) {
-    const d = S.state.days[date || KS.today()]; const t = { x: 0, a: 0, r: 0, l: 0 };
-    if (d) for (const k in d) { t.x += d[k].x || 0; t.a += d[k].a || 0; t.r += d[k].r || 0; t.l += d[k].l || 0; }
+    const d = S.state.days[date || KS.today()]; const t = { x: 0, a: 0, r: 0, l: 0, d: 0 };
+    if (d) for (const k in d) { t.x += d[k].x || 0; t.a += d[k].a || 0; t.r += d[k].r || 0; t.l += d[k].l || 0; t.d = Math.max(t.d, d[k].d || 0); }
     return t;
   };
   S.todayXp = function () { return S.dayTotals().x; };
@@ -107,6 +113,44 @@
   // ---------- import / export / merge ----------
   S.exportJSON = function () { S.saveNow(); return JSON.stringify(S.state); };
 
+  // ---------- sanitising untrusted progress (import files, sync codes, gists, other tabs) ----------
+  // Rebuilds the data from known fields only, with the expected types. Anything else is dropped, so a
+  // crafted file cannot smuggle in `__proto__` keys, HTML strings or nulls that would break the pages.
+  const BAD_KEY = /^(__proto__|constructor|prototype)$/;
+  function isObj(v) { return !!v && typeof v === 'object' && !Array.isArray(v); }
+  function okKeys(o) { return isObj(o) ? Object.keys(o).filter(function (k) { return !BAD_KEY.test(k) && k.length <= 200; }) : []; }
+  function num(v) { return typeof v === 'number' && isFinite(v) ? v : 0; }
+  function str(v, max) { return typeof v === 'string' ? v.slice(0, max) : ''; }
+  function nums(v, n) { const out = []; for (let i = 0; i < n; i++) out.push(num(Array.isArray(v) ? v[i] : 0)); return out; }
+  function each(o, fn) { const out = {}; okKeys(o).forEach(function (k) { const v = fn(o[k], k); if (v !== undefined) out[k] = v; }); return out; }
+  function pick(o, fields) { const out = {}; fields.forEach(function (f) { out[f] = num(o[f]); }); return out; }
+  const DAY = /^\d{4}-\d{2}-\d{2}$/;
+  S.sanitize = function (b) {
+    if (!isObj(b)) return null;
+    const def = fresh().settings; const out = { v: 1 };
+    if (typeof b.device === 'string' && /^[a-z0-9]{1,16}$/.test(b.device)) out.device = b.device;
+    out.created = num(b.created); out.updated = num(b.updated); out.resetAt = num(b.resetAt);
+    if (isObj(b.profile)) out.profile = { name: str(b.profile.name, 80), u: num(b.profile.u) };
+    if (isObj(b.settings)) out.settings = each(b.settings, function (v, k) { return (k in def && typeof v === typeof def[k]) ? (typeof v === 'string' ? v.slice(0, 40) : v) : undefined; });
+    out.days = {};
+    okKeys(b.days).forEach(function (d) { if (DAY.test(d)) out.days[d] = each(b.days[d], function (v) { return isObj(v) ? pick(v, ['x', 'a', 'r', 'l', 'd']) : undefined; }); });
+    out.lessons = each(b.lessons, function (v) {
+      if (!isObj(v)) return undefined;
+      const l = pick(v, ['done', 'stars', 'best', 'pos', 't', 'runs']); l.res = each(v.res, function (r) { return typeof r === 'number' && isFinite(r) ? r : undefined; }); return l;
+    });
+    out.acts = each(b.acts, function (v) { return Array.isArray(v) ? nums(v, 3) : undefined; });
+    out.srs = each(b.srs, function (v) { return Array.isArray(v) ? nums(v, 6) : undefined; });
+    out.bosses = each(b.bosses, function (v) { return isObj(v) ? pick(v, ['best', 'passed', 'tries']) : undefined; });
+    out.labs = each(b.labs, function (v) { return isObj(v) ? each(v, function (t) { return num(t) || undefined; }) : undefined; });
+    out.ach = each(b.ach, function (v) { return num(v) || undefined; });
+    out.notes = each(b.notes, function (v) { return isObj(v) ? { t: str(v.t, 20000), u: num(v.u) } : undefined; });
+    out.marks = each(b.marks, function (v) { return isObj(v) ? { on: !!v.on, u: num(v.u) } : undefined; });
+    out.explain = each(b.explain, function (v) { return isObj(v) ? { t: str(v.t, 5000), r: num(v.r), u: num(v.u) } : undefined; });
+    out.games = each(b.games, function (v) { return isObj(v) ? pick(v, ['hi', 'plays']) : undefined; });
+    out.flags = each(b.flags, function (v) { return v ? true : undefined; });
+    return out;
+  };
+
   function mergeNum(a, b) { return Math.max(a || 0, b || 0); }
   function earliest(a, b) { if (a && b) return Math.min(a, b); return a || b || 0; }
   function later(a, b) { return ((b && b.u) || 0) > ((a && a.u) || 0) ? b : a; }
@@ -114,7 +158,16 @@
    *  Never loses progress from either side. */
   S.merge = function (a, b) {
     const out = a;
-    if (!b || typeof b !== 'object') return out;
+    b = S.sanitize(b);
+    if (!b) return out;
+    // A reset on any device wins over progress made before it: older data is ignored, newer resets wipe this copy.
+    const aReset = a.resetAt || 0, bReset = b.resetAt || 0;
+    if (bReset < aReset) return out;
+    if (bReset > aReset) {
+      const f = fresh();
+      ['days', 'lessons', 'acts', 'srs', 'bosses', 'labs', 'ach', 'notes', 'marks', 'explain', 'games', 'flags'].forEach(function (k) { out[k] = f[k]; });
+      out.profile = f.profile; out.resetAt = bReset; total = null;
+    }
     out.created = earliest(a.created, b.created);
     if (b.profile && (b.profile.u || 0) > ((a.profile && a.profile.u) || 0)) out.profile = b.profile;
     let k;
@@ -163,21 +216,27 @@
 
   /** Import progress. mode 'merge' keeps the best of both; 'replace' overwrites (keeps this device's settings). */
   S.importJSON = function (str, mode) {
-    const incoming = typeof str === 'string' ? JSON.parse(str) : str;
-    if (!incoming || typeof incoming !== 'object' || !incoming.lessons || !incoming.days) throw new Error('That does not look like a Keystone progress file.');
+    let incoming;
+    try { incoming = typeof str === 'string' ? JSON.parse(str) : str; } catch (e) { incoming = null; }
+    if (!isObj(incoming) || !isObj(incoming.lessons) || !isObj(incoming.days)) throw new Error('That does not look like a Keystone progress file.');
     const mine = S.state;
+    // Merge into a copy and only swap it in once the whole merge has succeeded, so a bad file changes nothing.
     let next;
     if (mode === 'replace') {
-      next = S.merge(fresh(), JSON.parse(JSON.stringify(incoming)));
+      next = S.merge(fresh(), incoming);
       next.device = mine.device; next.settings = mine.settings;
-    } else next = S.merge(mine, JSON.parse(JSON.stringify(incoming)));
-    S.state = next; total = null; S.saveNow(); KS.bus.emit('state'); KS.bus.emit('imported');
+    } else next = S.merge(JSON.parse(JSON.stringify(mine)), incoming);
+    const changed = JSON.stringify(next) !== JSON.stringify(mine);
+    S.state = next; total = null;
+    if (changed) { S.saveNow(); KS.bus.emit('state'); KS.bus.emit('imported'); }
     return next;
   };
 
   S.reset = function () {
     const keep = S.state.settings;
-    S.state = fresh(); S.state.settings = keep; total = null; S.saveNow(); KS.bus.emit('state'); KS.bus.emit('imported');
+    const device = S.state.device;
+    S.state = fresh(); S.state.settings = keep; S.state.device = device; S.state.resetAt = Date.now();
+    total = null; S.saveNow(); KS.bus.emit('state'); KS.bus.emit('imported');
   };
 
   // Persist on the way out, and pick up changes made in another tab.
@@ -185,7 +244,14 @@
   document.addEventListener('visibilitychange', function () { if (document.visibilityState === 'hidden') lazy.flush(); });
   window.addEventListener('storage', function (e) {
     if (e.key !== KEY || !e.newValue) return;
-    try { const other = JSON.parse(e.newValue); S.merge(S.state, other); if (other.settings) { for (const k in other.settings) S.state.settings[k] = other.settings[k]; } total = null; KS.bus.emit('state'); KS.bus.emit('imported'); } catch (err) { /* ignore */ }
+    try {
+      const before = JSON.stringify(S.state);
+      const other = S.sanitize(JSON.parse(e.newValue)); if (!other) return;
+      S.merge(S.state, other);
+      if (other.settings) Object.keys(other.settings).forEach(function (k) { S.state.settings[k] = other.settings[k]; });
+      total = null; KS.bus.emit('state');
+      if (JSON.stringify(S.state) !== before) KS.bus.emit('imported');
+    } catch (err) { /* ignore */ }
   });
 
   S.load();

@@ -39,8 +39,9 @@ Updates show up for visitors straight away: the offline cache is only used when 
 - **Profile → Your data** has three ways to move it between devices. Every one merges, so nothing is lost:
   - **Export / Import file**
   - **Sync code**: copy on one device, paste on the other.
-  - **Cloud sync** (optional): paste a GitHub token that has only the *Gists: read and write* permission. Progress then syncs automatically to a private gist in your own account.
-- After the first full load, the whole site works offline. On a phone, use "Add to Home Screen" to install it like an app.
+  - **Cloud sync** (optional): paste a GitHub token that has only the *Gists: read and write* permission. Progress then syncs automatically to a secret (unlisted) gist in your own account. Secret gists aren't listed or searchable, but anyone with the exact link can read them.
+- On a hosted copy (HTTPS), the whole site works offline after your first visit: the service worker caches every file. Profile → About says when it's ready. On a phone, use "Add to Home Screen" to install it like an app.
+- After adding, removing or changing files, run `node tools/precache.mjs` so the offline file list stays complete (CI checks this).
 
 ## Project layout
 
@@ -56,6 +57,8 @@ content/modules/<id>.js      lesson content, a boss battle and a cheat sheet per
 docs/                        authoring guides (CONTENT_GUIDE, LAB_GUIDE, LAB_SPECS, WRITER_BRIEF)
 tools/validate.mjs           content validator + roadmap coverage check
 tools/labcheck.mjs           lab checker
+tools/precache.mjs           writes precache.js (the offline file list for sw.js)
+tests/                       unit tests (node --test)
 js/dev/selftest.js           in-browser self-test (renders every card, answers every activity right and wrong)
 ```
 
@@ -66,6 +69,11 @@ node tools/validate.mjs            # all modules + roadmap coverage
 node tools/validate.mjs authn      # one module
 node tools/validate.mjs --stats    # size table
 node tools/labcheck.mjs            # every lab
+node tools/validate.mjs --glossary # glossary terms whose definitions differ a lot
+npm test                           # unit tests (progress merging, import safety, markdown)
+npm run check                      # everything CI runs: validator, labs, offline list, tests
 ```
+
+The browser self-test renders every lesson and answers every activity: open `index.html?dev`, then run `await KS.selftest.content()` in the console.
 
 Lessons whose content isn't written yet still show on the map, marked "coming soon".

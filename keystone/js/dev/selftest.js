@@ -1,14 +1,18 @@
 /* Keystone — developer self-test (not loaded in production pages).
- * Open  dev.html  (or paste this file into the console) and run:
+ * Open  index.html?dev  (the Studio plus this file) and, in the browser console, run:
  *   await KS.selftest.content()          → renders every card, solves every activity (right and wrong), every boss + sheet
  *   await KS.selftest.content(['http-methods'])
  *   await KS.selftest.playLesson(true)   → drives the real lesson player currently on screen from intro to recap
  *   await KS.selftest.labs()             → mounts every lab and monkey-clicks it, reporting exceptions
+ * In fast mode nothing waits on timers (background tabs throttle them to once a second or slower), so a full
+ * content run takes seconds. It yields to the browser through a MessageChannel, which is not throttled.
  */
 (function () {
   'use strict';
   const KS = window.KS; const T = (KS.selftest = {});
   const sleep = function (ms) { return new Promise(function (r) { setTimeout(r, ms); }); };
+  const yieldNow = function () { return new Promise(function (r) { const ch = new MessageChannel(); ch.port1.onmessage = function () { r(); }; ch.port2.postMessage(0); }); };
+  const pause = function (ms) { return KS.fast ? Promise.resolve() : sleep(ms); };
 
   /** Solve one activity instance through its real UI. right=false answers wrongly. */
   T.solve = async function (inst, right) {
@@ -17,7 +21,7 @@
       case 'mcq': { const want = right ? a.answer : (a.answer + 1) % a.options.length; q('.opt').find(function (b) { return b._oi === want; }).click(); break; }
       case 'multi': { const set = right ? a.answers : [a.options.map(function (_, i) { return i; }).find(function (i) { return a.answers.indexOf(i) < 0; })]; q('.opt').forEach(function (b) { if (set.indexOf(b._oi) >= 0) b.click(); }); inst.check(); break; }
       case 'tf': { const v = right ? !!a.answer : !a.answer; el.querySelector(v ? '.tf-true' : '.tf-false').click(); break; }
-      case 'ab': { const k = right ? a.answer : (a.answer === 'a' ? 'b' : 'a'); q('.ab-pick')[k === 'a' ? 0 : 1].click(); break; }
+      case 'ab': { const k = right ? a.answer : (a.answer === 'a' ? 'b' : 'a'); q('.ab-pick').find(function (b) { return b._k === k; }).click(); break; }
       case 'match': {
         const cols = q('.match-col'); const L = Array.from(cols[0].children), R = Array.from(cols[1].children);
         const find = function (list, i) { return list.find(function (b) { return b._i === i; }); };
@@ -29,7 +33,7 @@
         seq.forEach(function (i) { const b = q('.order-pool .order-item').find(function (x) { return x._i === i; }); if (!b) throw new Error('order: item ' + i + ' not in pool'); b.click(); });
         inst.check(); break; }
       case 'bucket': {
-        for (let guard = 0; guard < 60 && !inst.done; guard++) { const card = el.querySelector('.bucket-card'); const btns = q('.bucket-btn'); if (btns[0] && btns[0].disabled) { await sleep(10); continue; } const want = right ? card._bucket : (card._bucket + 1) % btns.length; btns[want].click(); await sleep(12); }
+        for (let guard = 0; guard < 60 && !inst.done; guard++) { const card = el.querySelector('.bucket-card'); const btns = q('.bucket-btn'); if (btns[0] && btns[0].disabled) { await pause(10); continue; } const want = right ? card._bucket : (card._bucket + 1) % btns.length; btns[want].click(); await pause(12); }
         break; }
       case 'cloze': {
         const answers = Array.from(a.text.matchAll(/\{\{(.+?)\}\}/g)).map(function (m) { return m[1]; });
@@ -52,7 +56,7 @@
       case 'explain': { el.querySelector('.explain-row button').click(); q('.rate-row button')[right ? 2 : 0].click(); break; }
       default: throw new Error('no solver for type ' + a.type);
     }
-    await sleep(4);
+    await pause(4);
     if (!inst.done) throw new Error(a.type + ': did not finish');
     const sc = inst.result ? inst.result.score : null;
     if (right && a.type !== 'explain' && !(sc >= 0.99)) throw new Error(a.type + ': the right answer only scored ' + sc);
@@ -65,6 +69,7 @@
     const saved = JSON.stringify(KS.store.state.explain);
     const host = document.createElement('div'); host.style.cssText = 'position:fixed;left:-9999px;top:0;width:760px;'; document.body.appendChild(host);
     const report = { lessons: 0, cards: 0, acts: 0, bosses: 0, sheets: 0, errors: [] };
+    try {
     const ids = lessonIds || KS.content.order.filter(function (id) { return KS.content.lessons[id]; });
     for (const id of ids) {
       const L = KS.content.lessons[id]; if (!L) { report.errors.push(id + ': no content loaded'); continue; }
@@ -83,7 +88,7 @@
         }
       }
       try { KS.player.steps(KS.content.meta(id), L); } catch (e) { report.errors.push(id + ' steps: ' + e.message); }
-      if (report.lessons % 8 === 0) await sleep(0);
+      if (report.lessons % 8 === 0) await yieldNow();
     }
     if (!lessonIds) {
       for (const mid of Object.keys(KS.content.bosses)) {
@@ -95,7 +100,7 @@
       }
       for (const mid of Object.keys(KS.content.sheets)) { try { host.appendChild(KS.panels.sheet(mid)); report.sheets++; } catch (e) { report.errors.push('sheet ' + mid + ': ' + e.message); } host.textContent = ''; }
     }
-    host.remove(); KS.fast = false; st.sound = sound; st.haptics = hap; KS.store.state.explain = JSON.parse(saved);
+    } finally { host.remove(); KS.fast = false; st.sound = sound; st.haptics = hap; KS.store.state.explain = JSON.parse(saved); }
     return report;
   };
 

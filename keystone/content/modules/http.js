@@ -12,7 +12,7 @@ KS.lesson('http-basics', {
 
         The server said, roughly: *"Here it is."* Or: *"No such page."* Or: *"Go and look over there instead."*
 
-        The rulebook for that chat is called **HTTP** (HyperText Transfer Protocol). A rulebook for how two computers talk is a [[protocol]]. HTTP is the one the web runs on, and nearly everything you build on the backend will speak it.` },
+        The rulebook for that chat is called **HTTP** (HyperText Transfer Protocol). A rulebook for how two computers talk is called a **protocol**. HTTP is the one the web runs on, and nearly everything you build on the backend will speak it.` },
 
     { kind: 'metaphor', title: 'The ticket hatch',
       body: `Picture an old-fashioned ticket office with a hatch in the glass. You slide a **slip of paper** through: "One adult return to Leeds, please." The clerk reads it, does the work, and slides back **a reply**: the tickets, or "that train does not run on Sundays".
@@ -86,8 +86,7 @@ KS.lesson('http-basics', {
           1: 'The **status line**: the version, a three-digit **status code** (`200`) and a short label. The code is how the server says whether it worked. Status codes get their own lesson soon.',
           2: '`Content-Type` tells the client what the body *is*, so the browser knows to render it as a web page rather than show it as text.',
           3: '`Content-Length` is the size of the body in bytes, so the client knows when it has all of it.',
-          4: 'The blank line again: headers end, body begins.',
-          5: 'The **body** is the actual thing you asked for. Here it is HTML; it could equally be an image or JSON data.'
+          5: 'The blank line above it ends the headers. Then comes the **body**: the actual thing you asked for. Here it is HTML; it could equally be an image or JSON data.'
         } } },
 
     { kind: 'concept', title: 'HTTP forgets you instantly',
@@ -527,7 +526,7 @@ KS.lesson('http-status', {
       why: [null, 'You are already identified. Logging in again would change nothing, so 401 does not fit.', 'Hiding a page with 404 is sometimes done on purpose, but the straightforward answer is 403.', 'Nothing has crashed. Refusing is the server working correctly.'],
       explain: '**401** means "I do not know who you are" (not authenticated). **403** means "I know who you are, and you lack permission" (not authorised).' },
 
-    { type: 'tf', after: 8, statement: 'If an API replies `200 OK` with a body of `{"error": "card declined"}`, clients and monitoring tools will still treat it as a failure.', answer: false,
+    { type: 'tf', after: 8, statement: 'If an API replies `200 OK` with a body of `{"error": "card declined"}`, most clients and monitoring tools will treat it as a success.', answer: true,
       explain: 'Most tooling reads only the **status code**. A 200 is treated as success, so it can be cached, will not raise alerts and will not be retried. A declined card should come back as a 4xx.' },
 
     { type: 'bucket', prompt: 'Whose problem is it? Sort each response.', buckets: ['Client error (4xx)', 'Server error (5xx)'],
@@ -943,7 +942,7 @@ KS.lesson('http-versions', {
       explain: 'HTTP/1.1 works around its one-at-a-time limit with extra connections. HTTP/2 introduces multiplexing. HTTP/3 moves to QUIC so loss no longer stalls unrelated streams.' },
 
     { type: 'mcq', after: 8, q: 'A page loads 80 small files and feels slow, but the server answers each one in 5 ms. Where is HTTP/2 most likely to help?',
-      options: ['Many requests share one connection at the same time, so they do not queue up', 'It makes the server’s database queries faster', 'It makes each image smaller', 'It stops browsers from caching the files'],
+      options: ['Its requests share one connection without queuing', 'It makes the server’s database queries faster', 'It compresses each image so it downloads faster', 'It stops browsers caching the files between visits'],
       answer: 0,
       why: [null, 'The protocol does not change how the server works inside.', 'Compression of headers does not shrink image data.', 'Caching is unrelated to the version.'],
       explain: 'With many tiny requests, waiting in line (HTTP/1.1) dominates. Multiplexing lets them proceed together over one connection. If the server itself were slow, the protocol would not help.' },
@@ -1128,7 +1127,7 @@ KS.lesson('http-https', {
       answers: [0, 1, 2],
       explain: 'The browser checks name, issuer and dates. It cannot judge honesty or location, which is why a padlock proves a private line to the named site and nothing more.' },
 
-    { type: 'tf', after: 7, statement: 'Because of HTTPS, someone on the same café Wi-Fi cannot tell which website you are visiting.', answer: false,
+    { type: 'tf', after: 7, statement: 'Even with HTTPS, someone on the same café Wi-Fi can usually tell which website you are visiting.', answer: true,
       explain: 'They cannot read the content, but they can usually still see the server’s IP address and, in most cases, the domain name, plus timing and rough size. HTTPS hides what is said, not who is being talked to.' },
 
     { type: 'bucket', prompt: 'On an HTTPS connection, what can a Wi-Fi snooper see?', buckets: ['Hidden', 'Still visible'],
@@ -1215,7 +1214,7 @@ KS.boss('http', {
     { type: 'tf', statement: 'Two requests sent down the same keep-alive connection share state, so the server knows the second comes from the same person.', answer: false,
       explain: 'Keep-alive only saves the cost of reconnecting. HTTP stays stateless: recognising someone needs something sent with each request, such as a cookie.' },
 
-    { type: 'short', q: 'A logged-in customer opens an admin page and is refused. Which status code should the server send?', accept: ['403'], hint: 'Known user, not allowed.',
+    { type: 'short', q: 'A logged-in customer opens an admin page and is refused. Which status code should the server send?', accept: ['403', '403 Forbidden'], hint: 'Known user, not allowed.',
       explain: '`403 Forbidden`: the server knows who you are and says no. A `401` is for callers it cannot identify at all.' },
 
     { type: 'mcq', q: 'A gateway waits 60 seconds for an app server that never answers, then gives up and replies to the user. Which code fits best?',

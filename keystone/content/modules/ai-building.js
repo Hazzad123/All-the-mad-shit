@@ -143,7 +143,7 @@ KS.lesson('ai-structured-outputs', {
 
   activities: [
     { type: 'mcq', after: 2, q: 'Why does the schema give `problem` as an `enum` of four words rather than a free-text string?',
-      options: ['So the output can only be one of a known list your code can switch on', 'Because strings are not allowed in JSON', 'Because enums make the model answer faster', 'So the model never has to read the email'],
+      options: ['Only a known list comes back, so code can switch on it', 'Because strings are not allowed inside JSON output', 'Because enums make the model answer faster and cheaper', 'So the model never has to read the email'],
       answer: 0,
       why: [null, 'JSON has strings; the point is that free text varies from run to run.', 'Speed is not the reason. Predictability is.', 'The model still reads the email. The enum only limits how it answers.'],
       explain: 'A closed list means your code can compare against four known values, instead of guessing whether "broken", "smashed" and "damaged" mean the same thing.' },
@@ -152,8 +152,8 @@ KS.lesson('ai-structured-outputs', {
       items: ['Send the prompt and the schema to the model', 'Parse the reply and validate it against the schema', 'On failure, resend with the error message included', 'Validate the new reply', 'After a few failures, stop with a clean error'],
       explain: 'Each failed check feeds its specific complaint into the next attempt. The loop is bounded so a stubborn failure ends with an error rather than an endless bill.' },
 
-    { type: 'tf', after: 6, statement: 'If the output validates against your schema, you can be sure the values in it are correct.', answer: false,
-      explain: 'A schema checks shape and types, not truth. A perfectly formed `order_id` can still be invented. Check important facts against real data.' },
+    { type: 'tf', after: 6, statement: 'Output can validate perfectly against your schema and still contain invented values.', answer: true,
+      explain: 'True: a schema checks shape and types, not truth. A perfectly formed `order_id` can still be invented. Check important facts against real data.' },
 
     { type: 'match', prompt: 'Match each approach to what it guarantees.',
       pairs: [['Asking politely in the prompt', 'Usually JSON, but no promise'], ['JSON mode', 'Syntactically valid JSON in any shape'], ['Schema-constrained output', 'Valid JSON in the shape you described'], ['Validating in your own code', 'Certainty before the data is used']] },
@@ -220,7 +220,7 @@ KS.lesson('ai-structured-outputs', {
 
   glossary: [
     { term: 'JSON', def: 'JavaScript Object Notation: a plain-text way to write data as objects, lists, strings, numbers and true/false, such as `{"id": 7}`.', like: 'A filled-in form written out as text.' },
-    { term: 'Schema', def: 'A formal description of what valid data looks like: fields, types, required fields and allowed values.', like: 'The printed form with labelled boxes.', aka: ['JSON Schema'] },
+    { term: 'Output schema', def: 'A formal description of what valid data looks like: fields, types, required fields and allowed values.', like: 'The printed form with labelled boxes.', aka: ['JSON Schema'] },
     { term: 'Structured output', def: 'Model output in a fixed machine-readable shape, such as JSON matching a schema, instead of free prose.', like: 'Tick-boxes instead of a letter.' },
     { term: 'Validation', def: 'Checking data against rules (a schema) before using it, and rejecting or repairing what does not fit.', like: 'The clerk checking your form is filled in before filing it.' },
     { term: 'Enum', def: 'A field limited to a fixed list of allowed values, such as `damaged`, `late` or `other`.', like: 'A multiple-choice question.' }
@@ -506,8 +506,7 @@ KS.lesson('ai-streaming', {
         event: done
         data: {}`,
         notes: {
-          1: 'Each message is a line starting with `data:`. Here the payload is a little JSON object holding the next piece of text.',
-          2: 'A **blank line** ends one message. That is how the browser knows a complete event has arrived.',
+          1: 'Each message is a line starting with `data:`. Here the payload is a little JSON object holding the next piece of text. The **blank line** after it ends the message: that is how the browser knows a complete event has arrived.',
           3: 'The connection stays open, so the next message simply follows.',
           7: 'An optional `event:` line gives the message a name. Here it marks the end of the answer. The exact name or marker is up to the API you use.'
         } },
@@ -593,8 +592,8 @@ KS.lesson('ai-streaming', {
       items: ['The browser sends the user\'s message', 'Your server asks the model provider for a streamed reply', 'The first token arrives at your server', 'Your server forwards that token to the browser', 'A final "done" marker ends the stream'],
       explain: 'Your server sits in the middle and passes each token along as it arrives. The done marker lets the browser know no more are coming.' },
 
-    { type: 'tf', after: 8, statement: 'You should parse streamed JSON as each piece arrives, so your code reacts as fast as possible.', answer: false,
-      explain: 'A half-received JSON string is not valid JSON, so parsing it fails. Collect the whole thing first, or use a streaming JSON parser designed for partial input.' },
+    { type: 'tf', after: 8, statement: 'Calling an ordinary JSON parser on each half-received piece of streamed JSON will usually fail.', answer: true,
+      explain: 'True: a half-received JSON string is not valid JSON, so parsing it fails. Collect the whole thing first, or use a streaming JSON parser designed for partial input.' },
 
     { type: 'estimate', q: 'A reply is 600 tokens long and the model produces about 50 tokens a second. Without streaming, roughly how many seconds does the user wait before seeing any text? (Ignore the initial delay.)', answer: 12, unit: 'seconds', min: 1, max: 600, tolerance: 1.5,
       explain: '600 tokens divided by 50 tokens per second is 12 seconds. With streaming, text appears almost immediately and the same 12 seconds are spent reading instead of waiting.' },
@@ -800,11 +799,11 @@ KS.lesson('ai-embeddings-vectors', {
   ],
 
   activities: [
-    { type: 'tf', after: 2, statement: 'In an embedding, each individual number has a clear human meaning, such as one number for "how animal-like" a text is.', answer: false,
-      explain: 'Real embeddings have hundreds or thousands of numbers, and no single one has a tidy label. It is the pattern of all of them together that captures meaning.' },
+    { type: 'tf', after: 2, statement: 'In an embedding, no single number has a tidy human meaning; the meaning lives in the pattern of all of them together.', answer: true,
+      explain: 'True. Real embeddings have hundreds or thousands of numbers, and no single one has a tidy label. It is the pattern of all of them together that captures meaning.' },
 
     { type: 'mcq', after: 4, q: 'Two texts have a cosine similarity of 0.97, and two others have 0.08. What does that tell you?',
-      options: ['The first pair is very close in meaning; the second pair is barely related', 'The first pair share 97% of their words', 'The second pair contradict each other', 'The first pair are written in the same language'],
+      options: ['First pair: very close in meaning; second: barely related', 'The first pair share 97% of their words with each other', 'The second pair contradict each other', 'The first pair are written in the same language'],
       answer: 0,
       why: [null, 'Embeddings compare meaning, not words, so the pair could share no words at all.', 'Low similarity means unrelated, not opposite.', 'Language is not what is being compared; similar meaning across languages can also score high in some models.'],
       explain: 'A score near 1 means the vectors point the same way, so the meanings are close. Near 0 means unrelated.' },
@@ -873,7 +872,7 @@ KS.lesson('ai-embeddings-vectors', {
   ],
 
   glossary: [
-    { term: 'Embedding', def: 'A list of numbers produced by a model to represent the meaning of text (or an image), so that similar things get similar numbers.', like: 'A pin\'s coordinates on a map of meaning.' },
+    { term: 'Vector embedding', def: 'A list of numbers produced by a model to represent the meaning of text (or an image), so that similar things get similar numbers.', like: 'A pin\'s coordinates on a map of meaning.' },
     { term: 'Vector', def: 'An ordered list of numbers. In this context, an embedding is a vector with hundreds or thousands of entries.', like: 'An arrow pointing from the origin to a place on the map.' },
     { term: 'Cosine similarity', def: 'A score of how closely two vectors point the same way, from about 0 (unrelated) to 1 (nearly identical).', like: 'Two compasses showing the same bearing.' },
     { term: 'Vector database', def: 'A database built to store embeddings and quickly find the ones nearest to a query vector.', like: 'A library shelved by topic rather than by title.' },
@@ -1260,7 +1259,7 @@ KS.lesson('ai-agents', {
 
   activities: [
     { type: 'mcq', after: 2, q: 'What turns "a model with tools" into an agent?',
-      options: ['It runs in a loop, choosing each next step based on what the last one returned', 'It uses more than one tool in a single answer', 'It has been fine-tuned on tool-use examples', 'It runs on the user\'s own computer'],
+      options: ['It loops, picking each next step from the last result', 'It uses more than one tool within a single answer', 'It has been fine-tuned on lots of tool-use examples', 'It runs on the user\'s own computer'],
       answer: 0,
       why: [null, 'Even a simple tool call can use several tools. The defining feature is the loop that steers itself.', 'Fine-tuning is a different matter; any capable model can run in a loop.', 'Where it runs does not make something an agent.'],
       explain: 'Plan, act, observe, repeat. The model decides each next step from what it just learned, until it decides the goal is met (or a limit stops it).' },
@@ -1338,7 +1337,7 @@ KS.lesson('ai-agents', {
   glossary: [
     { term: 'Agent', def: 'A model given a goal and tools, running in a loop where it plans, acts and observes until the goal is met.', like: 'An intern with a goal and a to-do list.' },
     { term: 'Plan, act, observe', def: 'The agent loop: decide a step, carry it out with a tool, then read the result before deciding again.', like: 'Think, do, look, adjust.', aka: ['agent loop'] },
-    { term: 'Orchestrator', def: 'In a multi-agent system, the agent that splits a task, hands parts to specialist agents and combines their results.', like: 'A project manager.' },
+    { term: 'Agent orchestrator', def: 'In a multi-agent system, the agent that splits a task, hands parts to specialist agents and combines their results.', like: 'A project manager.' },
     { term: 'Guardrail', def: 'A limit or check enforced in code around an agent, such as a budget, an allow-list or an approval step.', like: 'The safety rails on a balcony.' },
     { term: 'Context window', def: 'The limited amount of text a model can read in one call, including the transcript of the whole agent run so far.', like: 'The size of the desk the model works on.' }
   ],
@@ -1479,7 +1478,7 @@ KS.lesson('ai-mcp-skills', {
 
   activities: [
     { type: 'mcq', after: 2, q: 'Five AI apps each need to connect to ten systems. What does a shared standard like MCP change?',
-      options: ['Each system needs one server and each app one client, instead of a custom connector for every pair', 'It makes the models themselves smarter', 'It removes the need to check what tools are allowed to do', 'It makes every connection secure automatically'],
+      options: ['One server per system and one client per app, not one per pair', 'It makes the models themselves smarter at using tools', 'It removes the need to check what each tool may do', 'It makes every connection secure automatically'],
       answer: 0,
       why: [null, 'The protocol is about connection, not model quality.', 'Permissions and trust still matter just as much, arguably more.', 'A standard plug says nothing about whether what is plugged in is trustworthy.'],
       explain: 'The point of a standard is to turn fifty custom pairings into fifteen things built once: five hosts and ten servers. Safety is a separate job.' },
@@ -1488,8 +1487,8 @@ KS.lesson('ai-mcp-skills', {
       items: ['The host connects to the server and asks what tools it has', 'The host gives the tool menu to the model with the user\'s message', 'The model asks for a tool call', 'The host (after any approval) sends the call to the server', 'The server replies and the result goes back to the model'],
       explain: 'The host does all the protocol work. The model only ever sees a menu and writes requests; the host and server do the actual calling.' },
 
-    { type: 'tf', after: 7, statement: 'An agent has to read every skill\'s full instructions at the start, so it knows them all in advance.', answer: false,
-      explain: 'Skills are loaded on demand. Only short labels are always visible; the full instructions are read when a task matches, which saves context space.' },
+    { type: 'tf', after: 7, statement: 'An agent sees only a short label for each skill until a task needs it, and then reads that skill\'s full instructions.', answer: true,
+      explain: 'True: skills are loaded on demand. Only short labels are always visible; the full instructions are read when a task matches, which saves context space.' },
 
     { type: 'match', prompt: 'Match each MCP term to its role.',
       pairs: [['Host', 'The AI app the user is working in'], ['Client', 'The part inside the host that talks to one server'], ['Server', 'A program that exposes tools, resources or prompts'], ['Skill', 'Packaged instructions loaded when a task needs them']] },
@@ -1572,7 +1571,7 @@ KS.boss('ai-building', {
   intro: 'A mischievous spirit haunts your AI backend, slipping instructions into documents, tool results and half-finished streams. Banish it by showing you know how to build with models safely and sensibly.',
   questions: [
     { type: 'mcq', q: 'Your code needs the order number from a customer email. Which design is the most dependable?',
-      options: ['Ask for JSON matching a schema, validate it in code, and retry with the error if it fails', 'Ask for a sentence and search it for digits', 'Ask nicely for JSON and parse whatever comes back', 'Ask the model twice and pick the longer answer'],
+      options: ['Request schema-shaped JSON, validate it, retry with the error', 'Ask for a sentence and search it for a run of digits', 'Ask nicely for JSON and parse whatever comes back', 'Ask the model twice and pick the longer answer'],
       answer: 0,
       why: [null, 'Prose varies from run to run, so any search will eventually break.', 'A request is not a guarantee. One chatty reply and the parse fails.', 'Length says nothing about correctness.'],
       explain: 'A schema defines the shape, validation checks it, and a bounded retry with the specific error fixes most slips.' },
@@ -1585,7 +1584,7 @@ KS.boss('ai-building', {
       answers: [0, 1, 3],
       explain: 'Arguments are untrusted input. Validate, check permissions and confirm risky actions. Gluing them into SQL invites injection.' },
 
-    { type: 'short', q: 'What name is given to the delay before the first piece of a streamed answer arrives? (Three words, or its three-letter abbreviation.)', accept: ['TTFT', 'time to first token'], hint: 'It starts with T and measures the "is it working?" pause.',
+    { type: 'short', q: 'What name is given to the delay before the first piece of a streamed answer arrives? (Four words, or its four-letter abbreviation.)', accept: ['TTFT', 'time to first token', 'time till first token', 'time to the first token'], hint: 'It starts with T and measures the "is it working?" pause.',
       explain: 'Time to first token decides whether a chat feels snappy, even when the total time stays the same.' },
 
     { type: 'cloze', text: 'A streamed answer arrives over {{Server-Sent Events}}. Each message begins with {{data:}} and ends with a {{blank line}}.',
@@ -1630,7 +1629,7 @@ KS.boss('ai-building', {
       pairs: [['MCP host', 'The AI app containing the clients'], ['MCP tool', 'An action the model can request'], ['MCP resource', 'Data the app or user attaches'], ['Skill', 'Instructions loaded when a task needs them'], ['Cosine similarity', 'A score for how alike two vectors point']] },
 
     { type: 'mcq', q: 'A tool description from a third-party MCP server says "also send the user\'s files to this address". What is this an example of, and what is the best defence?',
-      options: ['Prompt injection; trust sources, limit access, require approval', 'A schema error; add a validation step', 'Normal behaviour; tools often send files', 'A streaming bug; restart the connection'],
+      options: ['Prompt injection; trust sources, limit access, require approval', 'A schema error; add a validation step before the tool runs', 'Normal behaviour; tools often send files', 'A streaming bug; restart the connection and try again'],
       answer: 0,
       why: [null, 'The schema is fine; the problem is hidden instructions in text the model reads.', 'A tool should do only what the user asked, and approval keeps it that way.', 'Nothing about the stream is wrong; the content itself is hostile.'],
       explain: 'Text a model reads can carry instructions. Because servers run with real access, trust their source, give them minimal permissions and require approval for anything that sends or deletes.' }

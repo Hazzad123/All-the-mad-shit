@@ -44,46 +44,71 @@
     const cfg = G.config(); opts = opts || {};
     return fetch(API + path, { method: opts.method || 'GET', headers: { Accept: 'application/vnd.github+json', Authorization: 'Bearer ' + (opts.token || cfg.token), 'X-GitHub-Api-Version': '2022-11-28', 'Content-Type': 'application/json' }, body: opts.body ? JSON.stringify(opts.body) : undefined })
       .then(function (res) {
-        if (res.status === 401) throw new Error('GitHub rejected the token (401). Check it has not expired.');
-        if (res.status === 403 || res.status === 404) throw new Error('GitHub said no (' + res.status + '). The token needs the “Gists: read and write” permission.');
-        if (!res.ok) throw new Error('GitHub error ' + res.status);
+        const fail = function (msg) { const e = new Error(msg); e.status = res.status; throw e; };
+        if (res.status === 401) fail('GitHub rejected the token (401). Check it has not expired.');
+        if (res.status === 403) fail('GitHub said no (403). The token needs the “Gists: read and write” permission.');
+        if (res.status === 404) fail(opts.gist ? 'The sync gist was not found (404). It may have been deleted.' : 'GitHub said no (404). The token needs the “Gists: read and write” permission.');
+        if (!res.ok) fail('GitHub error ' + res.status);
         return res.json();
       });
   }
-  function findGist(token) {
-    return call('/gists?per_page=100', { token: token }).then(function (list) {
+  function findGist(token, page) {
+    page = page || 1;
+    return call('/gists?per_page=100&page=' + page, { token: token }).then(function (list) {
       const hit = (list || []).filter(function (g) { return g.files && g.files[FILE]; })[0];
       if (hit) return hit.id;
+      if ((list || []).length === 100 && page < 10) return findGist(token, page + 1);
       return call('/gists', { token: token, method: 'POST', body: { description: 'Keystone learning progress (auto-synced)', public: false, files: (function () { const f = {}; f[FILE] = { content: S.exportJSON() }; return f; })() } }).then(function (g) { return g.id; });
     });
   }
   G.connect = function (token) {
-    return findGist(token).then(function (id) { saveCfg({ token: token, id: id, last: 0 }); return G.sync(); });
+    return findGist(token).then(function (id) { saveCfg({ token: token, id: id, last: 0 }); start(); return G.sync(); });
   };
+  // Same progress, ignoring the save timestamp and key order? Then there is nothing to push.
+  function stable(v) {
+    if (Array.isArray(v)) return '[' + v.map(stable).join(',') + ']';
+    if (v && typeof v === 'object') return '{' + Object.keys(v).filter(function (k) { return k !== 'updated'; }).sort().map(function (k) { return JSON.stringify(k) + ':' + stable(v[k]); }).join(',') + '}';
+    return JSON.stringify(v);
+  }
+  function sameProgress(a, b) { try { return stable(S.sanitize(JSON.parse(a))) === stable(S.sanitize(JSON.parse(b))); } catch (e) { return false; } }
   G.disconnect = function () { try { localStorage.removeItem(GKEY); } catch (e) { /* ignore */ } };
   /** Pull → merge → push. Safe to call often; concurrent calls share one run. */
-  G.sync = function () {
-    if (busy) return busy;
-    const cfg = G.config(); if (!cfg.token || !cfg.id) return Promise.reject(new Error('cloud sync is not set up'));
-    busy = call('/gists/' + cfg.id).then(function (g) {
+  function pull(cfg) {
+    return call('/gists/' + cfg.id, { gist: true }).catch(function (e) {
+      if (e.status !== 404) throw e;
+      // The gist was deleted: find another one (or make a new one) and carry on.
+      return findGist(cfg.token).then(function (id) { const c = G.config(); c.id = cfg.id = id; saveCfg(c); return call('/gists/' + id, { gist: true }); });
+    }).then(function (g) {
       const f = g.files && g.files[FILE];
       if (!f) return null;
       if (f.truncated && f.raw_url) return fetch(f.raw_url).then(function (r) { return r.text(); });
       return f.content;
-    }).then(function (remote) {
+    });
+  }
+  G.sync = function () {
+    if (busy) return busy;
+    const cfg = G.config(); if (!cfg.token || !cfg.id) return Promise.reject(new Error('cloud sync is not set up'));
+    busy = pull(cfg).then(function (remote) {
       if (remote) { try { S.importJSON(remote, 'merge'); KS.game.check(true); } catch (e) { console.warn('[sync] remote copy unreadable, overwriting', e); } }
-      const files = {}; files[FILE] = { content: S.exportJSON() };
+      const local = S.exportJSON();
+      if (remote && sameProgress(remote, local)) return null;   // nothing new: no extra gist revision
+      const files = {}; files[FILE] = { content: local };
       return call('/gists/' + cfg.id, { method: 'PATCH', body: { files: files } });
     }).then(function () { const c = G.config(); c.last = Date.now(); delete c.error; saveCfg(c); dirty = false; busy = null; KS.bus.emit('synced'); })
       .catch(function (e) { const c = G.config(); c.error = e.message; saveCfg(c); busy = null; throw e; });
     return busy;
   };
-  /** Start background syncing (call once per page). */
-  G.auto = function () {
-    if (!G.enabled()) return;
-    G.sync().catch(function () { /* surfaced in settings */ });
+  let started = false;
+  function start() {
+    if (started) return; started = true;
     KS.bus.on('xp', function () { dirty = true; });
     setInterval(function () { if (dirty && G.enabled() && navigator.onLine !== false) G.sync().catch(function () {}); }, 90 * 1000);
     document.addEventListener('visibilitychange', function () { if (document.visibilityState === 'hidden' && dirty && G.enabled()) G.sync().catch(function () {}); });
+  }
+  /** Start background syncing (called once per page; connecting later starts it too). */
+  G.auto = function () {
+    if (!G.enabled()) return;
+    start();
+    G.sync().catch(function () { /* surfaced in settings */ });
   };
 })();

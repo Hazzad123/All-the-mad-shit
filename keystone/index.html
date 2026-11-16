@@ -15,7 +15,7 @@
       try {
         var pref = localStorage.getItem('keystone.shell');
         var phone = window.matchMedia('(max-width: 760px)').matches && window.matchMedia('(pointer: coarse)').matches;
-        if (phone && pref !== 'studio' && !/[?&]studio\b/.test(location.search)) location.replace('pocket.html' + location.hash);
+        if (phone && pref !== 'studio' && !/[?&](studio|dev)\b/.test(location.search)) location.replace('pocket.html' + location.hash);
       } catch (e) { /* storage blocked: stay here */ }
     })();
   </script>
@@ -50,5 +50,7 @@
   <script src="js/labs/manifest.js"></script>
   <!-- shell -->
   <script src="js/studio/app.js"></script>
+  <!-- developer self-test: open index.html?dev, then run KS.selftest.content() in the console -->
+  <script>if (/[?&]dev\b/.test(location.search)) document.write('<script src="js/dev/selftest.js"><\/script>');</script>
 </body>
 </html>

@@ -12,6 +12,7 @@
 
   function parse() { const p = location.hash.replace(/^#\/?/, '').split('/').map(function (x) { try { return decodeURIComponent(x); } catch (e) { return x; } }); return { name: p[0] || 'home', args: p.slice(1) }; }
   function go(hash) { if (location.hash === hash) render(); else location.hash = hash; }
+  let labMounted = null;   // id of the lab currently running on the lab page
   function isCur(name, arg) { return cur.name === name && (arg == null || cur.args[0] === arg); }
   function setShell(v) { try { localStorage.setItem('keystone.shell', v); } catch (e) { /* private mode */ } }
 
@@ -85,7 +86,7 @@
     root.appendChild(h('div.home-top', hero, today));
 
     // quick actions
-    const sr = KS.srs.counts(); const dailyDone = !!S.day().d;
+    const sr = KS.srs.counts(); const dailyDone = !!S.dayTotals().d;
     const qa = function (href, emoji, title, sub, tone) { return h('a.qa' + (tone ? '.' + tone : ''), { href: href }, h('div.qa-emoji', emoji), h('div', h('div.qa-title', title), h('div.qa-sub', sub))); };
     const labs = KS.labs.list(); const rndLab = labs.length ? labs[Math.floor(KS.rng('lab' + KS.today())() * labs.length)] : null;
     root.appendChild(h('div.qa-row',
@@ -182,7 +183,8 @@
     const root = h('div.page.lab-page'); root.appendChild(crumbs([['Labs', '#/labs'], [(KS.labs.get(args[0]) || {}).title || 'Lab']]));
     const host = h('div.lab-host'); root.appendChild(host);
     if (!KS.labs.get(args[0]) && !KS.labs.allReady) { host.appendChild(U.spinner('Loading lab…')); return root; }
-    const ctl = KS.labs.mount(host, args[0], {}); cleanup = function () { ctl.destroy(); };
+    const ctl = KS.labs.mount(host, args[0], {}); labMounted = args[0];
+    cleanup = function () { labMounted = null; ctl.destroy(); };
     return root;
   };
 
@@ -190,9 +192,9 @@
     const root = h('div.page.arcade'); const sr = KS.srs.counts();
     root.appendChild(pageHead('Arcade', 'Short games built from what you have learned. Two minutes here beats twenty minutes of re-reading.'));
     root.appendChild(h('div.game-grid', KS.arcade.games.map(function (g) {
-      const st = S.state.games[g.id]; const hot = (g.id === 'flash' && sr.due) || (g.id === 'daily' && !S.day().d);
+      const st = S.state.games[g.id]; const hot = (g.id === 'flash' && sr.due) || (g.id === 'daily' && !S.dayTotals().d);
       return h('a.game-card' + (hot ? '.hot' : ''), { href: '#/arcade/' + g.id }, h('div.game-card-emoji', g.emoji), h('h3', g.title), h('p', g.blurb),
-        h('div.game-card-foot', h('span', '~' + g.mins + ' min'), g.id === 'flash' && sr.due ? h('span.chip.warn', sr.due + ' due') : g.id === 'daily' && !S.day().d ? h('span.chip.warn', 'new today') : st && st.plays ? h('span.muted', KS.plural(st.plays, 'play')) : null));
+        h('div.game-card-foot', h('span', '~' + g.mins + ' min'), g.id === 'flash' && sr.due ? h('span.chip.warn', sr.due + ' due') : g.id === 'daily' && !S.dayTotals().d ? h('span.chip.warn', 'new today') : st && st.plays ? h('span.muted', KS.plural(st.plays, 'play')) : null));
     })));
     root.appendChild(h('h2.section-title', '⚔️ Boss battles'));
     root.appendChild(h('p.muted', 'One per module. Beat a boss with at most two mistakes. Win before finishing a module and you can test out of it.'));
@@ -238,7 +240,7 @@
     root.appendChild(h('h2.section-title', 'Achievements ', h('span.muted', earned + ' / ' + KS.game.achievements.length))); root.appendChild(P.achievements());
     root.appendChild(h('h2.section-title', 'Settings')); root.appendChild(h('div.panel', P.settings()));
     root.appendChild(h('h2.section-title', 'Your data')); root.appendChild(h('div.panel', P.data()));
-    root.appendChild(h('h2.section-title', 'About')); root.appendChild(h('div.panel', KS.mdEl('**Keystone** is a free, self-hosted learning playground covering the [Backend](https://roadmap.sh/backend), [Software Design & Architecture](https://roadmap.sh/software-design-architecture) and [Software Architect](https://roadmap.sh/software-architect) roadmaps from roadmap.sh.\n\nIt is a static website: no accounts, no tracking, no server. Your progress lives in this browser. ' + (KS.offlineReady ? '**✓ Everything is cached — it works offline.**' : 'Once the curriculum finishes loading it also works offline.') + '\n\nVersion ' + KS.version + '.')));
+    root.appendChild(h('h2.section-title', 'About')); root.appendChild(h('div.panel', KS.mdEl('**Keystone** is a free, self-hosted learning playground covering the [Backend](https://roadmap.sh/backend), [Software Design & Architecture](https://roadmap.sh/software-design-architecture) and [Software Architect](https://roadmap.sh/software-architect) roadmaps from roadmap.sh.\n\nIt is a static website: no accounts, no tracking, no server. Your progress lives in this browser. ' + (KS.offlineReady ? '**✓ Everything is cached — it works offline.**' : (navigator.serviceWorker && navigator.serviceWorker.controller) ? 'Once every file has downloaded it also works offline.' : 'Offline mode turns on when the site is hosted over HTTPS (it is off on localhost).') + '\n\nVersion ' + KS.version + '.')));
     return root;
   };
 
@@ -308,8 +310,18 @@
 
   const refreshChrome = KS.debounce(function () { if (!document.body.classList.contains('focus-mode')) { drawSide(); drawTop(); } }, 250);
   KS.bus.on('xp', refreshChrome);
-  KS.bus.on('imported', function () { U.applyTheme(); if (!document.body.classList.contains('focus-mode')) render(true); });
-  KS.bus.on('labs:ready', function () { KS.labs.allReady = true; if (isCur('labs') || isCur('lab') || isCur('home') || isCur('module')) render(true); });
+  // Progress arrived from sync or another tab. Redraw the page, unless that would throw away something in
+  // progress: a running lab, an open search box, or a lesson/boss/game (focus mode).
+  KS.bus.on('imported', function () {
+    U.applyTheme();
+    if (document.body.classList.contains('focus-mode')) return;
+    if ((isCur('lab') && labMounted) || P.searchOpen()) refreshChrome(); else render(true);
+  });
+  KS.bus.on('labs:ready', function () {
+    KS.labs.allReady = true;
+    if (isCur('lab') && labMounted === cur.args[0]) return;   // already running: don't restart it
+    if (isCur('labs') || isCur('lab') || isCur('home') || isCur('module')) render(true);
+  });
 
   document.addEventListener('keydown', function (e) {
     const tag = (e.target && e.target.tagName) || ''; const typing = tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT';
@@ -318,7 +330,7 @@
   });
 
   // background: labs, then the whole curriculum (so search, glossary and offline all work)
-  KS.labs.whenReady().then(function () { return C.loadAll(); }).then(function () { KS.game.check(true); KS.offlineReady = true; });
+  KS.labs.whenReady().then(function () { return C.loadAll(); }).then(function () { KS.game.check(true); return KS.checkOffline(); }).then(function (ok) { KS.offlineReady = ok; });
   KS.sync.gist.auto();
   if ('serviceWorker' in navigator && /^https?:$/.test(location.protocol) && !/^(localhost|127.0.0.1)$/.test(location.hostname)) window.addEventListener('load', function () { navigator.serviceWorker.register('sw.js').catch(function () { /* offline support is optional */ }); });
 })();

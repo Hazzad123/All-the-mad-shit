@@ -115,7 +115,7 @@ KS.lesson('au-basics', {
       pairs: [['Principal', 'Whoever is making the request: a user or a program'], ['Claim', 'One statement about a principal, such as their email'], ['Credential', 'The proof offered for an identity'], ['Identity provider', 'A service that logs people in and vouches for them'], ['Factor', 'A kind of proof: know, have or are']],
       explain: 'These five words come up in every later lesson. If one feels fuzzy, flip back to the vocabulary card.' },
 
-    { type: 'short', q: 'Which HTTP status code means "I do not know who you are" (despite its official name, "Unauthorized")?', accept: ['401'], hint: 'Three digits, starts with 4.',
+    { type: 'short', q: 'Which HTTP status code means "I do not know who you are" (despite its official name, "Unauthorized")?', accept: ['401', '401 Unauthorized'], hint: 'Three digits, starts with 4.',
       explain: '`401` is really about authentication. Its official name is unfortunate: it should have been called "Unauthenticated". Being known but refused is `403`.' },
 
     { type: 'scenario', title: 'The curious customer', intro: 'You run a small online shop. A customer emails: *"I changed the number at the end of my order link and saw someone else\'s order."* Your team lead looks at you.',
@@ -294,7 +294,7 @@ KS.lesson('au-basic', {
       distractors: ['first', 'fast', 'encrypted'],
       explain: 'Sessions and tokens pay the slow hash once at login, then use something cheap to verify afterwards.' },
 
-    { type: 'short', q: 'Which request header carries Basic credentials?', accept: ['Authorization'], hint: 'It shares a name with the topic of the next module, with an extra letter or two.',
+    { type: 'short', q: 'Which request header carries Basic credentials?', accept: ['Authorization', 'Authorization header'], hint: 'It is the American spelling of the next module’s title.',
       explain: 'The `Authorization` header (the name is historical, since it actually carries authentication) holds `Basic ` followed by the Base64 text.' },
 
     { type: 'ab', q: 'Which request handles credentials more safely?',
@@ -1039,7 +1039,7 @@ KS.lesson('au-oauth', {
 
         **PKCE** (said "pixie") protects the **code** from interception. The shop keeps a secret, sends only its hash at the start, and reveals the secret when swapping the code. A thief who steals the code on the way back does not have the secret, so the code is worthless to them.
 
-        Use both. OAuth 2.1 makes PKCE mandatory.` },
+        Use both. The draft OAuth 2.1 makes PKCE mandatory.` },
 
     { kind: 'concept', title: 'Scopes and consent',
       body: `A **scope** is a named slice of permission: \`photos.read\`, \`calendar.events\`, \`email.send\`. The app asks for the scopes it needs, and the **consent screen** shows them in plain language: *"Print Shop wants to view your photos."*
@@ -1062,7 +1062,7 @@ KS.lesson('au-oauth', {
         ['Implicit', '❌ Deprecated', 'Returned the token straight in the redirect URL, where history, logs and scripts could capture it'],
         ['Resource-owner password', '❌ Deprecated', 'The app collects your password and trades it for a token, which defeats the whole point of OAuth']
       ],
-      note: 'OAuth 2.1 is the tidied-up edition: it removes the implicit and password flows and makes PKCE mandatory.' },
+      note: 'The draft OAuth 2.1 is the tidied-up edition: it removes the implicit and password flows and makes PKCE mandatory.' },
 
     { kind: 'tip', title: 'Build with care, not from scratch',
       body: `A few rules that experienced teams follow:
@@ -1077,7 +1077,7 @@ KS.lesson('au-oauth', {
 
   activities: [
     { type: 'mcq', after: 2, q: 'What problem does OAuth 2.0 mainly solve?',
-      options: ['Letting an app act for you with limited access, without sharing your password', 'Proving to a website who you are when you log in', 'Encrypting the connection between browser and server', 'Storing passwords safely in a database'],
+      options: ['Letting an app act for you without your password', 'Proving to a website who you are when you log in', 'Encrypting the connection between browser and server', 'Storing user passwords safely in a database'],
       answer: 0,
       why: [null, 'That is authentication. OAuth is about permission to act; identity comes from OpenID Connect on top.', 'That is TLS, which you met earlier.', 'That is password hashing.'],
       explain: 'OAuth is **delegated authorization**: the user lets an app do specific things on their behalf, with a revocable token, and the password stays with the authorization server.' },
@@ -1094,7 +1094,7 @@ KS.lesson('au-oauth', {
       explain: 'The app sends a hash of its secret at the start and reveals the secret only when exchanging the code. An attacker who intercepts just the code cannot complete that exchange.' },
 
     { type: 'mcq', q: 'What is the `state` parameter for?',
-      options: ['Blocking forged redirects, by checking the value returned matches the one sent', 'Naming the user’s country for data-protection rules', 'Encrypting the authorization code', 'Telling the server which scopes to grant'],
+      options: ['Spotting forged redirects: the value sent must come back', 'Naming the user’s country for data-protection rules', 'Encrypting the authorization code on its way back', 'Telling the server which scopes the app wants granted'],
       answer: 0,
       why: [null, 'It has nothing to do with location.', 'The code is protected by PKCE, not `state`.', 'Scopes are carried by the separate `scope` parameter.'],
       explain: 'The client sends a random `state`, then requires the same value back. If an attacker tries to push their own code into the user’s browser, it will not match, and the client rejects it (a CSRF defence).' },
@@ -1141,7 +1141,7 @@ KS.lesson('au-oauth', {
     { q: 'Name the four OAuth roles.', a: 'Resource owner (you), client (the app), authorization server (issues tokens), resource server (holds the data and checks tokens).' },
     { q: 'What do `state` and PKCE each protect?', a: '`state` protects the redirect against CSRF; PKCE protects the authorization code from interception.' },
     { q: 'Which OAuth flow is recommended for web, single-page and mobile apps?', a: 'The authorization code flow with PKCE.' },
-    { q: 'Why were the implicit and password flows deprecated?', a: 'Implicit exposed tokens in redirect URLs; the password flow made apps handle your password, defeating OAuth’s purpose. OAuth 2.1 removes both.' },
+    { q: 'Why were the implicit and password flows deprecated?', a: 'Implicit exposed tokens in redirect URLs; the password flow made apps handle your password, defeating OAuth’s purpose. The draft OAuth 2.1 removes both.' },
     { q: 'When do you use the client credentials flow?', a: 'Machine-to-machine calls where no user is involved and a service acts as itself.' }
   ],
 
@@ -1467,7 +1467,7 @@ KS.lesson('au-saml-sso', {
       pairs: [['Identity provider', 'The login system that checks users and vouches for them'], ['Service provider', 'The application the user wants to use'], ['Assertion', 'A signed XML statement about the user'], ['Single sign-on', 'Log in once, access many apps'], ['Trust relationship', 'Certificates and addresses exchanged in advance']],
       explain: 'Roles, message and goal. The trust relationship is the setup step that makes everything else possible, and it is also what breaks when a certificate expires.' },
 
-    { type: 'short', q: 'In SAML, what three-letter abbreviation names the application the user wants to log in to?', accept: ['SP'], hint: 'The first word is "service".',
+    { type: 'short', q: 'In SAML, what two-letter abbreviation names the application the user wants to log in to?', accept: ['SP', 'service provider'], hint: 'The first word is "service".',
       explain: 'SP stands for service provider. The company’s login system is the IdP (identity provider).' },
 
     { type: 'bucket', prompt: 'Which of these are reasons a company adopts SSO, and which are not?', buckets: ['A real benefit of SSO', 'Not a benefit'],
@@ -1652,7 +1652,7 @@ KS.lesson('au-mfa', {
       explain: 'Factors are about the *kind* of evidence. Two passwords would be one factor twice. A password plus an app code is two different kinds, which is true MFA.' },
 
     { type: 'mcq', after: 4, q: 'How does the server know your six-digit authenticator code is right, without sending anything to your phone?',
-      options: ['It shares a secret with the app and computes the same code from the secret and the current 30-second step', 'It texts the code to the phone in advance and compares it', 'It asks the phone for the code over the internet', 'It stores every code the app will ever show'],
+      options: ['Both hold a shared secret and compute the code from it and the clock', 'It texts the code to the phone in advance and compares it', 'It asks the phone app for the current code over the internet', 'It stores in advance every code the app will ever show'],
       answer: 0,
       why: [null, 'That describes SMS codes, not authenticator apps.', 'The app works offline; it never contacts the server.', 'There would be infinitely many; the server computes them as needed.'],
       explain: 'Both sides hold the same secret and the same clock, so each can run the HMAC independently and get the same digits. That is why it works with no signal at all.' },
@@ -1668,7 +1668,7 @@ KS.lesson('au-mfa', {
       pairs: [['TOTP', 'A code made from a shared secret and the current time step'], ['SIM-swapping', 'Moving a victim’s phone number to the attacker’s SIM'], ['Passkey', 'A per-site key pair, with the private key kept on your device'], ['WebAuthn', 'The browser standard behind passkeys'], ['Recovery flow', 'The "I lost access" route, often the weakest link']],
       explain: 'The first three are the building blocks. The last is the reminder that every strong lock needs an equally strong way back in.' },
 
-    { type: 'short', q: 'Roughly how many seconds does a typical TOTP time step last (so the code changes this often)?', accept: ['30'], hint: 'Half a minute.',
+    { type: 'short', q: 'Roughly how many seconds does a typical TOTP time step last (so the code changes this often)?', accept: ['30', '30 seconds', '30s', '30 secs', 'thirty'], hint: 'Half a minute.',
       explain: 'The usual step is 30 seconds. Servers often accept the neighbouring step too, to forgive small clock differences.' },
 
     { type: 'scenario', title: 'The phished employee', intro: 'A colleague, Sam, entered his password and his SMS code into a very convincing fake login page. The attacker used both within a minute to log into the real site. You are asked to improve things.',

@@ -114,7 +114,7 @@ KS.lesson('rs-failure', {
       why: [null, 'Each hard dependency adds its own chance of failing, so the total cannot stay the same.', 'Extra hard dependencies never add safety. Redundant *copies* do, which is a different thing.', 'Three 99.9% parts lose roughly 0.3%, not 3%.'],
       explain: 'Chances multiply: 0.999 × 0.999 × 0.999 ≈ 0.997. Every hard dependency in a chain shaves off a little availability.' },
 
-    { type: 'tf', statement: 'If every part of your system is individually very reliable, the system as a whole is automatically just as reliable.', answer: false,
+    { type: 'tf', statement: 'A system built from a chain of very reliable parts can be less reliable than any one of those parts.', answer: true,
       explain: 'Reliability multiplies down a chain. Ten parts at 99.9% each give about 99%. Whole-system reliability comes from redundancy and fallbacks, not just from good parts.' },
 
     { type: 'match', prompt: 'Match the idea to its meaning.',
@@ -296,8 +296,8 @@ KS.lesson('rs-timeouts-retries', {
   ],
 
   activities: [
-    { type: 'tf', after: 1, statement: 'If a library does not set a timeout, it is safe to assume a hung call will eventually fail by itself.', answer: false,
-      explain: 'Many defaults are very long or infinite. A hung call keeps holding a thread and a connection, and enough of them exhaust your service. Always set a deadline yourself.' },
+    { type: 'tf', after: 1, statement: 'If no timeout is set, a call to a hung service can wait for minutes, or even forever.', answer: true,
+      explain: 'Many library defaults are very long or infinite. A hung call keeps holding a thread and a connection, and enough of them exhaust your service. Always set a deadline yourself.' },
 
     { type: 'order', after: 5, prompt: 'Put the retry behaviour in order for one request that keeps failing, using backoff.',
       items: ['Try the request straight away', 'It fails: wait a short random time (about 1 s)', 'Try again; it fails: wait about twice as long', 'Try again; it fails: wait about twice as long again', 'After the last allowed attempt, give up and report the error'],
@@ -359,7 +359,7 @@ KS.lesson('rs-timeouts-retries', {
       ],
       outro: 'Remember: **retries are a loan from the future.** Borrow carefully, with limits.' },
 
-    { type: 'short', q: 'What do you call a random amount added to each client’s wait so that retries do not line up?', accept: ['jitter'], hint: 'It sounds like nervousness.',
+    { type: 'short', q: 'What do you call a random amount added to each client’s wait so that retries do not line up?', accept: ['jitter', 'random jitter'], hint: 'It sounds like nervousness.',
       explain: '**Jitter** spreads retries over time so a crowd of failed clients does not return in one wave.' }
   ],
 
@@ -506,7 +506,7 @@ KS.lesson('rs-circuit-breaker', {
       explain: 'The names come from electrical circuits: closed means current (calls) can flow.' },
 
     { type: 'mcq', q: 'A service is completely dead and your timeout is 2 seconds. What does an open breaker change for the caller?',
-      options: ['Calls fail in about a millisecond instead of after 2 seconds', 'The service is restarted automatically', 'Failed calls are retried until they work', 'Users never see any error'],
+      options: ['Calls fail in a millisecond, not after 2 seconds', 'The service is restarted automatically', 'Failed calls are retried until they finally work', 'Users never see any error'],
       answer: 0,
       why: [null, 'A breaker does not repair anything. It just stops you calling.', 'The opposite: it stops calls instead of repeating them.', 'It fails fast. What users see depends on your fallback.'],
       explain: 'Fast failure frees threads, protects the struggling service from more load, and lets the caller switch to a fallback quickly.' },
@@ -710,7 +710,7 @@ KS.lesson('rs-throttling', {
     { type: 'tf', statement: 'Rate limiting by IP address is always fair, because every IP address is one person.', answer: false,
       explain: 'A whole office, school or mobile carrier can share one IP, and one attacker can use thousands. IP limits are a blunt tool, best for anonymous traffic.' },
 
-    { type: 'short', q: 'Which HTTP status code means "you are sending too many requests"?', accept: ['429'], hint: 'It is in the 4xx family and ends in 9.',
+    { type: 'short', q: 'Which HTTP status code means "you are sending too many requests"?', accept: ['429', '429 too many requests'], hint: 'It is in the 4xx family and ends in 9.',
       explain: '`429 Too Many Requests`, usually with a `Retry-After` header saying how long to wait.' },
 
     { type: 'ab', q: 'A caller exceeds its limit. Which response is better?',
@@ -880,7 +880,7 @@ KS.lesson('rs-backpressure', {
       answer: 50, unit: 'minutes', tolerance: 1.3, min: 1, max: 10000,
       explain: '600,000 ÷ 200 = 3,000 seconds, which is 50 minutes. An unbounded queue turns an overload into a very long wait for everyone behind the backlog.' },
 
-    { type: 'tf', after: 2, statement: 'Putting an unbounded queue between a fast producer and a slow consumer solves the mismatch for good.', answer: false,
+    { type: 'tf', after: 2, statement: 'If the producer is permanently faster than the consumer, an unbounded queue between them only delays the problem.', answer: true,
       explain: 'A queue only absorbs short bursts. If the producer is permanently faster, the queue grows until memory runs out or waits become useless.' },
 
     { type: 'bucket', after: 4, prompt: 'What is the right response when the system is full?',
@@ -1100,8 +1100,8 @@ KS.lesson('rs-loadshifting', {
       items: ['Payment processing', 'User sign-in', 'Product search', 'Personalised recommendations', 'Bulk analytics export'],
       explain: 'Money first, then access, then core browsing, then extras, then work that can run any time. Agree this ranking with the business before you need it.' },
 
-    { type: 'tf', statement: 'Load shedding means the system is broken. A well-designed system would never need it.', answer: false,
-      explain: 'Shedding is a deliberate safety valve. Capacity has limits and traffic has surprises. Dropping the least important work on purpose beats failing for everyone.' },
+    { type: 'tf', statement: 'Shedding some load on purpose during a surge can keep a system useful for most of its users.', answer: true,
+      explain: 'Shedding is a deliberate safety valve, not a sign the system is broken. Capacity has limits and traffic has surprises. Dropping the least important work on purpose beats failing for everyone.' },
 
     { type: 'ab', q: 'The server is overloaded. Which shedding rule is better?',
       a: { lang: 'js', label: 'Reject at random', src: `
@@ -1144,7 +1144,7 @@ KS.lesson('rs-loadshifting', {
       ],
       outro: 'Peaks are survived by **protecting the core, shifting what can wait, and shedding what cannot be afforded**.' },
 
-    { type: 'short', q: 'Which status code means "accepted for processing, but not finished yet", used when work is queued for later?', accept: ['202'], hint: 'It is in the 2xx family, one above 201.',
+    { type: 'short', q: 'Which status code means "accepted for processing, but not finished yet", used when work is queued for later?', accept: ['202', '202 accepted'], hint: 'It is in the 2xx family, one above 201.',
       explain: '`202 Accepted`: the request was received and will be processed later, so the caller gets a fast reply while the slow work happens elsewhere.' }
   ],
 
@@ -1282,7 +1282,7 @@ KS.lesson('rs-graceful-degradation', {
       explain: 'Each step down is less good but still better than breaking the page. Only the last step tells the user something is wrong.' },
 
     { type: 'mcq', after: 5, q: 'Recommendations hang. In a design with **one shared thread pool**, what happens to checkout?',
-      options: ['It slows or fails, because hung calls use up all the shared threads', 'Nothing: checkout is a different feature', 'Checkout automatically gets extra threads', 'The slow service is skipped at once'],
+      options: ['It stalls too: hung calls hold every shared thread', 'Nothing: checkout is a different feature', 'Checkout automatically gets extra threads', 'The slow service is skipped at once'],
       answer: 0,
       why: [null, 'Features that share a pool compete for the same threads, however different they are.', 'Pools do not grow on their own, and extra threads would also hang.', 'A skip needs a timeout or breaker. Without one, calls keep waiting.'],
       explain: 'This is the case for bulkheads: give each dependency its own limited pool so one slow neighbour cannot starve the rest.' },
@@ -1339,7 +1339,7 @@ KS.lesson('rs-graceful-degradation', {
       ],
       outro: 'Good degradation is **chosen in advance**: the nice-to-haves bend so the essentials do not break.' },
 
-    { type: 'short', q: 'What is the name for an emergency feature flag that instantly disables a risky feature?', accept: ['kill switch', 'killswitch'], hint: 'A big red button.',
+    { type: 'short', q: 'What is the name for an emergency feature flag that instantly disables a risky feature?', accept: ['kill switch', 'killswitch', 'kill switches'], hint: 'A big red button.',
       explain: 'A **kill switch** lets you turn a feature off in seconds, without a deployment, while an incident is happening.' }
   ],
 
@@ -1618,7 +1618,7 @@ KS.boss('resilience', {
       explain: '429 says "your rate", not "our bug", and Retry-After tells clients exactly how long to wait. A bare 500 invites instant retries.' },
 
     { type: 'mcq', q: 'The limit is 100 requests per fixed clock minute. A client sends 100 requests at 12:00:59 and 100 more at 12:01:00. What does a fixed-window counter do?',
-      options: ['Allows all 200, so a burst of double the limit gets through', 'Rejects the second batch', 'Rejects both batches', 'Slows the second batch to a trickle'],
+      options: ['Allows all 200, so double the limit gets through', 'Rejects the second batch', 'Rejects both batches', 'Slows the second batch to a trickle over the minute'],
       answer: 0,
       why: [null, 'That is what a sliding window would do.', 'Each batch fits within its own window.', 'A fixed window counts and resets. It does not smooth traffic.'],
       explain: 'Fixed windows reset on the clock, so bursts that straddle the boundary get two allowances in a row. Sliding windows and token buckets avoid it.' },

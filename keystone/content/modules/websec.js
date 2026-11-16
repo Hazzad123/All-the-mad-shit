@@ -203,7 +203,7 @@ KS.lesson('ws-owasp', {
         Where the metaphor stops: a pilot ticks every box every time. A web app has a lot more ways to fail than ten, so the list is where you *start*, not where you finish.` },
 
     { kind: 'compare', title: 'The Top 10 (2021), part one',
-      body: 'This lesson uses the 2021 edition. Each entry is a category, not a single bug.',
+      body: 'This lesson uses the 2021 edition. OWASP updates the list every few years, and a 2025 edition has since been published. Each entry is a category, not a single bug.',
       cols: ['In plain English', 'Tiny example'],
       rows: [
         ['**A01** Broken Access Control', 'Users can do things they should not be allowed to', 'Change `/invoice/17` to `/invoice/18` and read someone else’s'],
@@ -245,7 +245,7 @@ KS.lesson('ws-owasp', {
       caption: 'Access control, injection and authentication live in your code; outdated components, misconfiguration and weak logging live around it.' },
 
     { kind: 'concept', title: 'Which ones bite most often',
-      body: `The list is ranked using data from many real applications and from the security community. In the 2021 edition, **Broken Access Control** was number one: the most common problem found in the apps tested. You studied it in the Authorization module, and it is worth a reminder that "who can do what" is the place where careless code costs the most.
+      body: `The list is ranked using data from many real applications and from the security community. In the 2021 edition, **Broken Access Control** was number one: the most common problem found in the apps tested. You studied it in the Authorisation module, and it is worth a reminder that "who can do what" is the place where careless code costs the most.
 
         **Injection** stayed near the top, and in 2021 absorbed what used to be a separate cross-site scripting category. **Misconfiguration** is boring, frequent and fixable in an afternoon.
 
@@ -278,7 +278,7 @@ KS.lesson('ws-owasp', {
   ],
 
   activities: [
-    { type: 'tf', after: 0, statement: 'The OWASP Top 10 is a complete list of every vulnerability a web application can have.', answer: false,
+    { type: 'tf', after: 0, statement: 'The OWASP Top 10 lists common categories of risk, so an app can still have serious problems that are not on it.', answer: true,
       explain: 'It is a ranked list of the most common and critical **categories** of risk. It is a great starting checklist, but real applications have problems that are not on it.' },
 
     { type: 'match', after: 3, prompt: 'Match each OWASP category to the one-line idea.',
@@ -299,10 +299,13 @@ KS.lesson('ws-owasp', {
       answers: [0, 1, 3],
       explain: 'The list is a prompt and a shared language. It is revised every few years and is not exhaustive, so ticking boxes is not proof of safety and the numbering is not worth memorising.' },
 
-    { type: 'estimate', q: 'Roughly how many categories does the OWASP Top 10 contain?', answer: 10, unit: 'categories', tolerance: 1.2, min: 1, max: 1000,
-      explain: 'Ten, hence the name. Each one is a category of problems, not a single bug, which is why a whole module can be spent on just a few of them.' },
+    { type: 'mcq', q: 'A new feature lets users paste a link, and the server fetches that page to show a preview. Which category should you review it against first?',
+      options: ['Server-Side Request Forgery', 'Cryptographic Failures', 'Vulnerable and Outdated Components', 'Security Logging and Monitoring Failures'],
+      answer: 0,
+      why: [null, 'Nothing here is about protecting stored or transmitted data.', 'That is about the libraries you use, not what this feature does.', 'Logging matters everywhere, but the new risk here is the server fetching a URL someone else chose.'],
+      explain: 'The server makes a request to a URL the user picks. An attacker could point it at an internal service that the outside world cannot reach.' },
 
-    { type: 'short', q: 'In the 2021 edition, which category sits at number one: "Broken Access ___"?', accept: ['Control'], hint: 'You spent a whole lesson on it in the Authorization module.',
+    { type: 'short', q: 'In the 2021 edition, which category sits at number one: "Broken Access ___"?', accept: ['Control', 'Access Control', 'Broken Access Control'], hint: 'You spent a whole lesson on it in the Authorisation module.',
       explain: 'Broken Access Control: users acting outside their permissions. It was the most commonly found category in the data behind the 2021 list.' },
 
     { type: 'scenario', title: 'The pre-launch review', intro: 'Your team is about to launch a small web shop with a login, a search box and an admin area. You have an hour and the OWASP Top 10 on the wall.',
@@ -467,9 +470,9 @@ KS.lesson('ws-injection', {
 
   activities: [
     { type: 'mcq', after: 1, q: 'What is the single root cause of every injection vulnerability?',
-      options: ['Untrusted data gets interpreted as code or commands', 'The server has too little memory', 'Passwords are stored in the database', 'The website does not use HTTPS'],
+      options: ['Untrusted data gets run as code or commands', 'The server runs out of memory under heavy load', 'Passwords are stored in the database unhashed', 'The website is served over plain HTTP, not HTTPS'],
       answer: 0,
-      why: [null, 'Memory has nothing to do with it.', 'Storing passwords is a separate issue (and should be done with hashing).', 'HTTPS protects data in transit; injection happens after the data arrives.'],
+      why: [null, 'Memory has nothing to do with it.', 'Unhashed passwords are a separate problem (cryptographic failures), not injection.', 'HTTPS protects data in transit; injection happens after the data arrives.'],
       explain: 'The receiving system cannot tell which part of the string is the programmer’s instruction and which part is a user’s data, so it obeys all of it.' },
 
     { type: 'spot', after: 2, prompt: 'This function is vulnerable to SQL injection. Tap the line responsible.',
@@ -490,8 +493,8 @@ KS.lesson('ws-injection', {
       answer: 'b',
       explain: 'Hand-written escaping depends on remembering every special case, every time, in every database. A parameter makes input data by construction, so there is nothing to forget.' },
 
-    { type: 'tf', statement: 'Stripping apostrophes from user input is a reliable way to prevent SQL injection.', answer: false,
-      explain: 'Blacklists miss cases, break legitimate names like O’Brien, and some injections need no apostrophe at all. Parameterised queries are the dependable fix.' },
+    { type: 'tf', statement: 'A parameterised query stops SQL injection because the user’s input travels separately from the SQL and is only ever treated as data.', answer: true,
+      explain: 'The query and the values arrive in separate envelopes, so however strange the input looks, the database never runs it as code. Stripping characters such as apostrophes is the unreliable alternative.' },
 
     { type: 'order', prompt: 'Put the stages of the login SQL injection attack in order.',
       items: ['The attacker types a quote and extra SQL in the email box', 'The code glues the text into the query string', 'The query now has an always-true condition', 'The database runs the changed query and returns user rows', 'The app treats the result as a successful login'],
@@ -674,7 +677,7 @@ KS.lesson('ws-xss-csp', {
       pairs: [['Stored XSS', 'The script is saved in the database and served to everyone'], ['Reflected XSS', 'The script rides in a crafted link and is echoed back'], ['DOM-based XSS', 'The page’s own JavaScript inserts attacker text unsafely']] },
 
     { type: 'mcq', after: 1, q: 'Why can an injected script on `shop.example` act as the logged-in visitor?',
-      options: ['The browser trusts scripts that arrive from the site, so it runs with the site’s origin and session', 'The script steals the visitor’s password from the keyboard first', 'Scripts always run with administrator rights on the visitor’s computer', 'The server verifies every script before sending it'],
+      options: ['The browser treats it as the site’s own script, with its session', 'The script first steals the visitor’s password from the keyboard', 'Scripts run with administrator rights on the visitor’s computer', 'The server checks and approves every script before sending it'],
       answer: 0,
       why: [null, 'It does not need the password; it already runs inside the logged-in page.', 'Scripts are confined to the browser and the site’s origin.', 'The server has no idea the stored text is a script; that is the problem.'],
       explain: 'The browser judges scripts by where they came from. A script embedded in your page is treated as yours, and so it can use the visitor’s session.' },
@@ -696,7 +699,7 @@ KS.lesson('ws-xss-csp', {
       answer: 'b',
       explain: 'The default in most templating engines turns `<` into `&lt;`, so text stays text. Triple braces (or a "raw" helper) deliberately turn escaping off, which is only safe for content you fully control.' },
 
-    { type: 'tf', statement: 'Setting the `HttpOnly` flag on a session cookie fully prevents the damage from XSS.', answer: false,
+    { type: 'tf', statement: 'With `HttpOnly` set on the session cookie, an injected script cannot read the cookie but can still act as the user from inside the page.', answer: true,
       explain: '`HttpOnly` stops scripts from reading the cookie, so it cannot be copied away. But the injected script still runs in the page and can make requests that carry the cookie automatically. It limits the damage; it does not remove the bug.' },
 
     { type: 'multi', q: 'Which of these are real defences against XSS?',
@@ -819,7 +822,7 @@ KS.lesson('ws-csrf-cors', {
     { kind: 'steps', title: 'Defending against CSRF',
       body: 'Use these together. Each one closes a different gap.',
       steps: [
-        { title: 'Set the SameSite attribute on cookies', body: '`SameSite=Lax` (or `Strict`) tells the browser not to attach the cookie to most cross-site requests. A forged POST from another site then arrives without your session. Many browsers now default to Lax-like behaviour, but set it explicitly.' },
+        { title: 'Set the SameSite attribute on cookies', body: '`SameSite=Lax` (or `Strict`) tells the browser not to attach the cookie to most cross-site requests. A forged POST from another site then arrives without your session. Chromium-based browsers such as Chrome and Edge now treat cookies without the attribute as Lax, but Firefox and Safari do not by default, so set it explicitly.' },
         { title: 'Add an anti-CSRF token', body: 'Put a random, per-session secret in every form (and API call). The server rejects state-changing requests without the right token. The attacker’s page cannot read your token, so it cannot include it.' },
         { title: 'Never change state on GET', body: 'Links, images and prefetching all make GET requests. If `GET /delete-account` works, any page can trigger it. Use POST, PUT or DELETE for changes.' },
         { title: 'Check Origin on sensitive requests', body: 'Servers can also compare the `Origin` or `Referer` header with their own. A transfer request that claims to come from `evil.example` can be refused.' }
@@ -1436,7 +1439,7 @@ KS.boss('websec', {
       distractors: ['Access-Control-Allow-Origin', 'SameSite=None', 'Strict-Transport-Security'],
       explain: 'HttpOnly hides the cookie from JavaScript. CSP limits which script sources the browser will run. Both are safety nets behind output encoding.' },
 
-    { type: 'short', q: 'Which response header tells browsers to use only HTTPS for a site for a set period? (Give its three-letter abbreviation.)', accept: ['HSTS'], hint: 'Strict Transport Security.',
+    { type: 'short', q: 'Which response header tells browsers to use only HTTPS for a site for a set period? (Give its four-letter abbreviation or the full header name.)', accept: ['HSTS', 'Strict-Transport-Security'], hint: 'Strict Transport Security.',
       explain: '`Strict-Transport-Security`, abbreviated HSTS, stops downgrade to plain HTTP once the browser has seen it.' },
 
     { type: 'estimate', q: 'A bot tries 5 password guesses per second against a login with no rate limit. About how many guesses is that in an hour?', answer: 18000, unit: 'guesses', tolerance: 2, min: 100, max: 10000000,
@@ -1526,4 +1529,3 @@ Injected script runs **as the victim, in your origin**.` },
   ]
 });
 
-/* @@END */

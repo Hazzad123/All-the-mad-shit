@@ -107,7 +107,7 @@ KS.lesson('test-why-pyramid', {
 
   activities: [
     { type: 'mcq', after: 1, q: 'You fix a bug in a shared function and all 300 tests still pass. What have you actually learned?',
-      options: ['The behaviour the tests cover is probably unchanged; untested behaviour is still unknown', 'Nothing else in the system can possibly be broken', 'The function is now free of all bugs', 'The tests are well written, whatever they check'],
+      options: ['Covered behaviour probably still works; the rest is unknown', 'Nothing else in the system can possibly be broken', 'The function is now free of all bugs', 'The tests are well written, whatever they check'],
       answer: 0,
       why: [null, 'Tests only check what someone thought to write down.', 'Passing tests do not prove the absence of bugs, only that these checks did not find any.', 'Passing says nothing about their quality: a test that checks nothing also passes.'],
       explain: 'Green means "none of the checks we wrote caught a problem". That is valuable, but it is a net with holes, not a guarantee.' },
@@ -352,7 +352,7 @@ KS.lesson('test-unit', {
       distractors: ['random', 'manual', 'mock database cluster'],
       explain: 'Fast, isolated and repeatable are the heart of FIRST. A test that depends on luck, the clock or a person is not one you can trust.' },
 
-    { type: 'short', q: 'In Arrange–Act–Assert, what is the name of the step where you check the result?', accept: ['assert'], hint: 'It is the last of the three words.',
+    { type: 'short', q: 'In Arrange–Act–Assert, what is the name of the step where you check the result?', accept: ['assert', 'assertion', 'assertions'], hint: 'It is the last of the three words.',
       explain: 'Assert compares what happened with what you expected, and fails the test if they differ.' }
   ],
 
@@ -857,7 +857,7 @@ KS.lesson('test-tdd', {
       explain: 'The next failing test will force a more general solution. Doing the simplest thing keeps steps small and stops you building features nobody asked for.' },
 
     { type: 'mcq', after: 5, q: 'Why do TDD fans say it improves design, not just correctness?',
-      options: ['Writing the test first makes you use the code, so awkward, hard-to-test designs hurt immediately', 'It makes the compiler produce faster programs', 'It removes the need to think about structure at all', 'It guarantees the code has no bugs'],
+      options: ['Testing first makes you use the code, so awkward designs hurt early', 'It makes the compiler produce faster programs', 'It removes the need to think about structure at all', 'It guarantees the code has no bugs'],
       answer: 0,
       why: [null, 'TDD has no effect on how fast compiled code runs.', 'You still design; the tests simply give fast feedback on that design.', 'No technique guarantees that; tests only check what you thought of.'],
       explain: 'If a test is painful to set up, the code is hard to use and probably too coupled. That feedback arrives before the design hardens.' },
@@ -1037,7 +1037,7 @@ KS.lesson('test-strategy', {
 
   activities: [
     { type: 'mcq', after: 1, q: 'What does dependency injection mean in practice?',
-      options: ['A piece of code is given its collaborators from outside rather than creating them itself', 'The database is injected with test data automatically', 'Dependencies are downloaded at runtime from the internet', 'All code must live in one file so it is easy to find'],
+      options: ['Code is handed its collaborators instead of creating them', 'The database is injected with test data automatically', 'Dependencies are downloaded at runtime from the internet', 'All code must live in one file so it is easy to find'],
       answer: 0,
       why: [null, 'That describes seeding test data, not the design technique.', 'It is about how objects receive their collaborators, not package downloads.', 'DI does not constrain file layout.'],
       explain: 'Passing the clock, database or mailer in (usually via a constructor) lets a test hand over a stand-in and production hand over the real thing.' },
@@ -1181,7 +1181,7 @@ KS.boss('testing', {
       distractors: ['Because', 'smoke', 'load'],
       explain: 'Given/When/Then is the plain-English shape of BDD. Regression tests lock in the fix for a bug that once got through.' },
 
-    { type: 'short', q: 'Which kind of test, named after hardware that is switched on to see if it catches fire, checks that an app is basically alive after a deploy?', accept: ['smoke', 'smoke test'], hint: 'Something is burning if you see it.',
+    { type: 'short', q: 'Which kind of test, named after hardware that is switched on to see if it catches fire, checks that an app is basically alive after a deploy?', accept: ['smoke', 'smoke test', 'smoke tests', 'smoke testing'], hint: 'Something is burning if you see it.',
       explain: 'A smoke test is a tiny, fast set of checks that the app starts and the most basic things work.' },
 
     { type: 'mcq', q: 'Your service passes all unit tests but fails in production because the SQL names a column that does not exist. What would have caught it?',

@@ -101,7 +101,7 @@ KS.lesson('nosql-why', {
       explain: 'It is an umbrella for many different designs (documents, key-value, graph and more) that mostly share only that they are not classic relational tables.' },
 
     { type: 'mcq', after: 4, q: 'A team says their NoSQL database is "schemaless", so they never need to think about structure. What is the truth?',
-      options: ['The structure moves into application code, which must cope with records of different shapes', 'The database invents a perfect structure automatically', 'Structure only matters in relational databases', 'Records cannot contain more than one field'],
+      options: ['Structure moves into app code, which must cope with mixed shapes', 'The database works out a sensible structure automatically', 'Structure only matters in relational databases, not here', 'Records cannot contain more than one field'],
       answer: 0,
       why: [null, 'Nothing invents your structure; code that reads a missing field simply breaks.', 'Every program depends on the shape of its data, whatever stores it.', 'Records can hold many fields, nested, with varying structure.'],
       explain: 'Flexible schemas move the rules from the database to your code ("schema-on-read"). That is freedom when data varies, but the risk of surprises is yours.' },
@@ -283,7 +283,7 @@ KS.lesson('nosql-document', {
 
   activities: [
     { type: 'mcq', after: 2, q: 'What does a document database give you that a plain set of tables does not?',
-      options: ['A whole self-contained thing stored and read together, with nested fields and arrays', 'Guaranteed relationships between every record', 'Faster joins across many collections', 'A fixed structure that rejects anything unexpected'],
+      options: ['One whole thing stored and read together, nesting included', 'Guaranteed relationships enforced between every record', 'Faster joins across many collections', 'A fixed structure that rejects anything unexpected'],
       answer: 0,
       why: [null, 'Relationships are your job in documents; relational databases enforce them.', 'Most document stores are not built for heavy joins.', 'Flexible shape is the default; strictness is opt-in.'],
       explain: 'A document holds the thing as you think of it, nested data included, so one read returns it all. That is the appeal and the trade.' },
@@ -313,13 +313,13 @@ KS.lesson('nosql-document', {
       answer: 'b',
       explain: 'An unbounded list inside one document makes it huge, slow to rewrite and eventually too big for the limit. Comments in their own collection, linked by `postId`, grow without limit.' },
 
-    { type: 'tf', statement: 'Because a document database has flexible schemas, you never need to plan for changes to the shape of your data.', answer: false,
-      explain: 'Old documents keep their old shape. Without validation and planned migrations the data drifts and code fills up with special cases.' },
+    { type: 'tf', statement: 'Even with a flexible schema, changes to the shape of your data still need planning, because old documents keep their old shape.', answer: true,
+      explain: 'True: old documents keep their old shape. Without validation and planned migrations the data drifts and code fills up with special cases.' },
 
     { type: 'match', prompt: 'Match each term to its meaning.',
       pairs: [['Collection', 'A group of documents, like a table'], ['Embedding', 'Nesting related data inside the parent document'], ['Referencing', 'Storing another document’s id as a link'], ['`$set` (MongoDB)', 'Change just one field of a document'], ['CouchDB sync', 'Two copies exchange changes, even after being offline']] },
 
-    { type: 'short', q: 'Which document database, famous for replication between server and offline devices, is the other one named in this lesson besides MongoDB?', accept: ['couchdb', 'couch'], hint: 'Its name starts with a piece of living-room furniture.',
+    { type: 'short', q: 'Which document database, famous for replication between server and offline devices, is the other one named in this lesson besides MongoDB?', accept: ['couchdb', 'couch', 'apache couchdb'], hint: 'Its name starts with a piece of living-room furniture.',
       explain: 'CouchDB keeps revisions of each document so copies can sync both ways and conflicts can be detected.' },
 
     { type: 'scenario', title: 'Modelling a recipe app', intro: 'You are building a recipe app on a document database. A recipe has a title, steps, ingredients, and an author. Many recipes share one author, and thousands of people leave ratings.',
@@ -474,7 +474,7 @@ KS.lesson('nosql-keyvalue', {
 
   activities: [
     { type: 'mcq', after: 0, q: 'What can a pure key-value store do easily, and what can it not do easily?',
-      options: ['Fetch a value by its key; it cannot easily answer "find everything matching a condition"', 'Join any two tables; it cannot store numbers', 'Run any SQL query; it cannot be fast', 'Search the inside of values; it cannot store text'],
+      options: ['Fetch by key; but not "find all matching a condition"', 'Join any two tables; but it cannot store numbers', 'Run any SQL query; but it is slow at every lookup', 'Search inside values; but it cannot store any text'],
       answer: 0,
       why: [null, 'It has no tables to join, and it stores numbers fine.', 'Key-value stores generally do not speak SQL, and they are typically very fast.', 'Looking inside values is exactly what a plain key-value store does not do.'],
       explain: 'Fetching by key is its superpower. Anything that needs looking *around* (conditions, ranges, joins) has to be planned into the keys or handled elsewhere.' },
@@ -482,10 +482,10 @@ KS.lesson('nosql-keyvalue', {
     { type: 'match', after: 3, prompt: 'Match each Redis structure to a typical use.',
       pairs: [['String', 'A counter or a cached value'], ['Hash', 'The fields of one user record'], ['List', 'A simple queue of jobs'], ['Set', 'Unique people who liked a post'], ['Sorted set', 'A leaderboard']] },
 
-    { type: 'tf', after: 6, statement: 'In DynamoDB, the sort key decides which machine an item is stored on.', answer: false,
-      explain: 'The **partition key** picks the machine. The sort key orders items *within* a partition so you can fetch ranges efficiently.' },
+    { type: 'tf', after: 6, statement: 'In DynamoDB, the partition key decides which machine stores an item; the sort key orders items within it.', answer: true,
+      explain: 'True: the **partition key** picks the machine. The sort key orders items *within* a partition so you can fetch ranges efficiently.' },
 
-    { type: 'short', q: 'Which Redis option makes a key delete itself after a set number of seconds? Give the abbreviation used with SET.', accept: ['ex', 'ttl', 'EX'], hint: 'Two letters, short for "expire".',
+    { type: 'short', q: 'Which Redis option makes a key delete itself after a set number of seconds? Give the abbreviation used with SET.', accept: ['EX'], hint: 'Two letters, short for "expire".',
       explain: '`SET key value EX 1800` sets a time-to-live of 1,800 seconds, ideal for sessions and caches.' },
 
     { type: 'ab', q: 'Which is the better design for the question "show a customer’s orders, newest first"?',
@@ -874,7 +874,7 @@ KS.lesson('nosql-graph', {
               -[:FOLLOWS*2]->(p)
         RETURN DISTINCT p` },
       answer: 'b',
-      explain: 'At two hops both work, but the graph version stays one short pattern as hops grow and avoids join after join. In a relational schema every extra hop is another self-join.' },
+      explain: 'At two hops both work, but the graph version stays one short pattern as hops grow and avoids join after join. With a relational schema, every extra hop is another self-join.' },
 
     { type: 'scenario', title: 'The fraud team\'s request', intro: 'A payments company wants to spot **fraud rings**: groups of accounts connected by shared phone numbers, cards, devices and addresses. Analysts want to follow links of any length, and fast.',
       meters: { 'detection power': 40, 'operating cost': 60 },
@@ -908,7 +908,7 @@ KS.lesson('nosql-graph', {
 
   glossary: [
     { term: 'Graph database', def: 'A database that stores data as nodes and the relationships (edges) between them, optimised for following connections.', like: 'A pinboard with red string between the photos.' },
-    { term: 'Node', def: 'A thing in a graph, such as a person, film or product, which can carry a label and properties.', like: 'A photo pinned to the board.' },
+    { term: 'Graph node', def: 'A thing in a graph, such as a person, film or product, which can carry a label and properties.', like: 'A photo pinned to the board.' },
     { term: 'Edge', def: 'A directed, typed connection between two nodes in a graph, which can have properties of its own.', aka: ['relationship'], like: 'A piece of string with a label on it.' },
     { term: 'Traversal', def: 'Walking through a graph by following edges from one node to the next.', like: 'Following the string from photo to photo.' },
     { term: 'Cypher', def: 'A declarative query language for graphs that describes patterns using ASCII-art notation, used by Neo4j.', like: 'Sketching the pattern you are looking for and asking the database to find it.' }
@@ -1026,8 +1026,8 @@ KS.lesson('nosql-timeseries', {
     { type: 'match', prompt: 'Match each term to what it means.',
       pairs: [['Measurement', 'The kind of reading, like a table (e.g. cpu)'], ['Tag', 'A label that identifies which series a point belongs to'], ['Field', 'The actual measured value'], ['Downsampling', 'Replacing raw points with summaries'], ['Retention policy', 'A rule for how long data is kept']] },
 
-    { type: 'tf', statement: 'Using a unique request id as a tag in a time-series database is a good idea because it makes every point easy to find.', answer: false,
-      explain: 'Every unique tag combination becomes its own series. A tag with millions of values (high cardinality) creates millions of series and can cripple the database. Tags should be a modest set of labels.' },
+    { type: 'tf', statement: 'Using a unique request id as a tag in a time-series database can create millions of series and badly slow it down.', answer: true,
+      explain: 'True: every unique tag combination becomes its own series. A tag with millions of values (high cardinality) creates millions of series and can cripple the database. Tags should be a modest set of labels.' },
 
     { type: 'ab', q: 'Which retention plan is more sensible for CPU metrics sampled every second?',
       a: { lang: 'text', label: 'Keep it all', src: `
@@ -1039,10 +1039,15 @@ KS.lesson('nosql-timeseries', {
       answer: 'b',
       explain: 'Old detail is rarely needed, but the trend is. Rolling up and expiring keeps storage bounded while preserving what people actually look at.' },
 
-    { type: 'spot', prompt: 'This line-protocol point will cause a cardinality problem. Tap the tag at fault.',
+    { type: 'spot', prompt: 'Here is one line-protocol point, split into its parts so you can tap them. It will cause a cardinality problem. Tap the tag at fault.',
       code: { lang: 'text', src: `
-        requests,host=web1,region=eu,request_id=9f3a21c7 latency=42 1700000000000000000` },
-      lines: [1],
+        requests             (measurement)
+        host=web1            (tag)
+        region=eu            (tag)
+        request_id=9f3a21c7  (tag)
+        latency=42           (field)
+        1700000000000000000  (timestamp)` },
+      lines: [4],
       explain: '`request_id` is different for every point, so each point becomes its own series. Put values like that in a field, or leave them out, and keep tags for small sets such as host and region.' },
 
     { type: 'estimate', q: 'A single sensor sends one reading per second. Roughly how many readings does it produce per day?', answer: 86400, unit: 'readings per day', tolerance: 1.5, min: 1000, max: 10000000,
@@ -1126,9 +1131,8 @@ KS.lesson('nosql-realtime', {
         });`,
         notes: {
           4: 'A **query** describes the data we care about: messages in the "general" room.',
-          8: '`onSnapshot` registers a listener. The callback runs **once now** with current data, and **again every time the query results change**.',
-          9: 'Each change is described as `added`, `modified` or `removed`, so your UI updates just that bit.',
-          12: 'The call returns `stop`, a function that cancels the listener. Forgetting to call it when leaving a screen is a classic leak.'
+          8: '`onSnapshot` registers a listener. The callback runs **once now** with current data, and **again every time the query results change**. It returns `stop`, a function that cancels the listener. Forgetting to call it when leaving a screen is a classic leak.',
+          9: 'Each change is described as `added`, `modified` or `removed`, so your UI updates just that bit.'
         } } },
 
     { kind: 'concept', title: 'Firebase and Firestore',
@@ -1184,13 +1188,13 @@ KS.lesson('nosql-realtime', {
 
   activities: [
     { type: 'mcq', after: 1, q: 'What is the key difference between a realtime database and a normal ask-and-answer database?',
-      options: ['Clients subscribe once and the database pushes each change to them', 'It stores data faster on disk', 'It never needs a network connection', 'It uses SQL instead of JSON'],
+      options: ['Clients subscribe and the database pushes each change', 'It stores data faster on disk than other databases', 'It never needs a network connection at all', 'It uses SQL instead of JSON for every query'],
       answer: 0,
       why: [null, 'Disk speed is not what makes it realtime.', 'The push depends on a live connection; offline sync is a separate feature.', 'The query language is unrelated.'],
       explain: 'Instead of the app polling "anything new?", the database remembers who is listening and sends the change to them as it happens.' },
 
-    { type: 'tf', after: 5, statement: 'If two people edit the same item while offline, a sync system cannot possibly lose either edit.', answer: false,
-      explain: 'Some systems use "last write wins", which silently discards one edit. Others keep both and ask the app to resolve the conflict. You must know which your tool does.' },
+    { type: 'tf', after: 5, statement: 'If two people edit the same item while offline, a "last write wins" sync can silently discard one of the edits.', answer: true,
+      explain: 'True. Some systems use "last write wins", which silently discards one edit. Others keep both and ask the app to resolve the conflict. You must know which your tool does.' },
 
     { type: 'order', after: 1, prompt: 'Put the steps of a pushed update in order.',
       items: ['Phone B subscribes and the connection stays open', 'Phone A writes a new item', 'The database saves it and finds the subscribers', 'The change is pushed to Phone B, which updates its screen'],
@@ -1676,7 +1680,7 @@ KS.boss('nosql', {
       answer: 'b',
       explain: 'An unbounded list embedded in one document makes it huge and slow to rewrite. Comments in their own collection, linked by postId, can grow without limit.' },
 
-    { type: 'short', q: 'In DynamoDB, which key decides which machine stores an item: the partition key or the sort key? Give the first word.', accept: ['partition'], hint: 'It is not the one that orders items within a partition.',
+    { type: 'short', q: 'In DynamoDB, which key decides which machine stores an item: the partition key or the sort key? Give the first word.', accept: ['partition', 'partition key', 'the partition key'], hint: 'It is not the one that orders items within a partition.',
       explain: 'The partition key places the item; the sort key orders items inside that partition so you can read ranges.' },
 
     { type: 'match', prompt: 'Match each database to the job it is built for.',
@@ -1686,10 +1690,15 @@ KS.boss('nosql', {
       items: [['Load one order with all its fields', 0], ['Update a customer\'s email', 0], ['Insert a new user', 0], ['Average basket value per country across billions of rows', 1], ['Count page views per hour over a year', 1], ['Sum revenue per product from an event log', 1]],
       explain: 'Whole-record work belongs with row storage; wide scans over a few columns belong with column storage.' },
 
-    { type: 'spot', prompt: 'This time-series point will create millions of separate series. Tap the offending tag.',
+    { type: 'spot', prompt: 'This time-series point (split into its parts) will create millions of separate series. Tap the offending tag.',
       code: { lang: 'text', src: `
-        temps,sensor=a12,site=leeds,reading_id=88231 value=21.4 1700000000000000000` },
-      lines: [1],
+        temps                (measurement)
+        sensor=a12           (tag)
+        site=leeds           (tag)
+        reading_id=88231     (tag)
+        value=21.4           (field)
+        1700000000000000000  (timestamp)` },
+      lines: [4],
       explain: '`reading_id` is unique for every point, so each point becomes its own series (high cardinality). Keep tags to a small set of labels like sensor and site.' },
 
     { type: 'order', prompt: 'Put the steps of building a search index in order.',
@@ -1700,7 +1709,7 @@ KS.boss('nosql', {
       explain: 'Search indexes are near-realtime and lack strong transactions and constraints. Keep orders in a database of record and treat the index as a rebuildable copy.' },
 
     { type: 'mcq', q: 'Which question is a graph database best suited to answer quickly?',
-      options: ['Which accounts are linked to this one through shared devices, up to four hops away?', 'What is the total revenue per month this year?', 'What is the current value stored under session key abc123?', 'Which articles contain the word "lighthouse"?'],
+      options: ['Which accounts link to this one via shared devices, within four hops?', 'What is the total revenue per month this year, by region?', 'What is the current value stored under session key abc123?', 'Which articles contain the word "lighthouse"?'],
       answer: 0,
       why: [null, 'A tidy aggregate across everything suits a columnar or relational store.', 'A direct lookup by key suits a key-value store.', 'A word lookup suits a search index.'],
       explain: 'Multi-hop traversal across connections is the graph database\'s reason to exist. The other questions each belong to a different family.' },

@@ -138,7 +138,7 @@ KS.lesson('api-soap', {
       explain: 'The **WSDL** is the formal contract. It is the SOAP world\'s counterpart to an OpenAPI file, though SOAP has always required it.' },
 
     { type: 'mcq', q: 'A bank must connect to a partner that requires signed, encrypted messages and a strict contract, and the integration already works. What is the most sensible choice?',
-      options: ['Keep using SOAP: it provides what is required and a rewrite adds risk for little gain', 'Rewrite it in REST immediately, since REST is newer', 'Remove the contract so that changes are easier', 'Switch to sending plain text files by email'],
+      options: ['Keep SOAP: it meets the needs, and a rewrite adds risk', 'Rewrite it in REST immediately, since REST is newer', 'Drop the strict contract so future changes are easier', 'Switch to emailing plain text files to the partner'],
       answer: 0,
       why: [null, 'Newer is not a business reason. A working, compliant integration is valuable.', 'The contract is exactly what the partner requires.', 'That drops security and structure, going backwards.'],
       explain: 'Engineering choices serve needs. If the requirements are formal and the system is stable, SOAP is a defensible answer. Rewrites should have a reason beyond fashion.' },
@@ -253,7 +253,7 @@ KS.lesson('api-grpc', {
         { title: 'Write the .proto file', body: 'Define the service, its functions and the messages. This is the one source of truth, usually kept in a shared repository.' },
         { title: 'Run the generator', body: 'A tool (`protoc` or a plugin) reads the file and writes code for each language you use: Go, Java, Python, C#, JavaScript and more.' },
         { title: 'Implement the server', body: 'In the generated skeleton, fill in what `GetOrder` actually does.' },
-        { title: 'Call it from any client', body: 'Each client gets a generated **stub**: an object with a `getOrder` method that hides the networking.' },
+        { title: 'Call it from any client', body: 'Each client gets a generated **client stub**: an object with a `getOrder` method that hides the networking.' },
         { title: 'Change safely', body: 'Edit the contract, regenerate, and the compiler points at everything affected. Compatible edits (new fields) keep old clients working.' }
       ] },
 
@@ -386,7 +386,7 @@ KS.lesson('api-grpc', {
     { term: 'RPC', def: 'Remote Procedure Call: invoking a function on another machine as if it were a local call.', like: 'Dialling an extension and asking a colleague to run a task.', aka: ['Remote Procedure Call'] },
     { term: 'gRPC', def: 'An open-source RPC framework from Google that uses Protocol Buffers and HTTP/2.', like: 'A fast internal phone network with a shared directory.' },
     { term: 'Protocol Buffers', def: 'A compact binary format whose message shapes are defined in .proto files; used by gRPC.', aka: ['protobuf'], like: 'Shorthand both sides memorised in advance.' },
-    { term: 'Stub', def: 'Generated client code whose methods look local but make the remote call underneath.', like: 'The receptionist who forwards your call.' },
+    { term: 'Client stub', def: 'Generated client code whose methods look local but make the remote call underneath.', like: 'The receptionist who forwards your call.' },
     { term: 'Streaming (gRPC)', def: 'A call in which one or both sides send many messages over time on a single HTTP/2 stream.', like: 'A phone call, as opposed to a single text message.' },
     { term: 'gRPC-Web', def: 'A variant of gRPC that works within browser limits, usually through a translating proxy.', like: 'A phrasebook for a visitor who cannot speak the local language.' }
   ],
@@ -517,8 +517,8 @@ KS.lesson('api-graphql', {
           }
         };`,
         notes: {
-          4: 'The `user` entry point returns one user from the database.',
-          7: 'Each field has its own resolver, called **only if the query asked for that field**. Nobody asks for orders? This code never runs. Each resolver can use a database, another API, anything.'
+          3: 'The `user` entry point returns one user from the database.',
+          6: 'Each field has its own resolver, called **only if the query asked for that field**. Nobody asks for orders? This code never runs. Each resolver can use a database, another API, anything.'
         } },
       note: 'That separation is why GraphQL can sit in front of many back ends: a gateway for databases, REST services and gRPC services alike.' },
 
@@ -786,7 +786,7 @@ KS.lesson('api-esb-bpm', {
       explain: 'It created a new one: every change had to go through the central integration team and the bus itself, which became both a bottleneck and a single point of failure.' },
 
     { type: 'mcq', q: 'What does a BPM workflow engine do that a plain message bus does not?',
-      options: ['Follows a defined process, tracks its progress and can hand steps to people', 'Stores all of a company\'s data in one table', 'Replaces every API with SOAP', 'Makes networks faster'],
+      options: ['Runs a defined process and can hand steps to people', 'Stores all of the company\'s data in one shared table', 'Replaces every API in the company with SOAP calls', 'Makes messages travel faster across the network'],
       answer: 0,
       why: [null, 'Storage is a database\'s job.', 'It does not mandate any one protocol.', 'It has no effect on network speed.'],
       explain: 'A workflow engine runs a process definition: it remembers where each case is, calls systems, waits for human tasks and records the history. A bus just moves messages.' },
@@ -1054,9 +1054,9 @@ KS.boss('api-styles', {
   intro: 'Four heads, four ways of talking: an XML head, a binary head, a head that asks for exactly what it wants, and an old switchboard head that will not die. Beat it by knowing what each style is for and which one to pick.',
   questions: [
     { type: 'mcq', q: 'Why is it hard to use ordinary HTTP caching in front of a SOAP service?',
-      options: ['Nearly every call is a POST to one URL, with the operation named inside the body', 'XML cannot be stored on disk by a cache', 'SOAP messages are encrypted, so caches cannot see them', 'WSDL files forbid caching'],
+      options: ['Calls are POSTs to one URL, with the operation in the body', 'XML responses are too large for a cache to store', 'SOAP messages are encrypted, so caches cannot see them', 'The WSDL file forbids caching its operations'],
       answer: 0,
-      why: [null, 'XML is plain text and can be stored like anything else.', 'Encryption is optional (WS-Security). The real issue is the method and URL.', 'The WSDL describes operations; it says nothing that forbids caching.'],
+      why: [null, 'XML is plain text, and caches store large responses all the time.', 'Encryption is optional (WS-Security). The real issue is the method and URL.', 'The WSDL describes operations; it says nothing that forbids caching.'],
       explain: 'HTTP caches work on GET responses keyed by URL. SOAP sends POSTs to a single address, so a cache cannot tell one request from another.' },
 
     { type: 'spot', prompt: 'This .proto file was edited last week. Tap the line that will corrupt data for older clients.',

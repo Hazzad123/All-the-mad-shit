@@ -232,7 +232,7 @@ KS.lesson('gof-strategy-state', {
 
   glossary: [
     { term: 'Strategy', def: 'A GoF pattern: a family of interchangeable algorithms, each in its own object, selectable at runtime.', like: 'The route options on a sat-nav.' },
-    { term: 'State', def: 'A GoF pattern that lets an object change its behaviour when its internal state changes, by delegating to a state object.', like: 'A turnstile: same push, different result.' },
+    { term: 'State pattern', def: 'A GoF pattern that lets an object change its behaviour when its internal state changes, by delegating to a state object.', like: 'A turnstile: same push, different result.' },
     { term: 'State machine', def: 'A model made of a fixed set of states and the transitions between them, triggered by events.', like: 'A board game track where only certain moves are allowed.' },
     { term: 'Context', def: 'In Strategy and State, the object that holds the current strategy or state and delegates to it.', like: 'The sat-nav itself, holding whichever planner you selected.' },
     { term: 'Behavioural pattern', def: 'A pattern about how objects divide up responsibility and communicate with each other.', like: 'The etiquette for who speaks when in a meeting.' }
@@ -405,7 +405,7 @@ KS.lesson('gof-observer-mediator', {
 
   activities: [
     { type: 'mcq', after: 1, q: 'Why is it a problem for OrderService to call email, stock, analytics and loyalty directly?',
-      options: ['It knows every system that cares about orders, so each new reaction means editing it', 'Calling several methods in a row is not allowed', 'It makes the orders slower to save', 'It stops the email system from sending messages'],
+      options: ['Each new reaction to an order means editing OrderService', 'Calling several methods in a row is not allowed in OOP', 'It makes each order noticeably slower to save', 'It stops the email system from sending messages'],
       answer: 0,
       why: [null, 'There is no such rule. The issue is how many things the class has to know about.', 'Speed is not the concern here.', 'The calls would work. They are just tightly coupled.'],
       explain: 'The order service is coupled to every consumer of its news. With Observer it just announces, and listeners attach themselves.' },
@@ -447,7 +447,7 @@ KS.lesson('gof-observer-mediator', {
     { type: 'tf', statement: 'In Observer, the subject needs to know what each listener will do with the event.', answer: false,
       explain: 'The subject only knows that listeners can be called. Not knowing what they do is exactly what keeps the two sides loosely coupled.' },
 
-    { type: 'short', q: 'What name is used for a function returned by `on()` (or passed to `removeEventListener`) that stops you hearing events? Give the verb.', accept: ['unsubscribe', 'unsub', 'off', 'remove', 'removeEventListener'], hint: 'The opposite of subscribe.',
+    { type: 'short', q: 'What name is used for a function returned by `on()` (or passed to `removeEventListener`) that stops you hearing events? Give the verb.', accept: ['unsubscribe', 'unsub', 'detach', 'off', 'remove', 'removeEventListener'], hint: 'The opposite of subscribe.',
       explain: 'You unsubscribe (or remove the listener). Forgetting to is the classic leak.' },
 
     { type: 'bucket', prompt: 'Observer or Mediator?', buckets: ['Observer', 'Mediator'],
@@ -641,7 +641,7 @@ KS.lesson('gof-command-memento', {
 
   activities: [
     { type: 'mcq', after: 1, q: 'What is the central idea of the Command pattern?',
-      options: ['Turn a request into an object so it can be stored, queued, passed around and reversed', 'Make a class that has only one method', 'Let commands run faster by caching their results', 'Give every button its own thread'],
+      options: ['Turn a request into an object you can store, queue or undo', 'Make a class that has only one public method', 'Let commands run faster by caching their results', 'Give every button its own background thread'],
       answer: 0,
       why: [null, 'A command often has a method or two, but the key idea is the request as an object.', 'Caching is a different matter.', 'Threads are unrelated to the pattern.'],
       explain: 'Once the request is an object it can be kept for undo, queued for later, logged, or replayed, and the sender never needs to know the details.' },
@@ -674,7 +674,7 @@ KS.lesson('gof-command-memento', {
       explain: 'Command and invoker belong to the undo-by-actions design. Originator and caretaker are the two sides of Memento, kept apart so private state stays private.' },
 
     { type: 'mcq', q: 'Why does Memento have the object create its own snapshot instead of letting the caretaker copy its fields?',
-      options: ['So private state stays private: only the owner looks inside itself', 'Because copying fields from outside is slower', 'Because snapshots cannot be stored in a list', 'To make the snapshot smaller'],
+      options: ['So private state stays private to the owner', 'Because copying fields from outside is slower', 'Because snapshots cannot be stored in a list', 'To make each snapshot smaller in memory'],
       answer: 0,
       why: [null, 'Speed is not the reason. Encapsulation is.', 'Snapshots are stored in lists and stacks all the time.', 'Size is unrelated to who creates it.'],
       explain: 'Encapsulation. If the caretaker read the fields, every outsider would depend on the editor’s internals, and changing them would break everyone.' },
@@ -870,7 +870,7 @@ KS.lesson('gof-template-iterator', {
 
   activities: [
     { type: 'mcq', after: 1, q: 'What does the Template Method pattern put in the parent class?',
-      options: ['The fixed order of the steps, with the varying steps left for subclasses', 'All the code that differs between subclasses', 'A list of every subclass that exists', 'A copy of the data each subclass needs'],
+      options: ['The fixed order of steps; subclasses fill in the rest', 'All the code that differs between the subclasses', 'A list of every subclass that extends it', 'A copy of the data each subclass needs to run'],
       answer: 0,
       why: [null, 'The varying parts are exactly what the subclasses write.', 'A parent does not need to know its subclasses.', 'Data is not what the pattern is about. Order of steps is.'],
       explain: 'The skeleton lives once in the parent. Subclasses override only the steps that differ, so shared steps are never copied.' },
@@ -883,8 +883,8 @@ KS.lesson('gof-template-iterator', {
       distractors: ['export', 'load', 'iterator'],
       explain: '`format` is the required blank. `beforeSave` is an optional hook, empty in the parent, and anything like it is called a hook.' },
 
-    { type: 'tf', statement: 'A generator computes all of its values up front and stores them in a list before the loop starts.', answer: false,
-      explain: 'A generator is lazy: it produces each value only when asked, then pauses. That is why an endless generator like `naturals()` works.' },
+    { type: 'tf', statement: 'A generator produces each value only when the loop asks for the next one.', answer: true,
+      explain: 'A generator is lazy: it does not build a list up front. It produces each value only when asked, then pauses. That is why an endless generator like `naturals()` works.' },
 
     { type: 'ab', q: 'The team wants CSV, PDF and HTML exporters with identical load, save and notify steps. Which is the better design?',
       a: { lang: 'js', label: 'Template', src: `
@@ -918,11 +918,11 @@ KS.lesson('gof-template-iterator', {
       lines: [6],
       explain: 'The generator is endless by design, so the *consumer* must stop it, for example with `if (n > 10) break;`. Without that, the loop never finishes.' },
 
-    { type: 'short', q: 'What is the name for an optional, empty-by-default step in a template method that subclasses may override?', accept: ['hook', 'hooks'], hint: 'Something you hang a coat on.',
+    { type: 'short', q: 'What is the name for an optional, empty-by-default step in a template method that subclasses may override?', accept: ['hook', 'hooks', 'hook method', 'hook methods'], hint: 'Something you hang a coat on.',
       explain: 'It is a hook. The skeleton works without it, but a subclass can use it to add something at that point.' },
 
     { type: 'mcq', q: 'What does the loop `for (const song of playlist)` not need to know?',
-      options: ['Whether the songs are stored in an array, a tree or a database', 'That the playlist has an iterator', 'That each item is a song', 'That the loop runs once per item'],
+      options: ['How the songs are stored behind the scenes', 'That the playlist offers an iterator to loop over', 'That each item it gets back is a song', 'That the loop body runs once per item'],
       answer: 0,
       why: [null, 'The playlist must offer an iterator for the loop to work, so the loop relies on it.', 'The code inside the loop deals with each song, so it knows the item type.', 'Running once per item is how loops work.'],
       explain: 'Hiding how the collection is stored is the whole point of Iterator. The loop only relies on "give me the next one".' },
@@ -1263,7 +1263,7 @@ KS.lesson('posa-patterns', {
     { kind: 'metaphor', title: 'Pattern 3: Broker',
       body: `Imagine a huge office where departments do not know each other's phone extensions or which floor they are on. Instead everyone calls the **switchboard**: "Put me through to whoever handles invoices." The switchboard finds the right person, connects the call and returns the answer.
 
-        A **Broker** does that for software parts spread over several machines. Clients ask the broker for a service by *name*. The broker knows where services live, forwards the request and returns the reply. Clients and servers are **decoupled** from each other's location.
+        A [[Broker|Broker (pattern)]] does that for software parts spread over several machines. Clients ask the broker for a service by *name*. The broker knows where services live, forwards the request and returns the reply. Clients and servers are **decoupled** from each other's location.
 
         POSA's original Broker was about distributed objects. Modern relatives include **API gateways**, **service registries** and **message brokers**, which later modules explore.` },
 
@@ -1399,7 +1399,7 @@ KS.lesson('posa-patterns', {
     { term: 'Architectural pattern', def: 'A named, proven way of organising the major parts of a whole system, larger in scale than a design pattern.', like: 'A floor plan for a whole building.' },
     { term: 'Layers', def: 'A pattern that arranges a system in levels, each building on the one below.', like: 'A company: front desk, departments, archive.' },
     { term: 'Pipes and Filters', def: 'A pattern of independent processing steps joined by connections, with data flowing through them in order.', like: 'A factory assembly line.' },
-    { term: 'Broker', def: 'A pattern in which a middleman finds and connects clients to services, hiding where those services are.', like: 'An office switchboard.' },
+    { term: 'Broker (pattern)', def: 'A pattern in which a middleman finds and connects clients to services, hiding where those services are.', like: 'An office switchboard.' },
     { term: 'MVC', aka: ['Model-View-Controller'], def: 'A pattern that splits an interactive application into model (data and rules), view (display) and controller (input handling).', like: 'A restaurant: kitchen, plate, waiter.' },
     { term: 'Event loop', def: 'A loop that waits for events, such as incoming data, and calls the matching handler. It is the heart of Reactor-style servers.', like: 'A receptionist waiting for the next bell.' }
   ],
@@ -1676,7 +1676,7 @@ KS.boss('patterns-behavioral', {
       pairs: [['Caretaker', 'Stores snapshots without looking inside'], ['Hook', 'Optional, empty-by-default step a subclass may override'], ['Context', 'Holds the current strategy or state and delegates to it'], ['Subject', 'Announces events to whoever subscribed'], ['Invoker', 'Runs commands and keeps them in a history']],
       explain: 'Caretaker belongs to Memento, hook to Template Method, context to Strategy and State, subject to Observer, and invoker to Command.' },
 
-    { type: 'tf', statement: 'A generator that yields an endless sequence is a bug, because it will always run forever.', answer: false,
+    { type: 'tf', statement: 'A generator can safely yield an endless sequence, as long as the code consuming it has a stop condition.', answer: true,
       explain: 'Generators are lazy: each value is made only when the consumer asks for it. An endless generator is fine as long as the consumer has a stop condition, such as a `break`.' },
 
     { type: 'ab', q: 'Four report exporters share load, save and notify, and differ only in how they format. Which design is better?',
@@ -1701,7 +1701,7 @@ KS.boss('patterns-behavioral', {
           }
         }` },
       answer: 'a',
-      explain: 'In A the parent owns the order and the subclass fills one blank, so a fix to saving helps every exporter. B overrides the template method itself, copying the shared steps and letting the order drift.' },
+      explain: 'In the template version the parent owns the order and the subclass fills one blank, so a fix to saving helps every exporter. The rewrite-everything version overrides the template method itself, copying the shared steps and letting the order drift.' },
 
     { type: 'order', prompt: 'A request reaches a server whose middleware chain is logging, then auth, then rate limit, then the app. The user is logged in but over the limit. Put what happens in order.',
       items: ['Logging records the request and passes it on', 'Auth finds a valid user and passes it on', 'Rate limit answers 429 Too Many Requests', 'The reply travels back to the client, and the app never runs'],

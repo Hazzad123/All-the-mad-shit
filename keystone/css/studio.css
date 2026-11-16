@@ -81,7 +81,7 @@ a.hero:hover { text-decoration: none; transform: translateY(-2px); box-shadow: v
 .mod-card h3 { margin: 0 0 3px; font-size: 1.06rem; } .mod-tag { color: var(--muted); font-size: .88rem; margin: 0 0 12px; flex: 1; }
 .dots { display: flex; gap: 4px; flex-wrap: wrap; margin-bottom: 10px; } .dot { width: 14px; height: 6px; border-radius: 3px; background: var(--panel-3); display: block; } .dot.done { background: var(--good); } .dot.part { background: var(--warn); } .dot.next { background: var(--wc); animation: dot-pulse 1.4s ease-in-out infinite; }
 @keyframes dot-pulse { 50% { opacity: .35; } }
-.mod-foot { display: flex; gap: 10px; align-items: center; font-size: .78rem; color: var(--faint); font-weight: 700; } .mod-stars { margin-left: auto; color: #fbbf24; }
+.mod-foot { display: flex; gap: 10px; align-items: center; font-size: .78rem; color: var(--faint); font-weight: 700; } .mod-stars { margin-left: auto; color: var(--warn); }
 
 /* module */
 .module-head { display: flex; gap: 20px; align-items: center; padding: 22px 24px; border-radius: var(--r-lg); margin-bottom: 20px; border: 1px solid color-mix(in srgb, var(--wc) 45%, var(--line)); background: linear-gradient(100deg, color-mix(in srgb, var(--wc) 22%, var(--panel)), var(--panel) 70%); }

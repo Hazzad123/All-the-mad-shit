@@ -65,6 +65,14 @@
     function start() {
       KS.clear(root);
       const L = KS.content.getLesson(lessonId);
+      if (!L && KS.content.failed[meta.module.id]) {
+        const again = h('button.btn.primary', { type: 'button', onclick: function () {
+          again.disabled = true; again.textContent = 'Trying again…';
+          KS.content.retry(meta.module.id).then(function () { if (!dead) start(); });
+        } }, 'Try again');
+        root.appendChild(KS.ui.empty('📡', 'Couldn’t load this lesson', 'This lesson’s file didn’t download. Check your connection and try again.', again));
+        return;
+      }
       if (!L) {
         root.appendChild(KS.ui.empty('🚧', 'This lesson is still being written', '“' + meta.title + '” is on the map, but its content is not in this build yet.', h('button.btn.primary', { type: 'button', onclick: function () { if (opts.onExit) opts.onExit(); } }, 'Back')));
         return;
@@ -136,6 +144,7 @@
         else if (st.t === 'lab') renderLab(wrap, st.id);
         else renderRecap(wrap);
         segEls.forEach(function (e, k) { e.classList.toggle('done', k < pos); e.classList.toggle('cur', k === pos); });
+        segs.setAttribute('aria-valuemin', '0'); segs.setAttribute('aria-valuemax', String(steps.length)); segs.setAttribute('aria-valuenow', String(pos)); segs.setAttribute('aria-valuetext', 'Step ' + Math.min(pos + 1, steps.length) + ' of ' + steps.length);
         if (root.classList.contains('side-open')) drawSide();
         sync();
         P.debug = { steps: steps, pos: pos, step: st, inst: inst, lesson: L, next: primary, labDone: function () { return labDone; } };
@@ -250,8 +259,8 @@
         go(n, -1);
       }
       onKey = function (e) {
-        if (dead || !root.isConnected) return;
-        if (document.querySelector('.modal-back') || document.querySelector('.palette-back')) return;
+        if (dead || !root.isConnected || e.defaultPrevented) return;   // a term, code note or popover already handled this key
+        if (document.querySelector('.modal-back') || document.querySelector('.palette-back') || document.querySelector('.popover')) return;
         const tag = (e.target && e.target.tagName) || ''; const typing = tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT';
         if (e.key === 'Escape') { if (root.classList.contains('side-open')) root.classList.remove('side-open'); else exit(); return; }
         if (typing || e.ctrlKey || e.metaKey || e.altKey) return;

@@ -273,8 +273,8 @@ KS.lesson('af-togaf', {
     { type: 'order', after: 3, prompt: 'Put the ADM steps in order, as described in this lesson.', items: ['Agree the vision', 'Describe baseline and target', 'Plan opportunities into a roadmap', 'Govern the implementation', 'Manage change and loop again'],
       explain: 'You start with why, describe the gap, plan the journey, keep delivery on track, and then re-enter the loop as the world changes.' },
 
-    { type: 'tf', statement: 'The ADM is a one-off straight line: finish the last phase and the architecture work is done for ever.', answer: false,
-      explain: 'It is a cycle. Change management feeds back into the vision, because businesses and technology keep moving.' },
+    { type: 'tf', statement: 'The ADM is a cycle: after the last phase, the work loops back round as the business changes.', answer: true,
+      explain: 'It is a cycle, not a one-off straight line. Change management feeds back into the vision, because businesses and technology keep moving.' },
 
     { type: 'match', prompt: 'Match each phrase to what it means in TOGAF thinking.',
       pairs: [['Baseline architecture', 'How things are today'], ['Target architecture', 'How things should look at the end'], ['Gap', 'The difference that projects must close'], ['Roadmap', 'The ordered list of projects to get there'], ['Governance', 'Checking delivery follows the architecture']],
@@ -606,7 +606,7 @@ KS.lesson('af-agile-scrum', {
 
   activities: [
     { type: 'mcq', after: 2, q: 'Which statement best matches the Agile Manifesto?',
-      options: ['Working software and collaboration are favoured, though documents and plans still have value', 'Documentation and planning should be abandoned entirely', 'Contracts matter more than talking to the customer', 'Processes and tools matter more than the people using them'],
+      options: ['Working software and collaboration are favoured; plans still matter', 'Documentation and planning should be dropped entirely', 'Contracts matter more than talking to the customer', 'Processes and tools matter more than the people using them'],
       answer: 0,
       why: [null, 'The Manifesto says the items on the right still have value. It only prefers the left.', 'It values customer collaboration over contract negotiation, not the other way round.', 'It values individuals and interactions over processes and tools.'],
       explain: 'The Manifesto is about preference when you must choose, not about banning plans or documents.' },
@@ -622,7 +622,7 @@ KS.lesson('af-agile-scrum', {
       items: [['Ordering the product backlog', 0], ['Helping the team follow Scrum and removing obstacles', 1], ['Building and testing the increment', 2], ['Deciding which problem is most valuable to solve', 0], ['Coaching the team on improving its practice', 1], ['Planning how to deliver the sprint goal', 2]],
       explain: 'The Product Owner owns the what and why. The Scrum Master owns how well the team works. Developers own the how of building it.' },
 
-    { type: 'tf', statement: 'In Scrum, the Daily Scrum is a status meeting where the team reports to the Scrum Master.', answer: false,
+    { type: 'tf', statement: 'In Scrum, the Daily Scrum is a planning conversation for the developers, not a status report to the Scrum Master.', answer: true,
       explain: 'It is a short planning conversation by and for the developers, to coordinate the next day’s work towards the sprint goal.' },
 
     { type: 'spot', prompt: 'This backlog item is not written well. Tap the line that goes wrong.',
@@ -821,7 +821,7 @@ KS.lesson('af-kanban-xp', {
       items: [['Fixed two-week iterations with a sprint goal', 0], ['A WIP limit on each column', 1], ['Ideal for a support team with unpredictable requests', 1], ['Roles include Product Owner and Scrum Master', 0], ['New work can enter whenever there is capacity', 1], ['Ends each cycle with a review and retrospective', 0]],
       explain: 'Scrum is built on timeboxed sprints and defined roles. Kanban is about continuous flow limited by WIP.' },
 
-    { type: 'short', q: 'What is the practice of restructuring code to improve its design without changing what it does?', accept: ['refactoring', 'refactor'], hint: 'Starts with “re-”.',
+    { type: 'short', q: 'What is the practice of restructuring code to improve its design without changing what it does?', accept: ['refactoring', 'refactor', 'refactorings'], hint: 'Starts with “re-”.',
       explain: 'Refactoring keeps behaviour the same while making the code easier to understand and change. Tests make it safe.' },
 
     { type: 'cloze', text: 'The customer’s clock is the {{lead}} time. The team’s clock is the {{cycle}} time. A column that is full is a signal to {{stop}} starting and help finish.',
@@ -986,12 +986,12 @@ KS.lesson('af-scaled-agile', {
 
   activities: [
     { type: 'mcq', after: 2, q: 'In the diagram, three teams all change or depend on the same table and release together. What is the real problem?',
-      options: ['Hidden dependencies make the teams not truly independent', 'The teams are too small', 'The database is too slow', 'They need to hold more meetings'],
+      options: ['Hidden dependencies stop the teams being independent', 'The teams are too small to do the work', 'The shared database is too slow for three teams', 'They need to hold more meetings'],
       answer: 0,
       why: [null, 'Size is not the issue. The coupling is.', 'Nothing in the picture is about speed.', 'More meetings treat the symptom and add cost.'],
       explain: 'Shared data and a shared release tie the teams together. Scaling frameworks, and good architecture, aim to manage or remove dependencies like this.' },
 
-    { type: 'tf', after: 4, statement: 'In LeSS, each team has its own Product Owner and its own product backlog.', answer: false,
+    { type: 'tf', after: 4, statement: 'In LeSS, all the teams on a product share one Product Owner and one product backlog.', answer: true,
       explain: 'LeSS keeps one Product Owner and one Product Backlog for the whole product, however many teams work on it.' },
 
     { type: 'match', after: 6, prompt: 'Match each SAFe term to what it means.',
@@ -1475,7 +1475,7 @@ KS.boss('architect-frameworks', {
       explain: 'Stage gates give senior people a regular chance to stop or continue. RUP proves the riskiest architectural ideas early in Elaboration.' },
 
     { type: 'mcq', q: 'Production is down. In ITIL terms, what is the first priority?',
-      options: ['Resolve the incident: restore service quickly', 'Open a problem record and wait', 'Schedule a change for next week', 'Write a lessons-learned report'],
+      options: ['Resolve the incident: restore service fast', 'Open a problem record and find the root cause', 'Schedule a change for next week', 'Write a lessons-learned report'],
       answer: 0,
       why: [null, 'The problem record, the root-cause hunt, comes after service is back.', 'A normal change is not an emergency response.', 'Reports and lessons come once the fire is out.'],
       explain: 'Incidents are about restoring service as quickly as possible. Root causes are the later job of problem management.' },

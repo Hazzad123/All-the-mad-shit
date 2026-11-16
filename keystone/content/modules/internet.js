@@ -139,9 +139,9 @@ KS.lesson('net-big-picture', {
     { type: 'multi', q: 'Which of these are good reasons to cut data into packets?',
       options: ['A lost piece can be resent without resending everything', 'Many people can share the same links at once', 'Packets can take different routes if one path is busy or broken', 'Packets make the data smaller, so it takes less space', 'Each packet is guaranteed to arrive in order'],
       answers: [0, 1, 2],
-      explain: 'Small pieces mean small resends, fair sharing and flexible routing. Packets do not shrink the data (the labels even add a little), and they can arrive out of order, which is why they are numbered.' },
+      explain: 'Small pieces mean small resends, fair sharing and flexible routing. Packets do not shrink the data (the labels even add a little), and they can arrive out of order, so the far end has to put them back in sequence. (TCP, which you meet later, does this by numbering the data it sends.)' },
 
-    { type: 'short', q: 'What is the name for one small, labelled piece of data sent across a network?', accept: ['packet', 'packets'], hint: 'Think postcards.',
+    { type: 'short', q: 'What is the name for one small, labelled piece of data sent across a network?', accept: ['packet', 'packets', 'a packet'], hint: 'Think postcards.',
       explain: 'A **packet** carries a slice of your data plus a label with its destination and its position in the sequence.' },
 
     { type: 'scenario', title: 'The cut cable', intro: 'A ship drags its anchor across the sea floor and snaps one of the cables linking your country to a neighbouring one. You run a small online shop with customers in both countries.',
@@ -307,7 +307,7 @@ KS.lesson('net-packets-ip', {
 
   activities: [
     { type: 'mcq', after: 1, q: 'Why was IPv6 created?',
-      options: ['IPv4 only has about 4.3 billion addresses, and the world needed more', 'IPv4 packets could not carry photos or video', 'IPv4 addresses were too long to type', 'IPv6 makes every connection twice as fast'],
+      options: ['IPv4’s 4.3 billion addresses were running out', 'IPv4 packets could not carry photos or video', 'IPv4 addresses were too long to type and remember', 'IPv6 makes every connection about twice as fast'],
       answer: 0,
       why: [null, 'IPv4 packets can carry any data. The limit was how many addresses exist.', 'IPv6 addresses are actually much longer.', 'Speed is not what changed. The number of addresses is.'],
       explain: 'IPv4 uses 32 bits, which gives about 4.3 billion addresses. With billions of phones, laptops and gadgets, that ran out. IPv6 uses 128 bits so addresses are effectively unlimited.' },
@@ -512,7 +512,7 @@ KS.lesson('net-domains-dns', {
       distractors: ['browser', 'registrar', 'CNAME'],
       explain: 'Root knows the TLDs, the TLD servers know each domain\'s name servers, and the authoritative servers know the records themselves.' },
 
-    { type: 'short', q: 'Which two-letter record type says where a domain\'s email should be delivered?', accept: ['MX'], hint: 'Mail e-X-change.',
+    { type: 'short', q: 'Which two-letter record type says where a domain\'s email should be delivered?', accept: ['MX', 'MX record'], hint: 'Mail e-X-change.',
       explain: '`MX` records list the mail servers for a domain, with priorities. Without them, email to your domain has nowhere to go.' },
 
     { type: 'scenario', title: 'Moving house: migrating a site', intro: 'Your company\'s website is moving to a new server with a new IP address. The current `A` record has a TTL of 86400 seconds (one day). You do not want visitors to land on a dead server.',
@@ -711,7 +711,7 @@ KS.lesson('net-hosting', {
       answers: [0, 1, 3],
       explain: 'Distance adds latency, and some laws care where data lives. Region does not change uptime directly, and has nothing to do with domain names.' },
 
-    { type: 'estimate', q: 'A host promises 99.95% uptime. Roughly how many hours of downtime a year is that allowed to include?', answer: 4.4, unit: 'hours per year', min: 0.1, max: 1000,
+    { type: 'estimate', q: 'A host promises 99.95% uptime. Roughly how many hours of downtime a year is that allowed to include?', answer: 4.4, unit: 'hours per year', tolerance: 1.7, min: 0.1, max: 1000,
       explain: 'A year has about 8,760 hours, and 0.05% of that is about 4.4 hours. Because 99.9% is about 8.8 hours, halving the gap halves the allowed downtime.' },
 
     { type: 'scenario', title: 'Launch day', intro: 'You are launching a small shop. It has a marketing site (the same for everyone), and an ordering system (different for everyone). Budget is tight, and you hope for a burst of publicity.',
@@ -1439,7 +1439,7 @@ KS.boss('internet', {
   intro: 'A gremlin lives in the cables between you and the server, and it loves to scramble things. Defeat it by showing you understand every hop from packet to pixel.',
   questions: [
     { type: 'mcq', q: 'Which statement about the internet and the web is correct?',
-      options: ['The web is one service that runs on the internet, alongside email and games', 'The internet is a kind of browser that shows the web', 'The web is the cables, and the internet is the pages', 'They are two names for exactly the same thing'],
+      options: ['The web is one service that runs on the internet', 'The internet is a kind of browser that shows the web', 'The web is the cables, and the internet is the pages', 'They are two names for exactly the same network'],
       answer: 0,
       why: [null, 'A browser is software on your device. The internet is the global network it uses.', 'It is the other way round: the internet is the network, and the web is a service on it.', 'Email, games and app updates use the internet without using the web.'],
       explain: 'The internet is the network of networks. The web (pages, browsers, links) is one thing that runs on it.' },
@@ -1455,7 +1455,7 @@ KS.boss('internet', {
     { type: 'estimate', q: 'A service promises 99.99% uptime. Roughly how many minutes of downtime a year does that allow?', answer: 53, unit: 'minutes per year', min: 1, max: 100000,
       explain: 'A year has about 525,600 minutes. 0.01% of that is roughly 53 minutes. Each extra nine divides allowed downtime by ten.' },
 
-    { type: 'short', q: 'Which DNS record type makes one name an alias of another?', accept: ['CNAME'], hint: 'Canonical name.',
+    { type: 'short', q: 'Which DNS record type makes one name an alias of another?', accept: ['CNAME', 'CNAME record'], hint: 'Canonical name.',
       explain: 'A `CNAME` says "this name is really that other name". An `A` record points straight at an address.' },
 
     { type: 'order', prompt: 'Put the browser\'s journey in order, from pressing Enter to seeing the page.',
@@ -1589,4 +1589,3 @@ KS.sheet('internet', {
   ]
 });
 
-/* @@END */

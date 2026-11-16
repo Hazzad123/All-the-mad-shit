@@ -498,7 +498,7 @@ KS.lesson('wm-state-reactive', {
       explain: 'Data goes down into the view, events go up as requests, and the update function produces new state. The cycle is easy to follow because it only runs one way.' },
 
     { type: 'mcq', after: 3, q: 'In the spreadsheet metaphor, the total cell (price × quantity) corresponds to which idea?',
-      options: ['A derived value that follows from the sources', 'A second copy of the price', 'An event handler', 'A server request'],
+      options: ['A value derived from the sources', 'A second copy of the price', 'An event handler', 'A server request'],
       answer: 0,
       why: [null, 'It is calculated from the price, not a duplicate that needs separate updating.', 'Event handlers respond to things like clicks. A total is just worked out.', 'Nothing in a spreadsheet formula talks to a server.'],
       explain: 'The total is derived. Change a source and it updates automatically, so it can never disagree with its inputs.' },
@@ -565,7 +565,7 @@ KS.lesson('wm-state-reactive', {
   ],
 
   glossary: [
-    { term: 'State', def: 'The facts an app remembers at any moment, from which the screen is drawn.', like: 'The numbers typed into a spreadsheet.' },
+    { term: 'UI state', def: 'The facts an app remembers at any moment, from which the screen is drawn.', like: 'The numbers typed into a spreadsheet.' },
     { term: 'One-way data flow', def: 'A design where data moves down into the view and changes are requested by events moving back up, in a single loop.', like: 'A one-way street system: easy to trace.' },
     { term: 'Reactive', def: 'Describes values and screens that update automatically when the things they depend on change.', like: 'A spreadsheet formula.' },
     { term: 'Signal', def: 'A reactive value that remembers who reads it and notifies them when it changes.', like: 'A cell that tells every formula using it to recalculate.' },
@@ -689,7 +689,7 @@ KS.lesson('wm-microfrontends', {
 
   activities: [
     { type: 'mcq', after: 1, q: 'What problem do microfrontends mainly aim to solve?',
-      options: ['Many teams blocking each other on one shared front-end codebase and release', 'The browser being unable to run JavaScript', 'The back end using too much memory', 'Pages needing to look identical'],
+      options: ['Many teams blocking each other on one shared front end', 'The browser being unable to run JavaScript', 'The back end using too much memory', 'Pages needing to look identical'],
       answer: 0,
       why: [null, 'Browsers handle JavaScript fine. This is an organisation-scale issue.', 'That is a back-end concern and unrelated.', 'Looking identical is the job of a design system, which microfrontends actually make harder.'],
       explain: 'Microfrontends are mostly an answer to team and release coupling. They trade technical simplicity for organisational independence.' },
@@ -712,7 +712,7 @@ KS.lesson('wm-microfrontends', {
           badge.textContent = e.detail.qty;
         });` },
       answer: 'b',
-      explain: 'The event is a small public contract. The first version reaches into the cart team’s private code, so any internal change over there can break the header.' },
+      explain: 'The event is a small public contract. The direct import reaches into the cart team’s private code, so any internal change over there can break the header.' },
 
     { type: 'multi', q: 'Which of these are real costs of microfrontends?',
       options: ['Duplicate dependencies make pages heavier', 'Integration testing across slices is harder', 'Styles can drift without a shared design system', 'Teams can no longer deploy independently', 'Browsers refuse to load more than one script'],
@@ -911,7 +911,7 @@ KS.lesson('wm-mobile-pwa', {
       pairs: [['Manifest', 'A file telling the browser a PWA’s name, icon and start page'], ['Service worker', 'A script between the page and the network'], ['BFF', 'A thin back end tailored to one kind of client'], ['Optimistic UI', 'Show the result at once and assume success'], ['APNs / FCM', 'Platform push services run by Apple and Google']],
       explain: 'The manifest makes a site installable, the service worker handles offline, and the BFF and push services belong to the backend side of mobile.' },
 
-    { type: 'short', q: 'Which file tells a browser a PWA’s name, icons and start page? (One word.)', accept: ['manifest', 'webmanifest', 'web app manifest'], hint: 'It is named in a link tag, and is a small JSON file.',
+    { type: 'short', q: 'Which file tells a browser a PWA’s name, icons and start page? (One word.)', accept: ['manifest', 'webmanifest', 'web app manifest', 'app manifest', 'manifest.json', 'manifest file'], hint: 'It is named in a link tag, and is a small JSON file.',
       explain: 'The web app manifest, together with HTTPS and a service worker, is what lets a browser treat a website as an installable app.' },
 
     { type: 'cloze', text: 'An app released last year may still call your API, so changes should be {{additive}}. The app can send its {{version}}, and the server can demand a {{minimum}} supported version.',
@@ -1302,7 +1302,7 @@ KS.sheet('web-mobile', {
 
         **BFF:** a thin back end per client type.
 
-        **Old apps live for years:** additive changes only, send the app version, minimum supported version, remote kill switches.` },
+        **Old apps live for years:** additive changes only, send the app version, minimum supported version, a remote switch to turn a feature off.` },
 
     { title: 'Standards and accessibility',
       md: `| Body | Looks after |
@@ -1314,6 +1314,6 @@ KS.sheet('web-mobile', {
 
         **Living standard:** no HTML6; check what browsers ship (MDN, Can I use). **Progressive enhancement:** HTML → CSS → JS. **Feature detection**, not browser sniffing; **polyfills** fill gaps.
 
-        **WCAG** = **POUR** (Perceivable, Operable, Understandable, Robust); levels A, AA, AAA; AA contrast 4.5:1 for normal text. Use real elements (\`<button>\`, labels, alt text); native beats ARIA. Test with keyboard and screen reader regularly.` }
+        **WCAG** = **POUR** (Perceivable, Operable, Understandable, Robust); levels A, AA, AAA; AA needs normal text at least 4.5:1 contrast against its background. Use real elements (\`<button>\`, labels, alt text); native beats ARIA. Test with keyboard and screen reader regularly.` }
   ]
 });

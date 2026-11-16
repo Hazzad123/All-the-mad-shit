@@ -294,7 +294,7 @@ KS.lesson('ar-what-is-architect', {
 
   activities: [
     { type: 'mcq', after: 1, q: 'Which description best fits the architect\'s main job?',
-      options: ['Helping the team make important technical decisions well, and making sure they are understood and followed', 'Writing the most code on the team', 'Producing the full design that developers then implement exactly', 'Approving or rejecting every pull request'],
+      options: ['Helping the team make key decisions well, and making sure they stick', 'Writing the most code on the team', 'Producing the full design that developers then implement exactly', 'Approving or rejecting every pull request'],
       answer: 0,
       why: [null, 'Some coding keeps them credible, but it is not the centre of the job.', 'A design handed over with no conversation is the ivory-tower pattern.', 'Approving everything makes the architect a bottleneck rather than a help.'],
       explain: 'The role is about good decisions made with the team, and shared understanding. The diagram is only a by-product.' },
@@ -667,7 +667,7 @@ KS.lesson('ar-design-decide', {
 
   activities: [
     { type: 'mcq', after: 3, q: 'Which decision deserves the most care and consultation before you commit?',
-      options: ['The shape of a public API that thousands of customers will build on', 'The folder names in a new repository', 'Which of two similar logging libraries to use', 'The colour of the build status badge'],
+      options: ['The shape of a public API thousands of customers rely on', 'The folder names in a new repository', 'Which of two similar logging libraries the team adopts', 'The colour of the build status badge'],
       answer: 0,
       why: [null, 'Folders are cheap to rename at any time.', 'Logging libraries can be swapped with modest effort.', 'This is purely cosmetic.'],
       explain: 'A public API is hard to change once other people depend on it. Match the care you spend to how costly and slow a mistake would be to undo.' },
@@ -882,7 +882,7 @@ KS.lesson('ar-code-document', {
 
   activities: [
     { type: 'mcq', after: 2, q: 'Your team is unsure whether a library can handle 5,000 simultaneous connections. What is the best way to find out cheaply?',
-      options: ['A time-boxed spike that tests exactly that question, then throw the code away', 'Build the full feature and discover it in production', 'Read the library\'s marketing page and trust it', 'Pick another library without testing either'],
+      options: ['A time-boxed spike testing just that, then thrown away', 'Build the full feature and discover it in production', 'Read the library\'s marketing page and trust it', 'Pick another library without testing either'],
       answer: 0,
       why: [null, 'Far too expensive a way to learn, and far too late.', 'Marketing describes the best case; only an experiment shows your case.', 'You are then guessing in the same way about the new one.'],
       explain: 'A spike answers one specific question quickly. Its value is the learning, so the code is normally discarded.' },
@@ -912,7 +912,7 @@ KS.lesson('ar-code-document', {
       answer: 'a',
       explain: 'It repeats the question, gives evidence, makes a recommendation and says what happened to the code. The vague note leaves the team exactly where it started.' },
 
-    { type: 'short', q: 'In the C4 model, which level shows your system as a single box among the people and systems around it?', accept: ['context', 'system context', 'level 1', '1'], hint: 'It is the first, widest level.',
+    { type: 'short', q: 'In the C4 model, which level shows your system as a single box among the people and systems around it?', accept: ['context', 'system context', 'context diagram', 'level 1', '1'], hint: 'It is the first, widest level.',
       explain: 'The System Context diagram is the widest zoom: your system as one box, plus who uses it and what it talks to.' },
 
     { type: 'scenario', title: 'The stale wiki', intro: 'You have just taken over architecture for a product team. The wiki holds 120 pages of design documents. New joiners tell you they never read it, and last week someone followed an old page and broke a deployment.',
@@ -1071,7 +1071,7 @@ KS.lesson('ar-communicate', {
       why: [null, 'It is accurate, but it is in your language, not theirs, and says nothing about outcomes or cost.', 'Reassurance without information hides a real cost and removes their chance to decide.', 'Starting with the whole design buries what they actually need.'],
       explain: 'Managers need outcomes, cost, time and options in business terms. Leave the mechanics out unless they ask.' },
 
-    { type: 'tf', after: 3, statement: 'It is often best to answer a stakeholder\'s request immediately with the solution you think is best.', answer: false,
+    { type: 'tf', after: 3, statement: 'Before proposing a solution, it often pays to ask a stakeholder what problem their request is meant to solve.', answer: true,
       explain: 'Requests often arrive as solutions in disguise. Asking about the underlying problem and constraints frequently reveals a much simpler answer.' },
 
     { type: 'ab', after: 5, q: 'A developer\'s design has a weak spot. Which feedback is better?',
@@ -1287,17 +1287,17 @@ KS.lesson('ar-estimate-balance', {
       pairs: [['Estimate', 'A forecast with a range and stated assumptions'], ['Commitment', 'A promise made once uncertainty has dropped'], ['Technical debt', 'A shortcut that speeds delivery now and costs more later'], ['Total cost of ownership', 'Everything it costs over its life, not just the purchase price'], ['Gold-plating', 'Perfecting something that only needed to be good enough']] },
 
     { type: 'ab', q: 'The team wants to skip a clean-up to hit a launch. Which way of handling it is better?',
-      a: { lang: 'text', label: 'Deliberate and recorded', src: `
+      a: { lang: 'text', label: 'Ticket in the backlog', src: `
         We will ship with the quick-and-dirty importer.
         Ticket ENG-212: replace it before the March release.
         Cost of delay: manual fixes, about two hours a week.` },
-      b: { lang: 'text', label: 'Silent shortcut', src: `
+      b: { lang: 'text', label: 'TODO in the code', src: `
         // TODO: fix this properly one day
         (no ticket, no owner, no date)` },
       answer: 'a',
       explain: 'Recorded debt has an owner, a cost and a date, so the business can see the loan and choose when to repay it. A bare comment in the code is invisible to planning, so the interest quietly piles up until something breaks.' },
 
-    { type: 'short', q: 'What two-word term describes shortcuts that save time now but make future changes slower?', accept: ['technical debt', 'tech debt'], hint: 'It borrows the language of loans.',
+    { type: 'short', q: 'What two-word term describes shortcuts that save time now but make future changes slower?', accept: ['technical debt', 'tech debt', 'technical debts'], hint: 'It borrows the language of loans.',
       explain: 'Technical debt: used deliberately and recorded, it is a tool; hidden, it is a trap.' },
 
     { type: 'scenario', title: 'Can you do it in a month?', intro: 'The VP of Product drops by your desk. A major customer wants a new reporting feature, and she asks: "Can your team do it in a month? I would like to say yes in the meeting at three o\'clock."',
@@ -1474,7 +1474,7 @@ KS.lesson('ar-marketing', {
       why: [null, 'Wikis can hold documents. The problem is that nobody acted on this one.', 'Quality does not spread by itself; people are busy and attached to habits.', 'Proposals matter a great deal when people adopt them.'],
       explain: 'An idea only matters when it changes what people build. That takes explaining, demonstrating and trust, not just being right.' },
 
-    { type: 'tf', after: 5, statement: 'A prototype used in a demo has to be production-ready, or it will damage your credibility.', answer: false,
+    { type: 'tf', after: 5, statement: 'A prototype used in a demo does not have to be production-ready.', answer: true,
       explain: 'It has to be real enough to believe in and honest about what is missing. Saying "this is a prototype; here is what it leaves out" actually protects your credibility.' },
 
     { type: 'ab', after: 4, q: 'Which opening is more likely to win a team\'s interest in a new testing approach?',
@@ -1560,7 +1560,7 @@ KS.boss('architect-role', {
   intro: 'At the top of a dusty tower sits a keeper who hands down 80-page standards nobody reads. Beat it by spotting the load-bearing decisions, picking the right level, recording the why, and getting good ideas actually adopted.',
   questions: [
     { type: 'mcq', q: 'Two teams argue for a week about which code formatter to use, then agree a public API for partners in a single afternoon. What went wrong?',
-      options: ['They spent their care the wrong way round: the API is hard to reverse, the formatter is not', 'Nothing: every decision deserves about the same amount of debate', 'They should have written a full ADR for the formatter as well', 'They decided the API too late, after the last responsible moment'],
+      options: ['Their care was the wrong way round: the API is the hard one to undo', 'Nothing: every decision deserves about the same amount of debate', 'They should have written a full ADR for the formatter as well', 'They decided the API too late, after the last responsible moment'],
       answer: 0,
       why: [null, 'Care should match how costly a mistake would be to undo.', 'A formatter is easy to swap; an ADR for it is rarely worth the time.', 'The problem is how little care the API got, not when it was decided.'],
       explain: 'A public API that outsiders build on is a load-bearing wall; a formatter is paint. Match the effort to the reversibility.' },

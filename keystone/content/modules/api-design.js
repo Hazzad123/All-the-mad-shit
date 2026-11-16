@@ -307,7 +307,7 @@ KS.lesson('api-rest', {
       why: [null, 'Speed is not the point. Interchangeability is.', 'That is the opposite: it describes sticky, stateful servers.', 'They still use databases; they just do not keep your conversation in memory.'],
       explain: 'If every request carries what is needed, it does not matter which server receives it. New servers can join, and failed ones can leave, without anyone losing a session.' },
 
-    { type: 'tf', after: 8, statement: 'Returning `200 OK` with `{"error": "not found"}` in the body is fine, as long as the error is described clearly.', answer: false,
+    { type: 'tf', after: 8, statement: 'Returning `200 OK` with `{"error": "not found"}` in the body makes the failure look like a success to caches, monitors and retry logic.', answer: true,
       explain: 'Clients, caches, monitors and retry logic read the status code first. A failure sent as 200 looks like success to all of them. Use `404` (or another 4xx/5xx) and put the detail in the body as well.' },
 
     { type: 'spot', prompt: 'Most of these requests follow REST habits. Tap the line that does not.',
@@ -337,7 +337,7 @@ KS.lesson('api-rest', {
       answer: 'b',
       explain: 'The address names the collection, the method says "create", and `201` plus `Location` says exactly what happened and where the new order lives.' },
 
-    { type: 'short', q: 'Which status code should a successful POST that created a new resource return?', accept: ['201'], hint: 'Two-hundred and something.',
+    { type: 'short', q: 'Which status code should a successful POST that created a new resource return?', accept: ['201', '201 Created'], hint: 'Two-hundred and something.',
       explain: '`201 Created`, ideally with a `Location` header giving the address of the new resource.' },
 
     { type: 'multi', q: 'Which of these are REST constraints?',
@@ -362,7 +362,7 @@ KS.lesson('api-rest', {
     { term: 'REST', def: 'REpresentational State Transfer: a style for web APIs built around resources with addresses, standard HTTP methods and stateless requests.', like: 'A town where every house has an address and everyone uses the same few ways to interact with it.' },
     { term: 'Resource', def: 'Any thing an API exposes, identified by a URL, such as a user, an order or a collection of them.', like: 'A house, as opposed to a photo of it.' },
     { term: 'Representation', def: 'A snapshot of a resource\'s current state in some format, usually JSON, that travels in a request or response.', like: 'A photograph of the house.' },
-    { term: 'Collection', def: 'A resource that is a set of other resources, such as `/books`.', like: 'A street, as opposed to one house.' },
+    { term: 'Resource collection', def: 'A resource that is a set of other resources, such as `/books`.', like: 'A street, as opposed to one house.' },
     { term: 'Stateless', def: 'Describes a server that keeps no memory of earlier requests; each request has all the information it needs.', like: 'A shop assistant with no memory who needs your whole order slip every time.' }
   ],
 
@@ -737,7 +737,7 @@ KS.lesson('api-json', {
 
   activities: [
     { type: 'mcq', after: 3, q: 'Which of these is true of JSON compared with XML?',
-      options: ['It carries the same kinds of data with far less wrapping text', 'It supports comments and dates natively', 'It always needs a schema file to be valid', 'It can only be read by JavaScript'],
+      options: ['It says the same things with less wrapping text', 'It supports comments and a date type natively', 'It always needs a schema file to be valid', 'It can only be read and parsed by JavaScript'],
       answer: 0,
       why: [null, 'JSON has neither comments nor a date type. That is a common complaint.', 'A schema is optional for JSON.', 'Every mainstream language can parse JSON. JavaScript was just first.'],
       explain: 'JSON won by being small and simple: no closing tags, a tiny set of types, readable at a glance and easy for any language to parse.' },
@@ -777,7 +777,7 @@ KS.lesson('api-json', {
       explain: 'ISO 8601, string IDs and integer minor units each avoid a classic trap. Regional date formats are ambiguous, and floating-point money accumulates rounding errors.' },
 
     { type: 'estimate', q: 'A server sends the integer 9007199254740993 to a JavaScript client as a plain JSON number. By how much will the client\'s value differ from the one sent?',
-      answer: 1, unit: 'difference', tolerance: 1.5, min: 0, max: 1000,
+      answer: 1, unit: 'difference', scale: 'linear', tolerance: 0.5, min: 0, max: 10,
       explain: 'JavaScript can only hold whole numbers exactly up to 9007199254740991. Beyond that, some numbers are skipped, so ...993 is read as ...992. The difference is tiny, which is why this bug is silent and nasty.' },
 
     { type: 'explain', prompt: 'A colleague stores prices as `19.99` floats and sends them straight through the API. Explain the risk and what you would send instead.',
@@ -972,7 +972,7 @@ KS.lesson('api-openapi-hateoas', {
       items: [['Partners can review the API before any code exists', 0], ['The spec is generated from the code, so it rarely drifts', 1], ['Frontend can work against a mock immediately', 0], ['Fastest way to get a small internal API running', 1], ['Forces the team to think about callers up front', 0]],
       explain: 'Design-first moves feedback before the code. Code-first moves speed and accuracy of the description to the front. Neither is universally better.' },
 
-    { type: 'tf', statement: 'OpenAPI and Swagger are two competing specifications for describing APIs.', answer: false,
+    { type: 'tf', statement: 'The OpenAPI Specification began life as Swagger, and "Swagger" now mostly names tools that read it.', answer: true,
       explain: 'OpenAPI is the specification. It began as Swagger, and "Swagger" now mostly names the tools (such as Swagger UI) that read it.' },
 
     { type: 'mcq', after: 8, q: 'In a HATEOAS response for an order that has already shipped, what would you expect the server to do with the `cancel` link?',
@@ -1170,9 +1170,9 @@ KS.lesson('api-reliability', {
       explain: 'Without a timeout, a stalled server can hold your program (and your user) hostage indefinitely. A deadline turns "stuck forever" into an error you can handle.' },
 
     { type: 'mcq', after: 3, q: 'An app retries `POST /payments` after a lost reply, with the same idempotency key. What should the server do?',
-      options: ['Recognise the key and return the original result without charging again', 'Charge again, because every POST is a new request', 'Refuse all requests that carry a key', 'Delete the first payment and create a new one'],
+      options: ['Replay the first result without charging again', 'Charge again, because every POST is a new request', 'Reject the request because that key was already used', 'Delete the first payment and create a new one'],
       answer: 0,
-      why: [null, 'That is exactly the double charge the key exists to prevent.', 'The key is a feature, not a fault.', 'Deleting would lose a real payment that was already made.'],
+      why: [null, 'That is exactly the double charge the key exists to prevent.', 'A repeated key is expected: it marks a safe retry, not an error.', 'Deleting would lose a real payment that was already made.'],
       explain: 'The key says "this is the same attempt". The server looks it up, finds the stored result, and replays it, so a retry is harmless however many times it happens.' },
 
     { type: 'tf', after: 6, statement: 'When a server answers `429` with `Retry-After: 30`, the client should wait about 30 seconds before trying again.', answer: true,
@@ -1194,12 +1194,12 @@ KS.lesson('api-reliability', {
       lines: [4, 5],
       explain: 'The call sends no idempotency key, so every retry may charge again, and the empty `catch` retries instantly with no backoff, which feeds a retry storm. A key and a growing delay fix both.' },
 
-    { type: 'short', q: 'Which status code means "too many requests, slow down"?', accept: ['429'], hint: 'Four hundred and twenty-something.',
+    { type: 'short', q: 'Which status code means "too many requests, slow down"?', accept: ['429', '429 Too Many Requests'], hint: 'Four hundred and twenty-something.',
       explain: '`429 Too Many Requests`, often with a `Retry-After` header saying how long to wait.' },
 
     { type: 'estimate', q: 'An API allows 100 requests per minute. A buggy client sends 10 requests every second for one minute. Roughly how many of those requests will be rejected with 429?',
       answer: 500, unit: 'requests', tolerance: 1.3,
-      explain: 'The client sends 10 × 60 = 600 requests; the server accepts 100 and rejects the other 500. A client that obeyed `Retry-After` would have spread its calls and had none rejected.' },
+      explain: 'The client sends 10 × 60 = 600 requests; the server accepts 100 and rejects the other 500. A client that obeyed `Retry-After` would have had few or none rejected, but with only 100 allowed per minute, its 600 calls would have taken about six minutes.' },
 
     { type: 'scenario', title: 'The partner who hammers you', intro: 'Your orders API is slowing down. The logs show one partner\'s integration retrying failed calls immediately, hundreds of times a minute, after your database hiccuped for a few seconds.',
       meters: { 'uptime': 50, 'partner relationship': 60 },
@@ -1474,7 +1474,7 @@ KS.boss('api-design', {
   intro: 'A goblin lives under the bridge between two systems and eats any API that breaks its promises. Feed it good designs, safe retries and sensible wiring, and it will let you cross.',
   questions: [
     { type: 'mcq', q: 'Why is changing a published API harder than changing a function inside your own program?',
-      options: ['Callers are other programs you cannot see or update, so a change can break them silently', 'APIs are written in a stricter language', 'Servers cannot be restarted once an API is live', 'The compiler refuses to build changed APIs'],
+      options: ['Its callers are programs you cannot see or update', 'APIs are written in a stricter language than apps', 'Servers cannot be restarted once an API is live', 'The compiler refuses to build a changed API'],
       answer: 0,
       why: [null, 'The language is not the issue. The invisible callers are.', 'Servers restart all the time. That does not fix broken callers.', 'No compiler sees the other side of a network call.'],
       explain: 'Inside one program, the compiler finds every broken use. An API\'s callers live elsewhere, so the contract itself is the only protection.' },
@@ -1492,7 +1492,7 @@ KS.boss('api-design', {
     { type: 'tf', statement: 'A REST server should remember each client\'s session in memory between requests, so clients need not send credentials each time.', answer: false,
       explain: 'REST is stateless: every request carries what the server needs (such as a token). That is what lets any server in a group answer any request.' },
 
-    { type: 'short', q: 'Which status code should a successful POST that creates a resource normally return?', accept: ['201'], hint: 'Two-oh-something.',
+    { type: 'short', q: 'Which status code should a successful POST that creates a resource normally return?', accept: ['201', '201 Created'], hint: 'Two-oh-something.',
       explain: '`201 Created`, with a `Location` header giving the new resource\'s address.' },
 
     { type: 'bucket', prompt: 'Breaking change for existing callers, or safe?', buckets: ['Breaking', 'Safe'],
